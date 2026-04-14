@@ -53,7 +53,7 @@ const getPasswordStrength = (password: string): PasswordStrength => {
   ]
   const score = rules.reduce((acc, ok) => acc + (ok ? 1 : 0), 0)
   const percent = Math.round((score / rules.length) * 100)
-  const label = score <= 1 ? 'Weak' : score === 2 ? 'Fair' : score === 3 ? 'Good' : score === 4 ? 'Strong' : 'Excellent'
+  const label = score <= 1 ? '弱' : score === 2 ? '一般' : score === 3 ? '良好' : score === 4 ? '强' : '很强'
   return { percent, label }
 }
 
@@ -272,8 +272,8 @@ export default function App() {
     event.preventDefault()
 
     const nextErrors: LoginErrors = {}
-    if (!loginValue.account.trim()) nextErrors.account = 'Account is required'
-    if (!loginValue.password.trim()) nextErrors.password = 'Password is required'
+    if (!loginValue.account.trim()) nextErrors.account = '请输入账号'
+    if (!loginValue.password.trim()) nextErrors.password = '请输入密码'
     setLoginErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) return
 
@@ -282,10 +282,10 @@ export default function App() {
       const res = await login({ username: loginValue.account.trim(), password: loginValue.password })
       if (res.data.code === 200) {
         useUserStore.getState().login(res.data.data.token, res.data.data.user)
-        message.success('Login successful')
+        message.success('登录成功')
         handleNavigate({ name: 'home' })
       } else {
-        message.error(res.data.message || 'Login failed')
+        message.error(res.data.message || '登录失败')
       }
     } catch (error) {
       console.error(error)
@@ -319,7 +319,7 @@ export default function App() {
         console.error(error)
       } finally {
         useUserStore.getState().logout()
-        message.success('Logged out')
+        message.success('已退出登录')
         handleNavigate({ name: 'home' })
       }
     })()
@@ -327,7 +327,7 @@ export default function App() {
 
   const onRegisterRequestCode = () => {
     if (!isLikelyEmail(registerValue.email)) {
-      setRegisterErrors((prev) => ({ ...prev, email: 'Please enter a valid email' }))
+      setRegisterErrors((prev) => ({ ...prev, email: '请输入正确的邮箱地址' }))
       return
     }
     if (registerCodeSecondsLeft > 0) return
@@ -338,9 +338,14 @@ export default function App() {
         if (res.data.code === 200) {
           setRegisterErrors((prev) => ({ ...prev, email: undefined }))
           setRegisterCodeSecondsLeft(60)
-          message.success('Verification code sent')
+          const debugCode = res.data.data?.debugCode
+          message.success(
+            debugCode
+              ? `开发环境验证码：${debugCode}`
+              : res.data.message || '验证码已发送'
+          )
         } else {
-          message.error(res.data.message || 'Failed to send verification code')
+          message.error(res.data.message || '验证码发送失败')
         }
       } catch (error) {
         console.error(error)
@@ -350,7 +355,7 @@ export default function App() {
 
   const onForgotRequestCode = () => {
     if (!isLikelyEmail(forgotValue.email)) {
-      setForgotErrors((prev) => ({ ...prev, email: 'Please enter a valid email' }))
+      setForgotErrors((prev) => ({ ...prev, email: '请输入正确的邮箱地址' }))
       return
     }
     if (forgotCodeSecondsLeft > 0) return
@@ -361,9 +366,14 @@ export default function App() {
         if (res.data.code === 200) {
           setForgotErrors((prev) => ({ ...prev, email: undefined }))
           setForgotCodeSecondsLeft(60)
-          message.success('Verification code sent')
+          const debugCode = res.data.data?.debugCode
+          message.success(
+            debugCode
+              ? `开发环境验证码：${debugCode}`
+              : res.data.message || '验证码已发送'
+          )
         } else {
-          message.error(res.data.message || 'Failed to send verification code')
+          message.error(res.data.message || '验证码发送失败')
         }
       } catch (error) {
         console.error(error)
@@ -375,10 +385,10 @@ export default function App() {
     event.preventDefault()
 
     const nextErrors: RegisterErrors = {}
-    if (!isLikelyEmail(registerValue.email)) nextErrors.email = 'Please enter a valid email'
-    if (registerValue.code.trim().length < 4) nextErrors.code = 'Verification code is required'
-    if (!registerValue.password.trim()) nextErrors.password = 'Password is required'
-    if (registerValue.password !== registerValue.confirmPassword) nextErrors.confirmPassword = 'Passwords do not match'
+    if (!isLikelyEmail(registerValue.email)) nextErrors.email = '请输入正确的邮箱地址'
+    if (registerValue.code.trim().length < 4) nextErrors.code = '请输入验证码'
+    if (!registerValue.password.trim()) nextErrors.password = '请输入密码'
+    if (registerValue.password !== registerValue.confirmPassword) nextErrors.confirmPassword = '两次输入的密码不一致'
     setRegisterErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) return
 
@@ -391,10 +401,10 @@ export default function App() {
       })
       if (res.data.code === 200) {
         useUserStore.getState().login(res.data.data.token, res.data.data.user)
-        message.success('Registration successful')
+        message.success('注册成功')
         handleNavigate({ name: 'home' })
       } else {
-        message.error(res.data.message || 'Registration failed')
+        message.error(res.data.message || '注册失败')
       }
     } catch (error) {
       console.error(error)
@@ -407,10 +417,10 @@ export default function App() {
     event.preventDefault()
 
     const nextErrors: ForgotErrors = {}
-    if (!isLikelyEmail(forgotValue.email)) nextErrors.email = 'Please enter a valid email'
-    if (forgotValue.code.trim().length < 4) nextErrors.code = 'Verification code is required'
-    if (!forgotValue.password.trim()) nextErrors.password = 'New password is required'
-    if (forgotValue.password !== forgotValue.confirmPassword) nextErrors.confirmPassword = 'Passwords do not match'
+    if (!isLikelyEmail(forgotValue.email)) nextErrors.email = '请输入正确的邮箱地址'
+    if (forgotValue.code.trim().length < 4) nextErrors.code = '请输入验证码'
+    if (!forgotValue.password.trim()) nextErrors.password = '请输入新密码'
+    if (forgotValue.password !== forgotValue.confirmPassword) nextErrors.confirmPassword = '两次输入的密码不一致'
     setForgotErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) return
 
@@ -422,12 +432,12 @@ export default function App() {
         password: forgotValue.password,
       })
       if (res.data.code === 200) {
-        message.success('Password reset successful')
+        message.success('密码重置成功')
         setMode('login')
         setLoginValue({ account: forgotValue.email.trim(), password: '' })
         handleNavigate({ name: 'auth' })
       } else {
-        message.error(res.data.message || 'Password reset failed')
+        message.error(res.data.message || '密码重置失败')
       }
     } catch (error) {
       console.error(error)
@@ -462,7 +472,7 @@ export default function App() {
         <Suspense
           fallback={
             <div style={{ display: 'grid', placeItems: 'center', minHeight: '100vh', color: 'var(--text-secondary)' }}>
-              Loading...
+              正在加载...
             </div>
           }
         >
@@ -493,8 +503,8 @@ export default function App() {
                 onForgotRequestCode={onForgotRequestCode}
                 onModeChange={onModeChange}
               />
-              <button className="appBackHome" type="button" onClick={() => handleNavigate({ name: 'home' })} aria-label="Back home">
-                Back Home
+              <button className="appBackHome" type="button" onClick={() => handleNavigate({ name: 'home' })} aria-label="返回首页">
+                返回首页
               </button>
             </>
           ) : route.name === 'editor' ? (
@@ -520,7 +530,7 @@ export default function App() {
                 {route.name === 'tag' && (
                   <CategoryPage
                     id={route.params.id}
-                    name={`Tag: ${route.params.name}`}
+                    name={`标签: ${route.params.name}`}
                     onArticleClick={(id) => handleNavigate({ name: 'article', params: { id } })}
                   />
                 )}

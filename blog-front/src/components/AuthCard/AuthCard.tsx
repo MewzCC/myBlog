@@ -126,7 +126,7 @@ export default function AuthCard({
               <div className="authBrandMark" aria-hidden="true" />
               <div>
                 <div className="authBrandName">NEON</div>
-                <div className="authBrandSub">Sign in</div>
+                <div className="authBrandSub">登录</div>
               </div>
             </div>
 
@@ -204,7 +204,7 @@ export default function AuthCard({
               <div className="authBrandMark" aria-hidden="true" />
               <div>
                 <div className="authBrandName">NEON</div>
-                <div className="authBrandSub">Create account</div>
+                <div className="authBrandSub">创建账号</div>
               </div>
             </div>
 
@@ -330,7 +330,7 @@ export default function AuthCard({
               <div className="authBrandMark" aria-hidden="true" />
               <div>
                 <div className="authBrandName">NEON</div>
-                <div className="authBrandSub">Reset password</div>
+                <div className="authBrandSub">重置密码</div>
               </div>
             </div>
 

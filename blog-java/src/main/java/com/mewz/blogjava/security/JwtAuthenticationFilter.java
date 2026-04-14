@@ -12,7 +12,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -24,7 +23,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private final JwtService jwtService;
   private final UserRepository userRepository;
-  private final StringRedisTemplate redisTemplate;
+  private final AuthStateCacheService authStateCacheService;
 
   @Override
   protected void doFilterInternal(
@@ -39,7 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     String token = authorization.substring(7);
     try {
-      if (Boolean.TRUE.equals(redisTemplate.hasKey("auth:blacklist:" + token))) {
+      if (authStateCacheService.isTokenBlacklisted(token)) {
         filterChain.doFilter(request, response);
         return;
       }

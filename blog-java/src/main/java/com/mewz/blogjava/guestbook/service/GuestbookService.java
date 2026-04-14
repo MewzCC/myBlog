@@ -23,6 +23,7 @@ public class GuestbookService {
   private final SiteSettingsService siteSettingsService;
   private final AuthService authService;
 
+  @Transactional(readOnly = true)
   public List<GuestbookMessageDto> getMessages() {
     return repository.findAllByOrderByCreatedAtDesc().stream().map(this::toDto).toList();
   }

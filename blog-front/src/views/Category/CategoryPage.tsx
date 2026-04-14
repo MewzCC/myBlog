@@ -30,11 +30,11 @@ export default function CategoryPage({ id, name, onArticleClick }: CategoryPageP
           setArticles(res.data.data.list)
           setTotal(res.data.data.total)
         } else {
-          message.error(res.data.message || 'Failed to load articles')
+          message.error(res.data.message || '加载文章失败')
         }
       } catch (error) {
         console.error(error)
-        message.error('Failed to load articles')
+        message.error('加载文章失败')
       } finally {
         setLoading(false)
       }
@@ -47,7 +47,7 @@ export default function CategoryPage({ id, name, onArticleClick }: CategoryPageP
     <div className="categoryRoot">
       <header className="categoryHeader">
         <h1 className="categoryTitle">{name}</h1>
-        <div style={{ marginTop: 8, color: 'var(--text-secondary)', fontSize: 14 }}>{total} articles</div>
+        <div style={{ marginTop: 8, color: 'var(--text-secondary)', fontSize: 14 }}>共 {total} 篇文章</div>
       </header>
 
       <div className="categoryList">
@@ -64,7 +64,7 @@ export default function CategoryPage({ id, name, onArticleClick }: CategoryPageP
           articles.map((article) => <ArticleCard key={article.id} article={article} onClick={() => onArticleClick(article.id)} />)
         ) : (
           <div style={{ gridColumn: '1 / -1', padding: '40px 0' }}>
-            <Empty description="No articles yet" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+            <Empty description="暂无文章" image={Empty.PRESENTED_IMAGE_SIMPLE} />
           </div>
         )}
       </div>

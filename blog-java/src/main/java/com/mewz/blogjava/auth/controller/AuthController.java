@@ -46,9 +46,10 @@ public class AuthController {
   }
 
   @PostMapping("/register/code")
-  public ApiResponse<Void> sendRegisterCode(@Valid @RequestBody VerificationCodeRequest request) {
-    authService.sendRegisterCode(request);
-    return ApiResponse.successMessage("Verification code sent");
+  public ApiResponse<VerificationCodeResult> sendRegisterCode(@Valid @RequestBody VerificationCodeRequest request) {
+    VerificationCodeResult result = authService.sendRegisterCode(request);
+    String message = "email".equals(result.getDelivery()) ? "Verification code sent" : "Development verification code generated";
+    return ApiResponse.success(message, result);
   }
 
   @PostMapping("/register")
@@ -57,9 +58,10 @@ public class AuthController {
   }
 
   @PostMapping("/password/code")
-  public ApiResponse<Void> sendPasswordCode(@Valid @RequestBody VerificationCodeRequest request) {
-    authService.sendPasswordResetCode(request);
-    return ApiResponse.successMessage("Verification code sent");
+  public ApiResponse<VerificationCodeResult> sendPasswordCode(@Valid @RequestBody VerificationCodeRequest request) {
+    VerificationCodeResult result = authService.sendPasswordResetCode(request);
+    String message = "email".equals(result.getDelivery()) ? "Verification code sent" : "Development verification code generated";
+    return ApiResponse.success(message, result);
   }
 
   @PostMapping("/password/reset")

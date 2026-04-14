@@ -9,6 +9,7 @@ import com.mewz.blogjava.comment.mapper.CommentRepository;
 import com.mewz.blogjava.common.ActorContext;
 import com.mewz.blogjava.common.service.ActorService;
 import com.mewz.blogjava.common.ApiException;
+import com.mewz.blogjava.meta.service.MetaService;
 import com.mewz.blogjava.user.UserAccount;
 import java.time.Instant;
 import java.util.Comparator;
@@ -29,7 +30,9 @@ public class ArticleService {
   private final CommentRepository commentRepository;
   private final AuthService authService;
   private final ActorService actorService;
+  private final MetaService metaService;
 
+  @Transactional(readOnly = true)
   public ArticleListResponse getArticles(
       Integer page,
       Integer pageSize,
@@ -85,7 +88,6 @@ public class ArticleService {
     }
 
     article.setViews(article.getViews() + 1);
-    articleRepository.save(article);
 
     ActorContext actor = actorService.getActor(visitorId);
     ArticleDetailDto detail = toDetail(article, actor);
@@ -107,6 +109,7 @@ public class ArticleService {
     article.setAuthor(author);
     article.setStatus(author.getRoleList().contains("admin") ? ArticleStatus.APPROVED : ArticleStatus.PENDING);
     articleRepository.save(article);
+    metaService.refreshCaches();
     return toDetail(article, actorService.getActor(null));
   }
 
@@ -121,6 +124,7 @@ public class ArticleService {
     return new ArticleFavoriteResult(result.count(), result.active());
   }
 
+  @Transactional(readOnly = true)
   public ArticleEntity getEntity(String id) {
     return articleRepository.findById(id).orElseThrow(() -> new ApiException(404, "Article not found"));
   }

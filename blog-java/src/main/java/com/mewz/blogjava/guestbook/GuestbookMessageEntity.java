@@ -36,7 +36,7 @@ public class GuestbookMessageEntity extends BaseEntity {
   private String authorAvatar;
 
   @Lob
-  @Column(nullable = false)
+  @Column(nullable = false, columnDefinition = "LONGTEXT")
   private String content;
 }
 

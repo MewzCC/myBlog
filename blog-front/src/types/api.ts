@@ -33,6 +33,11 @@ export interface VerificationCodeRequest {
   email: string
 }
 
+export interface VerificationCodeResult {
+  delivery: 'email' | 'mock'
+  debugCode?: string | null
+}
+
 export interface RegisterRequest {
   email: string
   code: string

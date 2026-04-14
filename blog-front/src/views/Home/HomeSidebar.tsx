@@ -23,7 +23,7 @@ export default function HomeSidebar() {
         if (catRes.data.code === 200) setCategories(catRes.data.data)
         if (tagRes.data.code === 200) setTags(tagRes.data.data)
       } catch (error) {
-        console.error('Failed to fetch sidebar data', error)
+        console.error('加载侧边栏数据失败', error)
       } finally {
         setLoading(false)
       }
@@ -51,25 +51,25 @@ export default function HomeSidebar() {
         <div className="profileContent">
           <Avatar size={80} src={profile.avatar} className="profileAvatar" />
           <h3 className="profileName">{profile.name}</h3>
-          <p className="profileBio">{profile.bio || 'No bio yet.'}</p>
+          <p className="profileBio">{profile.bio || '这个人有点低调，还没写简介。'}</p>
 
           <div className="profileStats">
             <div className="statItem">
               <span className="statValue">{profile.stats?.articles || 0}</span>
-              <span className="statLabel">Articles</span>
+              <span className="statLabel">文章</span>
             </div>
             <div className="statItem">
               <span className="statValue">{profile.stats?.tags || 0}</span>
-              <span className="statLabel">Tags</span>
+              <span className="statLabel">标签</span>
             </div>
             <div className="statItem">
               <span className="statValue">{profile.stats?.categories || 0}</span>
-              <span className="statLabel">Categories</span>
+              <span className="statLabel">分类</span>
             </div>
           </div>
 
           <Button type="primary" block className="followBtn">
-            Follow
+            关注
           </Button>
 
           {enableSocials && (
@@ -105,7 +105,7 @@ export default function HomeSidebar() {
       </div>
 
       <div className="sidebarCard">
-        <h4 className="cardTitle">Categories</h4>
+        <h4 className="cardTitle">分类</h4>
         <ul className="categoryList">
           {categories.map((category) => (
             <li key={category.id} className="categoryItem">
@@ -117,7 +117,7 @@ export default function HomeSidebar() {
       </div>
 
       <div className="sidebarCard">
-        <h4 className="cardTitle">Popular Tags</h4>
+        <h4 className="cardTitle">热门标签</h4>
         <div className="tagCloud">
           {tags.map((tag) => (
             <Tag key={tag.id} className="tagItem">

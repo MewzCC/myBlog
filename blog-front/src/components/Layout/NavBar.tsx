@@ -38,50 +38,51 @@ export default function NavBar({ onNavigate, onOpenAuth, onOpenRegister, onLogou
       key: 'light',
       label: '浅色模式',
       icon: theme === 'light' && <CheckOutlined />,
-      onClick: () => setTheme('light')
+      onClick: () => setTheme('light'),
     },
     {
       key: 'dark',
       label: '深色模式',
       icon: theme === 'dark' && <CheckOutlined />,
-      onClick: () => setTheme('dark')
+      onClick: () => setTheme('dark'),
     },
     {
       key: 'system',
       label: '跟随系统',
       icon: theme === 'system' && <CheckOutlined />,
-      onClick: () => setTheme('system')
-    }
+      onClick: () => setTheme('system'),
+    },
   ]
+
   const userItems: MenuProps['items'] = [
     {
       key: 'profile',
       label: '个人主页',
-      onClick: () => handleNav({ name: 'user' })
+      onClick: () => handleNav({ name: 'user' }),
     },
     {
       key: 'account',
       label: '账号设置',
-      onClick: () => handleNav({ name: 'user' })
+      onClick: () => handleNav({ name: 'user' }),
     },
     ...(isAdmin
       ? [
           {
             key: 'admin',
             label: '后台管理',
-            onClick: () => handleNav({ name: 'admin' as const })
-          }
+            onClick: () => handleNav({ name: 'admin' as const }),
+          },
         ]
       : []),
     {
-      type: 'divider'
+      type: 'divider',
     },
     {
       key: 'logout',
       label: '退出登录',
       danger: true,
-      onClick: onLogout
-    }
+      onClick: onLogout,
+    },
   ]
 
   return (
@@ -111,29 +112,14 @@ export default function NavBar({ onNavigate, onOpenAuth, onOpenRegister, onLogou
         </form>
         {isAdmin && (
           <Tooltip title="发布文章">
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              onClick={() => handleNav({ name: 'editor' })}
-              className="navWriteBtn"
-            />
+            <Button type="text" icon={<EditOutlined />} onClick={() => handleNav({ name: 'editor' })} className="navWriteBtn" />
           </Tooltip>
         )}
         <Dropdown menu={{ items: themeItems }} placement="bottomRight" arrow>
-          <Button
-            type="text"
-            icon={<BgColorsOutlined />}
-            className="navWriteBtn"
-          />
+          <Button type="text" icon={<BgColorsOutlined />} className="navWriteBtn" />
         </Dropdown>
         {userInfo ? (
-          <Dropdown
-            menu={{ items: userItems }}
-            trigger={['hover']}
-            placement="bottomRight"
-            overlayClassName="navUserDropdownOverlay"
-            arrow
-          >
+          <Dropdown menu={{ items: userItems }} trigger={['hover']} placement="bottomRight" overlayClassName="navUserDropdownOverlay" arrow>
             <button type="button" className="navUser" aria-label="账户菜单">
               <img src={userInfo.avatar} alt={userInfo.name} className="navUserAvatar" />
               <span className="navUserName">{userInfo.name}</span>

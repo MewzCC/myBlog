@@ -30,6 +30,7 @@ public class CommentService {
   private final ActorService actorService;
   private final AuthService authService;
 
+  @Transactional(readOnly = true)
   public List<CommentDto> getComments(String articleId) {
     List<CommentEntity> entities = commentRepository.findByArticleIdOrderByCreatedAtAsc(articleId);
     Map<String, List<CommentDto>> children = new HashMap<>();

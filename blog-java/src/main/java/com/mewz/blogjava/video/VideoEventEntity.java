@@ -32,6 +32,7 @@ public class VideoEventEntity {
   private Long eventAt;
 
   @Lob
+  @Column(columnDefinition = "LONGTEXT")
   private String dataJson;
 
   @Column(nullable = false)

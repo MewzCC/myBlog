@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -42,6 +43,19 @@ public class JsonHelper {
       });
     } catch (JsonProcessingException ex) {
       return Collections.emptyMap();
+    }
+  }
+
+  public <T> List<T> readList(String raw, Class<T> type) {
+    if (raw == null || raw.isBlank()) {
+      return List.of();
+    }
+    try {
+      return objectMapper.readValue(
+          raw,
+          objectMapper.getTypeFactory().constructCollectionType(List.class, type));
+    } catch (JsonProcessingException ex) {
+      return List.of();
     }
   }
 }

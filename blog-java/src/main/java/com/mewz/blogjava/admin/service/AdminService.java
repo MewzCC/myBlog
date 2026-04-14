@@ -6,6 +6,7 @@ import com.mewz.blogjava.article.ArticleEntity;
 import com.mewz.blogjava.article.mapper.ArticleRepository;
 import com.mewz.blogjava.article.ArticleStatus;
 import com.mewz.blogjava.common.ApiException;
+import com.mewz.blogjava.meta.service.MetaService;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
@@ -23,6 +24,7 @@ public class AdminService {
       .withZone(ZoneId.systemDefault());
 
   private final ArticleRepository articleRepository;
+  private final MetaService metaService;
 
   public List<AdminArticleReviewItemDto> getReviewArticles(String keyword) {
     return articleRepository.findAll().stream()
@@ -39,6 +41,7 @@ public class AdminService {
     ArticleEntity article = findArticle(articleId);
     article.setStatus(ArticleStatus.APPROVED);
     articleRepository.save(article);
+    metaService.refreshCaches();
   }
 
   @Transactional
@@ -46,6 +49,7 @@ public class AdminService {
     ArticleEntity article = findArticle(articleId);
     article.setStatus(ArticleStatus.REJECTED);
     articleRepository.save(article);
+    metaService.refreshCaches();
   }
 
   private ArticleEntity findArticle(String articleId) {

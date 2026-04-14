@@ -6,6 +6,7 @@ import com.mewz.blogjava.article.ArticleEntity;
 import com.mewz.blogjava.article.mapper.ArticleRepository;
 import com.mewz.blogjava.article.ArticleStatus;
 import com.mewz.blogjava.common.ApiException;
+import com.mewz.blogjava.security.AuthStateCacheService;
 import com.mewz.blogjava.common.JsonHelper;
 import com.mewz.blogjava.security.service.JwtService;
 import com.mewz.blogjava.security.JwtUserPrincipal;
@@ -19,7 +20,6 @@ import java.util.Locale;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,13 +36,14 @@ public class AuthService {
   private final ArticleRepository articleRepository;
   private final PasswordEncoder passwordEncoder;
   private final JwtService jwtService;
-  private final StringRedisTemplate redisTemplate;
+  private final AuthStateCacheService authStateCacheService;
   private final MailService mailService;
   private final JsonHelper jsonHelper;
 
   @Value("${app.admin.email:admin@example.com}")
   private String adminEmail;
 
+  @Transactional(readOnly = true)
   public AuthResponse login(LoginRequest request) {
     String account = request.getUsername().trim().toLowerCase(Locale.ROOT);
     UserAccount user = userRepository.findByEmail(account)
@@ -60,9 +61,10 @@ public class AuthService {
       return;
     }
     Duration ttl = jwtService.getRemainingTtl(token);
-    redisTemplate.opsForValue().set("auth:blacklist:" + token, "1", ttl);
+    authStateCacheService.blacklistToken(token, ttl);
   }
 
+  @Transactional(readOnly = true)
   public UserDto getCurrentUser() {
     return toUserDto(getAuthenticatedUser());
   }
@@ -91,17 +93,17 @@ public class AuthService {
     return toUserDto(userRepository.save(user));
   }
 
-  public void sendRegisterCode(VerificationCodeRequest request) {
+  public VerificationCodeResult sendRegisterCode(VerificationCodeRequest request) {
     if (userRepository.findByEmail(request.getEmail().trim().toLowerCase(Locale.ROOT)).isPresent()) {
       throw new ApiException(400, "Email already registered");
     }
-    sendCode("register", request.getEmail(), "Blog registration verification code");
+    return sendCode("register", request.getEmail(), "Blog registration verification code");
   }
 
-  public void sendPasswordResetCode(VerificationCodeRequest request) {
+  public VerificationCodeResult sendPasswordResetCode(VerificationCodeRequest request) {
     userRepository.findByEmail(request.getEmail().trim().toLowerCase(Locale.ROOT))
         .orElseThrow(() -> new ApiException(404, "Email is not registered"));
-    sendCode("password", request.getEmail(), "Blog password reset verification code");
+    return sendCode("password", request.getEmail(), "Blog password reset verification code");
   }
 
   @Transactional
@@ -124,7 +126,7 @@ public class AuthService {
     user.setRoles("user");
     userRepository.save(user);
 
-    redisTemplate.delete(codeKey("register", email));
+    authStateCacheService.deleteVerificationCode(codeKey("register", email));
     return buildAuthResponse(user);
   }
 
@@ -136,9 +138,10 @@ public class AuthService {
     validateCode("password", email, request.getCode());
     user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
     userRepository.save(user);
-    redisTemplate.delete(codeKey("password", email));
+    authStateCacheService.deleteVerificationCode(codeKey("password", email));
   }
 
+  @Transactional(readOnly = true)
   public UserDto getBloggerProfile() {
     UserAccount admin = userRepository.findByEmail(adminEmail)
         .orElseThrow(() -> new ApiException(404, "Admin not found"));
@@ -155,9 +158,7 @@ public class AuthService {
   }
 
   public UserDto toUserDto(UserAccount user) {
-    List<ArticleEntity> articles = articleRepository.findAll().stream()
-        .filter(article -> article.getAuthor().getId().equals(user.getId()) && article.getStatus() == ArticleStatus.APPROVED)
-        .toList();
+    List<ArticleEntity> articles = articleRepository.findByAuthorIdAndStatus(user.getId(), ArticleStatus.APPROVED);
     Set<String> tags = new LinkedHashSet<>();
     Set<String> categories = new LinkedHashSet<>();
     articles.forEach(article -> {
@@ -186,15 +187,16 @@ public class AuthService {
     return new AuthResponse(token, toUserDto(user));
   }
 
-  private void sendCode(String scene, String email, String subject) {
+  private VerificationCodeResult sendCode(String scene, String email, String subject) {
     String normalized = email.trim().toLowerCase(Locale.ROOT);
     String code = String.valueOf(100000 + RANDOM.nextInt(900000));
-    redisTemplate.opsForValue().set(codeKey(scene, normalized), code, Duration.ofMinutes(10));
-    mailService.sendVerificationCode(normalized, subject, code);
+    authStateCacheService.storeVerificationCode(codeKey(scene, normalized), code, Duration.ofMinutes(10));
+    boolean delivered = mailService.sendVerificationCode(normalized, subject, code);
+    return new VerificationCodeResult(delivered ? "email" : "mock", delivered ? null : code);
   }
 
   private void validateCode(String scene, String email, String code) {
-    String stored = redisTemplate.opsForValue().get(codeKey(scene, email));
+    String stored = authStateCacheService.getVerificationCode(codeKey(scene, email));
     if (stored == null || !stored.equals(code)) {
       throw new ApiException(400, "Invalid or expired verification code");
     }

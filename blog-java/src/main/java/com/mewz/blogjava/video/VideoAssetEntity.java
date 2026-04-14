@@ -35,9 +35,11 @@ public class VideoAssetEntity extends BaseEntity {
   private long size;
 
   @Lob
+  @Column(columnDefinition = "LONGTEXT")
   private String poster;
 
   @Lob
+  @Column(columnDefinition = "LONGTEXT")
   private String thumbnailsVtt;
 }
 

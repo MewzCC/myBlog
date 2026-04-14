@@ -5,6 +5,7 @@ import type {
   ResetPasswordRequest,
   RegisterRequest,
   User,
+  VerificationCodeResult,
   VerificationCodeRequest,
 } from '../types/api'
 
@@ -25,7 +26,7 @@ export const updateUserInfo = (data: Partial<User>) => {
 }
 
 export const sendRegisterCode = (data: VerificationCodeRequest) => {
-  return request.post<ApiResponse<null>>('/auth/register/code', data)
+  return request.post<ApiResponse<VerificationCodeResult>>('/auth/register/code', data)
 }
 
 export const register = (data: RegisterRequest) => {
@@ -33,7 +34,7 @@ export const register = (data: RegisterRequest) => {
 }
 
 export const sendResetPasswordCode = (data: VerificationCodeRequest) => {
-  return request.post<ApiResponse<null>>('/auth/password/code', data)
+  return request.post<ApiResponse<VerificationCodeResult>>('/auth/password/code', data)
 }
 
 export const resetPassword = (data: ResetPasswordRequest) => {

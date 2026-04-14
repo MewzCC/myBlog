@@ -57,15 +57,15 @@ public class DataInitializer implements CommandLineRunner {
     return userRepository.findByEmail(adminEmail).orElseGet(() -> {
       UserAccount admin = new UserAccount();
       admin.setEmail(adminEmail);
-      admin.setName("Admin");
+      admin.setName("樱花站长");
       admin.setPasswordHash(passwordEncoder.encode(adminPassword));
-      admin.setAvatar("https://api.dicebear.com/7.x/avataaars/svg?seed=Admin");
-      admin.setBio("Full-stack developer, blogger, and long-term learner.");
+      admin.setAvatar("https://api.dicebear.com/7.x/avataaars/svg?seed=%E6%A8%B1%E8%8A%B1%E7%AB%99%E9%95%BF");
+      admin.setBio("专注前端体验、后端架构与日常写作，喜欢把复杂问题讲清楚，也喜欢把普通日子记录下来。");
       SocialLinks socials = new SocialLinks();
       socials.setGithub("https://github.com/MewzCC");
-      socials.setTwitter("https://twitter.com");
-      socials.setBilibili("https://bilibili.com");
-      socials.setDouyin("https://douyin.com");
+      socials.setTwitter("https://x.com");
+      socials.setBilibili("https://space.bilibili.com/1");
+      socials.setDouyin("https://www.douyin.com");
       socials.setEmail(adminEmail);
       admin.setSocialsJson(jsonHelper.toJson(socials));
       admin.setRoles("admin,user");
@@ -81,70 +81,70 @@ public class DataInitializer implements CommandLineRunner {
 
   private void seedArticles(UserAccount admin) {
     List<ArticleEntity> articles = List.of(
-        createArticle(admin, "React 19 and the future of concurrent rendering",
-            "A deep dive into React 19 features and how they change app architecture.",
-            "A practical overview of React 19, compiler work, and server-driven UI.",
-            "frontend",
-            Set.of("React", "Frontend", "Performance"),
+        createArticle(admin, "把个人博客从静态页面改造成前后端分离项目",
+            "记录一次把展示型博客升级为可登录、可评论、可管理系统的完整过程。",
+            "从接口设计、状态管理到部署习惯，这篇文章把整个重构过程拆成了能直接落地的步骤。",
+            "前端开发",
+            Set.of("React", "工程化", "接口联调"),
             30),
-        createArticle(admin, "TypeScript patterns that scale in product teams",
-            "Reusable typing strategies for large front-end codebases.",
-            "How to keep type safety high without slowing teams down.",
-            "frontend",
-            Set.of("TypeScript", "JavaScript"),
+        createArticle(admin, "写给团队的 TypeScript 约束方案",
+            "在不牺牲开发速度的前提下，建立一套更稳的类型约束习惯。",
+            "文章围绕接口类型、组件 Props 设计、表单校验和公共工具类型，分享适合团队协作的实践。",
+            "前端开发",
+            Set.of("TypeScript", "代码规范", "团队协作"),
             24),
-        createArticle(admin, "Distributed transaction trade-offs in microservices",
-            "Saga, TCC, and compensation patterns explained with product examples.",
-            "A backend-focused article on consistency patterns for business systems.",
-            "backend",
-            Set.of("Backend", "Architecture", "Microservices"),
+        createArticle(admin, "从单体博客到业务后端：我为什么选择 Spring Boot",
+            "用博客系统作为例子，聊聊为什么我更偏爱 Spring Boot 作为中后台项目的基础框架。",
+            "这篇文章会结合权限、配置、持久化与异常处理，解释框架选型背后的实际取舍。",
+            "后端架构",
+            Set.of("Spring Boot", "Java", "系统设计"),
             18),
-        createArticle(admin, "Building media workflows with Spring Boot and Redis",
-            "Using Redis buffers and scheduled persistence for event-heavy systems.",
-            "A walkthrough of durable event pipelines for media products.",
-            "backend",
-            Set.of("Spring Boot", "Redis", "Video"),
+        createArticle(admin, "Redis 在博客系统里到底该怎么用",
+            "缓存不是越多越好，关键是把它放在真正能提升体验的位置上。",
+            "文中会用登录态、验证码、视频事件缓冲和热点数据缓存几个场景来说明 Redis 的合理用法。",
+            "后端架构",
+            Set.of("Redis", "缓存", "性能优化"),
             12),
-        createArticle(admin, "Designing delightful developer-facing dashboards",
-            "How visual hierarchy and motion improve admin productivity.",
-            "UX principles for internal tools and review workflows.",
-            "design",
-            Set.of("Design", "Dashboard", "UI"),
+        createArticle(admin, "后台页面不只是能用，还应该让人愿意用",
+            "谈谈后台审稿、设置页和文章管理页的交互细节，为什么会直接影响效率。",
+            "好的后台界面应该清楚、克制、可信赖，而不是把所有按钮堆在一起。",
+            "产品设计",
+            Set.of("后台设计", "用户体验", "界面设计"),
             8));
 
     articleRepository.saveAll(articles);
 
     CommentEntity first = new CommentEntity();
     first.setArticle(articles.get(0));
-    first.setAuthorName("Alice");
-    first.setAuthorAvatar("https://api.dicebear.com/7.x/avataaars/svg?seed=Alice");
-    first.setVisitorId("seed-alice");
-    first.setContent("This article is very practical. The migration notes were especially helpful.");
+    first.setAuthorName("林夏");
+    first.setAuthorAvatar("https://api.dicebear.com/7.x/avataaars/svg?seed=%E6%9E%97%E5%A4%8F");
+    first.setVisitorId("seed-linxia");
+    first.setContent("这篇文章写得很完整，尤其是接口拆分和目录整理那部分，刚好解决了我最近在做的项目问题。");
     commentRepository.save(first);
 
     CommentEntity reply = new CommentEntity();
     reply.setArticle(articles.get(0));
     reply.setParent(first);
-    reply.setAuthorName("Bob");
-    reply.setAuthorAvatar("https://api.dicebear.com/7.x/avataaars/svg?seed=Bob");
-    reply.setVisitorId("seed-bob");
-    reply.setContent("Same here. We used the same approach in our dashboard rewrite.");
+    reply.setAuthorName("周舟");
+    reply.setAuthorAvatar("https://api.dicebear.com/7.x/avataaars/svg?seed=%E5%91%A8%E8%88%9F");
+    reply.setVisitorId("seed-zhouzhou");
+    reply.setContent("我也有同感，尤其是把前后端接口契约先稳定下来，再做页面细节，后面会省很多麻烦。");
     commentRepository.save(reply);
   }
 
   private void seedGuestbook() {
     GuestbookMessageEntity first = new GuestbookMessageEntity();
-    first.setAuthorName("Reader");
-    first.setAuthorAvatar("https://api.dicebear.com/7.x/avataaars/svg?seed=Reader");
+    first.setAuthorName("清和");
+    first.setAuthorAvatar("https://api.dicebear.com/7.x/avataaars/svg?seed=%E6%B8%85%E5%92%8C");
     first.setVisitorId("guest-1");
-    first.setContent("The new backend integration is shaping up nicely. Looking forward to more posts.");
+    first.setContent("页面风格很舒服，文章内容也扎实，已经收藏你的博客了，期待后续继续更新技术和生活类文章。");
     guestbookMessageRepository.save(first);
 
     GuestbookMessageEntity second = new GuestbookMessageEntity();
-    second.setAuthorName("Visitor");
-    second.setAuthorAvatar("https://api.dicebear.com/7.x/avataaars/svg?seed=Visitor");
+    second.setAuthorName("阿远");
+    second.setAuthorAvatar("https://api.dicebear.com/7.x/avataaars/svg?seed=%E9%98%BF%E8%BF%9C");
     second.setVisitorId("guest-2");
-    second.setContent("Thanks for sharing detailed engineering writeups. They are useful and easy to follow.");
+    second.setContent("能感觉到这些文章不是简单摘抄出来的，很多地方都有自己的判断和经验，很受用。");
     guestbookMessageRepository.save(second);
   }
 
@@ -165,17 +165,17 @@ public class DataInitializer implements CommandLineRunner {
 
 > %s
 
-## Overview
+## 写在前面
 
 %s
 
-## Key points
+## 这篇文章会讲什么
 
-- Keep the implementation boring and robust.
-- Prefer interfaces that align with the front-end contract.
-- Make caching a performance tool instead of a source of inconsistency.
+- 为什么这个问题值得单独拿出来讲
+- 我在实际项目里踩过哪些坑
+- 最后沉淀成了什么样的实现方式
 
-## Example
+## 一个简单示例
 
 ```ts
 export async function loadArticle(id: string) {
@@ -184,9 +184,9 @@ export async function loadArticle(id: string) {
 }
 ```
 
-## Closing
+## 结语
 
-This seeded article exists so the UI has realistic content to render during local development.
+如果你也在做类似的功能，希望这篇文章能帮你少走一点弯路。
 """.formatted(title, summary, description));
     entity.setCover("https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=2069&auto=format&fit=crop");
     entity.setCategory(category);

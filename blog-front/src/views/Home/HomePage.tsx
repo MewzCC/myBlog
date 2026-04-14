@@ -102,7 +102,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
         <section className="homeBody">
           <div className="homeContent">
             {loading && articles.length === 0 ? (
-              <div className="homeLoading">Loading...</div>
+              <div className="homeLoading">正在加载文章...</div>
             ) : (
               <div className="homeList">
                 {listArticles.map((x) => (

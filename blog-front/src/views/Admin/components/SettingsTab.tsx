@@ -100,7 +100,7 @@ export default function SettingsTab() {
         <div className="settingCard">
           <div className="settingInfo">
             <h3>Social Links</h3>
-            <p>Show the blogger's social accounts in public profile surfaces.</p>
+            <p>在公开页面中展示博主的社交账号信息。</p>
           </div>
           <div className="settingControl">
             <Switch

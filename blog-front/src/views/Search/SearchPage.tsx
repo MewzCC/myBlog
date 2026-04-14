@@ -22,6 +22,8 @@ export default function SearchPage({ query, onArticleClick }: SearchPageProps) {
         const res = await getArticles({ keyword: query })
         if (res.data.code === 200) {
           setArticles(res.data.data.list)
+        } else {
+          message.error(res.data.message || '搜索失败')
         }
       } catch (error) {
         message.error('搜索失败')
@@ -29,13 +31,18 @@ export default function SearchPage({ query, onArticleClick }: SearchPageProps) {
         setLoading(false)
       }
     }
-    if (query) fetchData()
+
+    if (query) {
+      void fetchData()
+    } else {
+      setArticles([])
+    }
   }, [query])
 
   return (
     <div className="searchRoot">
       <header className="searchHeader">
-        <h1 className="searchTitle">"{query}" 的搜索结果</h1>
+        <h1 className="searchTitle">“{query}” 的搜索结果</h1>
         <div className="searchFilters">
           <button
             className={`searchFilter ${filter === 'all' ? 'searchFilterActive' : ''}`}
@@ -60,7 +67,7 @@ export default function SearchPage({ query, onArticleClick }: SearchPageProps) {
 
       <div className="searchList">
         {loading ? (
-          <div style={{ color: 'rgba(255,255,255,0.5)' }}>Searching...</div>
+          <div style={{ color: 'rgba(255,255,255,0.5)' }}>正在搜索...</div>
         ) : (
           articles.map((article) => (
             <ArticleCard key={article.id} article={article} onClick={() => onArticleClick(article.id)} />

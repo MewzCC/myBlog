@@ -34,7 +34,7 @@ service.interceptors.response.use(
   },
   (error) => {
     console.error('Request error:', error)
-    message.error(error.response?.data?.message || error.message || 'Request Failed')
+    message.error(error.response?.data?.message || error.message || '请求失败')
     return Promise.reject(error)
   }
 )

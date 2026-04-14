@@ -40,10 +40,10 @@ export default function AboutPage() {
     <div className="aboutRoot">
       <div className="aboutHeader">
         <div className="aboutAvatar">
-          <img src={profile?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin'} alt={profile?.name || 'Admin'} />
+          <img src={profile?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin'} alt={profile?.name || '站长'} />
         </div>
-        <h1 className="aboutTitle">About</h1>
-        <p className="aboutBio">{profile?.bio || 'Full-stack developer, open-source enthusiast, and lifelong learner.'}</p>
+        <h1 className="aboutTitle">关于我</h1>
+        <p className="aboutBio">{profile?.bio || '一名喜欢打磨细节的全栈开发者，也持续记录产品、工程和日常思考。'}</p>
         {enableSocials && (
           <div className="aboutSocials">
             {profile?.socials?.github && (
@@ -68,7 +68,7 @@ export default function AboutPage() {
       <div className="aboutContent">
         <section className="aboutSection">
           <h2 className="aboutSectionTitle">
-            <CodeOutlined /> Tech Stack
+            <CodeOutlined /> 技术栈
           </h2>
           <div className="aboutTags">
             <Tag color="blue">React</Tag>
@@ -82,17 +82,17 @@ export default function AboutPage() {
 
         <section className="aboutSection">
           <h2 className="aboutSectionTitle">
-            <RocketOutlined /> About This Site
+            <RocketOutlined /> 关于这个站点
           </h2>
-          <p>This blog is used to document engineering practices, experiments, and lessons learned while building products.</p>
-          <p>It now runs as a real full-stack application with a React front end and a Spring Boot backend.</p>
+          <p>这个博客用来记录工程实践、技术实验，以及在做产品过程中的复盘与总结。</p>
+          <p>现在它已经不再只是静态展示页，而是一套真正可运行的 React 前端与 Spring Boot 后端应用。</p>
         </section>
 
         <section className="aboutSection">
           <h2 className="aboutSectionTitle">
-            <HeartOutlined /> Personal Notes
+            <HeartOutlined /> 一点碎碎念
           </h2>
-          <p>I care about building software that is useful, maintainable, and kind to the people who use it and maintain it.</p>
+          <p>我希望做出来的软件不仅好用、可维护，也能对使用它和维护它的人保持足够友好。</p>
         </section>
       </div>
     </div>

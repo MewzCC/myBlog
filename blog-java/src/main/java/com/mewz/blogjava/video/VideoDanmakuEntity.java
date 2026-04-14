@@ -23,7 +23,7 @@ public class VideoDanmakuEntity extends BaseEntity {
   private String videoKey;
 
   @Lob
-  @Column(nullable = false)
+  @Column(nullable = false, columnDefinition = "LONGTEXT")
   private String text;
 
   private Double timeInSeconds;
@@ -35,6 +35,7 @@ public class VideoDanmakuEntity extends BaseEntity {
   private Boolean borderEnabled;
 
   @Lob
+  @Column(columnDefinition = "LONGTEXT")
   private String styleJson;
 
   private String userId;
@@ -44,6 +45,7 @@ public class VideoDanmakuEntity extends BaseEntity {
   private String authorName;
 
   @Lob
+  @Column(columnDefinition = "LONGTEXT")
   private String authorAvatar;
 
   @Column(nullable = false)

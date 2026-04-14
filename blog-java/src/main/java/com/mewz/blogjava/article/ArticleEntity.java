@@ -37,10 +37,11 @@ public class ArticleEntity extends BaseEntity {
   private String summary;
 
   @Lob
-  @Column(nullable = false)
+  @Column(nullable = false, columnDefinition = "LONGTEXT")
   private String content;
 
   @Lob
+  @Column(columnDefinition = "LONGTEXT")
   private String cover;
 
   @Column(nullable = false)

@@ -229,7 +229,7 @@ export default function ArticlePage({ id }: ArticlePageProps) {
           <div className="authorName">{article.author.name}</div>
           <div className="authorBio">{article.author.bio || 'This author has not added a bio yet.'}</div>
           <Button type="primary" block>
-            Follow
+            关注
           </Button>
         </div>
       </aside>
