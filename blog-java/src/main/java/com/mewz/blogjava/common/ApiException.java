@@ -12,3 +12,4 @@ public class ApiException extends RuntimeException {
     this.code = code;
   }
 }
+

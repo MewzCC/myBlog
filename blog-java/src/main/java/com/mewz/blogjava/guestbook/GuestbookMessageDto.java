@@ -14,3 +14,4 @@ public class GuestbookMessageDto {
   private Instant createdAt;
   private UserDto user;
 }
+

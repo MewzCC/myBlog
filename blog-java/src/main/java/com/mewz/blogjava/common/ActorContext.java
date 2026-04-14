@@ -19,3 +19,4 @@ public class ActorContext {
     return authenticated ? "user:" + userId : "visitor:" + visitorId;
   }
 }
+

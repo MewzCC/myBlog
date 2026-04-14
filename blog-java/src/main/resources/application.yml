@@ -5,9 +5,9 @@ spring:
   application:
     name: blog-java
   datasource:
-    url: ${MYSQL_URL:jdbc:mysql://localhost:3306/blog_java?useSSL=false&serverTimezone=UTC&characterEncoding=utf8}
+    url: ${MYSQL_URL:jdbc:mysql://localhost:3306/blog_java?useSSL=false&serverTimezone=UTC&characterEncoding=utf8&allowPublicKeyRetrieval=true}
     username: ${MYSQL_USERNAME:root}
-    password: ${MYSQL_PASSWORD:root}
+    password: ${MYSQL_PASSWORD:zcc520}
   jpa:
     hibernate:
       ddl-auto: update
@@ -15,6 +15,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
   data:
     redis:
       host: ${REDIS_HOST:localhost}

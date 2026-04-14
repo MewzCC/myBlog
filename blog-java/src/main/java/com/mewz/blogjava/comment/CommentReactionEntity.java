@@ -31,3 +31,4 @@ public class CommentReactionEntity {
   @Column(nullable = false)
   private Instant createdAt = Instant.now();
 }
+

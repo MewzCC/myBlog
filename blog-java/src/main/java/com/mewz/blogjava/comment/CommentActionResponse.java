@@ -10,3 +10,4 @@ public class CommentActionResponse {
   private long likes;
   private boolean isLiked;
 }
+

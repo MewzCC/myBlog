@@ -1,5 +1,7 @@
 package com.mewz.blogjava.settings;
 
+import com.mewz.blogjava.settings.service.SiteSettingsService;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
@@ -26,3 +28,4 @@ class SiteSettingsServiceTests {
     assertThat(updated.isEnableSocials()).isFalse();
   }
 }
+

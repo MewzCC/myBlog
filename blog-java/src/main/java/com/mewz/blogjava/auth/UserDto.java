@@ -16,3 +16,4 @@ public class UserDto {
   private SocialLinks socials;
   private UserStats stats;
 }
+

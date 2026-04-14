@@ -1,18 +1,18 @@
 package com.mewz.blogjava.bootstrap;
 
 import com.mewz.blogjava.article.ArticleEntity;
-import com.mewz.blogjava.article.ArticleRepository;
+import com.mewz.blogjava.article.mapper.ArticleRepository;
 import com.mewz.blogjava.article.ArticleStatus;
 import com.mewz.blogjava.auth.SocialLinks;
 import com.mewz.blogjava.comment.CommentEntity;
-import com.mewz.blogjava.comment.CommentRepository;
+import com.mewz.blogjava.comment.mapper.CommentRepository;
 import com.mewz.blogjava.common.JsonHelper;
 import com.mewz.blogjava.guestbook.GuestbookMessageEntity;
-import com.mewz.blogjava.guestbook.GuestbookMessageRepository;
+import com.mewz.blogjava.guestbook.mapper.GuestbookMessageRepository;
 import com.mewz.blogjava.settings.SiteSetting;
-import com.mewz.blogjava.settings.SiteSettingRepository;
+import com.mewz.blogjava.settings.mapper.SiteSettingRepository;
 import com.mewz.blogjava.user.UserAccount;
-import com.mewz.blogjava.user.UserRepository;
+import com.mewz.blogjava.user.mapper.UserRepository;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -199,3 +199,4 @@ This seeded article exists so the UI has realistic content to render during loca
     return entity;
   }
 }
+

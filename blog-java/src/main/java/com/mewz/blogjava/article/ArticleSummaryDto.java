@@ -23,3 +23,4 @@ public class ArticleSummaryDto {
   private UserDto author;
   private String status;
 }
+

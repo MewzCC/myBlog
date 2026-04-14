@@ -9,3 +9,4 @@ public class GuestbookCreateRequest {
   @NotBlank(message = "Message content is required")
   private String content;
 }
+

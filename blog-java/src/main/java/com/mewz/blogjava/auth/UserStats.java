@@ -11,3 +11,4 @@ public class UserStats {
   private long tags;
   private long categories;
 }
+

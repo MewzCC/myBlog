@@ -39,3 +39,4 @@ public class GuestbookMessageEntity extends BaseEntity {
   @Column(nullable = false)
   private String content;
 }
+

@@ -12,3 +12,4 @@ public class VideoDanmakuUserDto {
   private String avatar;
   private boolean anonymous;
 }
+

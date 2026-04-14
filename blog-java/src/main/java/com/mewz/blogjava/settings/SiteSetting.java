@@ -25,3 +25,4 @@ public class SiteSetting {
   @Column(nullable = false)
   private boolean enableSocials = true;
 }
+

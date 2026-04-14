@@ -13,3 +13,4 @@ public class VideoAnalyticsItemDto {
   private long events;
   private long lastEventAt;
 }
+

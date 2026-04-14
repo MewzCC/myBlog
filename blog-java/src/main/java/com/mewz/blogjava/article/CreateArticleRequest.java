@@ -25,3 +25,4 @@ public class CreateArticleRequest {
   @NotEmpty(message = "Tags are required")
   private List<String> tags;
 }
+

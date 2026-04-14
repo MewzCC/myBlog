@@ -16,3 +16,4 @@ public class VideoDanmakuItemDto {
   private Map<String, Object> style;
   private VideoDanmakuUserDto user;
 }
+

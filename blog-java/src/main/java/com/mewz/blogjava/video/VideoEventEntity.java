@@ -37,3 +37,4 @@ public class VideoEventEntity {
   @Column(nullable = false)
   private Instant createdAt = Instant.now();
 }
+

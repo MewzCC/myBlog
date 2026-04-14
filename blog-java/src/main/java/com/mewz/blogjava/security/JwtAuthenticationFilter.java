@@ -1,7 +1,9 @@
 package com.mewz.blogjava.security;
 
+import com.mewz.blogjava.security.service.JwtService;
+
 import com.mewz.blogjava.user.UserAccount;
-import com.mewz.blogjava.user.UserRepository;
+import com.mewz.blogjava.user.mapper.UserRepository;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -60,3 +62,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     filterChain.doFilter(request, response);
   }
 }
+

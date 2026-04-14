@@ -6,3 +6,4 @@ public enum ArticleStatus {
   REJECTED,
   DRAFT
 }
+

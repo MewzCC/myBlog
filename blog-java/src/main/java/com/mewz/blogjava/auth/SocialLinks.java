@@ -11,3 +11,4 @@ public class SocialLinks {
   private String douyin;
   private String email;
 }
+

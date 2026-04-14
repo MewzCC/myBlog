@@ -28,3 +28,4 @@ public class VideoAnalyticsEntity {
   @Column(nullable = false)
   private long lastEventAt = 0L;
 }
+

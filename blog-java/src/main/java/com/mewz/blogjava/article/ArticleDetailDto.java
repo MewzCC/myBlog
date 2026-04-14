@@ -14,3 +14,4 @@ public class ArticleDetailDto extends ArticleSummaryDto {
   private boolean isLiked;
   private boolean isFavorited;
 }
+

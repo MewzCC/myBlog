@@ -11,3 +11,4 @@ public class SiteSettingsDto {
   private boolean enableUserEdit;
   private boolean enableSocials;
 }
+

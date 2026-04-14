@@ -40,3 +40,4 @@ public class VideoAssetEntity extends BaseEntity {
   @Lob
   private String thumbnailsVtt;
 }
+

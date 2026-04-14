@@ -9,3 +9,4 @@ public class UpdateSiteSettingsRequest {
   private boolean enableUserEdit;
   private boolean enableSocials;
 }
+

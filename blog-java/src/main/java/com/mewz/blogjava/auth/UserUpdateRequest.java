@@ -10,3 +10,4 @@ public class UserUpdateRequest {
   private String bio;
   private SocialLinks socials;
 }
+

@@ -11,3 +11,4 @@ public class CategoryDto {
   private String name;
   private long count;
 }
+

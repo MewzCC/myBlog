@@ -34,3 +34,4 @@ public class ArticleReactionEntity {
   @Column(nullable = false)
   private Instant createdAt = Instant.now();
 }
+

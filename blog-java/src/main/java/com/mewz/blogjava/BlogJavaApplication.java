@@ -15,3 +15,4 @@ public class BlogJavaApplication {
     SpringApplication.run(BlogJavaApplication.class, args);
   }
 }
+

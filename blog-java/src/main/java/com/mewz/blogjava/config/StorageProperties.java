@@ -10,3 +10,4 @@ public class StorageProperties {
   private String uploadDir = "uploads";
   private String publicPrefix = "/uploads/";
 }
+

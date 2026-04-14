@@ -30,3 +30,4 @@ public class WebConfig implements WebMvcConfigurer {
         .addResourceLocations(uploadPath.toUri().toString());
   }
 }
+

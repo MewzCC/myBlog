@@ -14,3 +14,4 @@ public class VideoUploadResponse {
   private String poster;
   private String thumbnailsVtt;
 }
+

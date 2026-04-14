@@ -71,3 +71,4 @@ public class ArticleEntity extends BaseEntity {
   @Column(nullable = false)
   private ArticleStatus status = ArticleStatus.APPROVED;
 }
+

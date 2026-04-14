@@ -49,3 +49,4 @@ public class VideoDanmakuEntity extends BaseEntity {
   @Column(nullable = false)
   private Boolean anonymous = false;
 }
+

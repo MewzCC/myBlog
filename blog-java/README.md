@@ -1,6 +1,6 @@
 # blog-java
 
-`blog-java` 是博客项目的后端服务，使用 Spring Boot 构建，负责认证、文章、评论、留言板、后台管理和视频能力。
+`blog-java` 是博客单仓里的 Spring Boot 后端，负责认证、文章、评论、留言板、站点设置、后台审核和视频能力。
 
 ## 技术栈
 
@@ -11,6 +11,20 @@
 - MySQL
 - Redis
 - SMTP 邮件服务
+
+## 后端分层
+
+当前代码已经按 `controller / service / mapper` 做目录分层，仍然保留按业务模块划分，便于继续扩展：
+
+- `admin/controller`、`admin/service`
+- `article/controller`、`article/service`、`article/mapper`
+- `auth/controller`、`auth/service`
+- `comment/controller`、`comment/service`、`comment/mapper`
+- `guestbook/controller`、`guestbook/service`、`guestbook/mapper`
+- `meta/controller`、`meta/service`
+- `settings/controller`、`settings/service`、`settings/mapper`
+- `user/controller`、`user/mapper`
+- `video/controller`、`video/service`、`video/mapper`
 
 ## 已实现接口
 
@@ -71,6 +85,18 @@
 - `DEFAULT_ADMIN_EMAIL`
 - `DEFAULT_ADMIN_PASSWORD`
 
+## 数据库初始化
+
+MySQL 建表脚本已经提供在 [src/main/resources/sql/schema-mysql.sql](/E:/Project/blog/blog-java/src/main/resources/sql/schema-mysql.sql)。
+
+示例初始化命令：
+
+```bash
+mysql -u root -p blog_java < src/main/resources/sql/schema-mysql.sql
+```
+
+如果你希望继续使用 Hibernate 自动补字段，保留当前 `application.yml` 里的 `ddl-auto: update` 即可。
+
 ## 本地运行
 
 ```bash
@@ -81,4 +107,4 @@ mvn spring-boot:run
 
 - Redis 负责登录态缓存、验证码缓存、热点数据缓存和视频事件缓冲。
 - 当 Redis 不可用时，视频事件会自动降级为直接写入数据库，不会阻塞接口。
-- 视频文件默认保存在本地文件系统。
+- 视频文件默认保存到本地文件系统。

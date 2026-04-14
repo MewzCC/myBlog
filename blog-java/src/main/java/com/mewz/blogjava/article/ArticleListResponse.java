@@ -11,3 +11,4 @@ public class ArticleListResponse {
   private List<ArticleSummaryDto> list;
   private long total;
 }
+

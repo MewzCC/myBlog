@@ -31,3 +31,4 @@ public class CommentReportEntity {
   @Column(nullable = false)
   private Instant createdAt = Instant.now();
 }
+

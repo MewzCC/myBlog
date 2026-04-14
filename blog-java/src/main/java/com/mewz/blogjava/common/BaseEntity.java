@@ -24,3 +24,4 @@ public abstract class BaseEntity {
   @Column(nullable = false)
   private Instant updatedAt;
 }
+
