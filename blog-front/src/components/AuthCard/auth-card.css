@@ -1,0 +1,409 @@
+.authCard {
+  position: relative;
+  width: min(440px, calc(100vw - 32px));
+  border-radius: 24px;
+  overflow: hidden;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 24px 90px var(--shadow-color),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+  transform: translate3d(0, 10px, 0);
+  opacity: 0;
+  animation: authCardIn 620ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes authCardIn {
+  to {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+.authCardGlow {
+  position: absolute;
+  inset: -2px;
+  background: conic-gradient(
+    from 180deg,
+    rgba(61, 242, 255, 0),
+    rgba(61, 242, 255, 0.26),
+    rgba(124, 92, 255, 0.32),
+    rgba(255, 92, 168, 0.26),
+    rgba(61, 242, 255, 0)
+  );
+  filter: blur(22px);
+  opacity: 0.72;
+  animation: authGlowSpin 6200ms linear infinite;
+}
+
+@keyframes authGlowSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.authCardInner {
+  position: relative;
+  padding: 22px 20px 20px;
+}
+
+.authDeck {
+  position: relative;
+  height: min(520px, calc(100vh - 72px));
+  overflow: hidden;
+}
+
+.authPanel {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  overflow: hidden;
+  transform: translate3d(0, 14px, 0) scale(0.985);
+  transition:
+    opacity 240ms ease,
+    transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    visibility 0s linear 240ms;
+  pointer-events: none;
+}
+
+.authPanelActive {
+  opacity: 1;
+  visibility: visible;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  transform: translate3d(0, 0, 0) scale(1);
+  transition:
+    opacity 240ms ease,
+    transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    visibility 0s;
+  pointer-events: auto;
+}
+
+.authPanelActive::-webkit-scrollbar { 
+  width: 0;
+  height: 0;
+}
+
+.authBrandRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.authBrandMark {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background:
+    radial-gradient(18px 18px at 30% 30%, rgba(61, 242, 255, 0.55), transparent 60%),
+    radial-gradient(18px 18px at 70% 70%, rgba(255, 92, 168, 0.45), transparent 58%),
+    linear-gradient(135deg, rgba(124, 92, 255, 0.7), rgba(255, 92, 168, 0.52));
+  box-shadow:
+    0 18px 44px rgba(124, 92, 255, 0.22),
+    0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+}
+
+.authBrandName {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.28em;
+}
+
+.authBrandSub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.authTitle {
+  margin: 14px 0 0;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  color: var(--text-primary);
+}
+
+.authSubtitle {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.authForm {
+  margin-top: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.authField {
+  display: grid;
+  gap: 6px;
+}
+
+.authFieldError {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 800;
+  color: rgba(255, 92, 168, 0.92);
+  letter-spacing: 0.01em;
+}
+
+.authLabel {
+  font-size: 12px;
+  color: var(--text-primary);
+  font-weight: 800;
+}
+
+.authInput {
+  height: 48px;
+  border-radius: 16px;
+  padding: 0 14px;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-primary);
+  outline: none;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.authInput[aria-invalid='true'] {
+  border-color: rgba(255, 92, 168, 0.58);
+  background: rgba(255, 92, 168, 0.08);
+}
+
+.authInput::placeholder {
+  color: var(--text-secondary);
+}
+
+.authInput:focus {
+  transform: translate3d(0, -1px, 0);
+  border-color: var(--accent-strong);
+  background: var(--input-bg);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.authInput[aria-invalid='true']:focus {
+  border-color: rgba(255, 92, 168, 0.72);
+  background: rgba(255, 92, 168, 0.1);
+  box-shadow: 0 0 0 4px rgba(255, 92, 168, 0.18);
+}
+
+.authSplit {
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  gap: 10px;
+  align-items: center;
+}
+
+.authCodeBtn {
+  height: 48px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: transform 140ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.authCodeBtn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.authCodeBtn:not(:disabled):hover {
+  background: var(--glass-bg);
+  border-color: var(--border-color);
+}
+
+.authCodeBtn:not(:disabled):active {
+  transform: translate3d(0, 1px, 0);
+}
+
+.authRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.authCheck {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+}
+
+.authCheckBox {
+  width: 18px;
+  height: 18px;
+  accent-color: rgba(124, 92, 255, 0.95);
+}
+
+.authCheckText {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.authLink {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 900;
+  height: 48px;
+  padding: 0 8px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.authLink:hover {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.authLink:active {
+  transform: translate3d(0, 1px, 0);
+}
+
+.authSubmit {
+  position: relative;
+  height: 48px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-strong) 100%);
+  color: var(--text-primary);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: 0 20px 60px var(--shadow-color);
+  transition: transform 140ms ease, filter 140ms ease;
+}
+
+.authSubmit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.authSubmit:not(:disabled):hover {
+  filter: saturate(1.05) brightness(1.02);
+}
+
+.authSubmit:not(:disabled):active {
+  transform: translate3d(0, 1px, 0) scale(0.99);
+}
+
+.authSubmitText {
+  position: relative;
+  z-index: 1;
+}
+
+.authSubmitShine {
+  position: absolute;
+  inset: 0;
+  transform: translateX(-120%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.26), transparent);
+  animation: authShine 2200ms ease-in-out infinite;
+}
+
+@keyframes authShine {
+  0% {
+    transform: translateX(-120%);
+  }
+  50% {
+    transform: translateX(120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+.authFoot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.authFootText {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.authStrength {
+  margin-top: 2px;
+  border-radius: 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  background: var(--glass-bg);
+}
+
+.authStrengthTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.authStrengthLabel {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-secondary);
+}
+
+.authStrengthValue {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--text-primary);
+}
+
+.authStrengthBar {
+  margin-top: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--input-bg);
+  overflow: hidden;
+}
+
+.authStrengthFill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-strong) 100%);
+  transition: width 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (max-width: 420px) {
+  .authCardInner {
+    padding: 20px 16px 18px;
+  }
+  .authSplit {
+    grid-template-columns: 1fr 112px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .authCard,
+  .authCardGlow,
+  .authSubmitShine {
+    animation: none;
+  }
+  .authPanel,
+  .authInput,
+  .authLink,
+  .authSubmit,
+  .authCodeBtn,
+  .authStrengthFill {
+    transition: none;
+  }
+}

@@ -1,0 +1,24 @@
+/* 浅色主题变量 */
+[data-theme='light'] {
+  --bg-primary: #f3fafc;
+  --bg-gradient: 
+    radial-gradient(1000px 520px at -8% -8%, rgba(99, 196, 255, 0.24), transparent 64%),
+    radial-gradient(860px 480px at 108% 8%, rgba(124, 240, 198, 0.24), transparent 64%),
+    radial-gradient(840px 500px at 52% 108%, rgba(136, 145, 255, 0.18), transparent 64%),
+    linear-gradient(165deg, #f6feff 0%, #ecf9fc 54%, #e3f2f9 100%);
+  --text-primary: rgba(16, 39, 63, 0.94);
+  --text-secondary: rgba(44, 82, 112, 0.76);
+  --border-color: rgba(58, 125, 173, 0.2);
+  --glass-bg: rgba(255, 255, 255, 0.68);
+  --glass-border: rgba(203, 230, 249, 0.86);
+  --shadow-color: rgba(43, 88, 128, 0.14);
+  --input-bg: rgba(232, 246, 255, 0.8);
+  --code-bg: rgba(226, 241, 251, 0.92);
+  --quote-border: rgba(70, 146, 199, 0.64);
+  --accent: #1ca7d9;
+  --accent-strong: #4f75ff;
+  --accent-soft: rgba(28, 167, 217, 0.15);
+  --action-bg: rgba(0, 0, 0, 0.06);
+  --action-border: rgba(0, 0, 0, 0.1);
+  --action-text: rgba(16, 39, 63, 0.8);
+}

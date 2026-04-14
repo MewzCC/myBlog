@@ -1,0 +1,132 @@
+.markdownToolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  background: var(--glass-bg, rgba(255, 255, 255, 0.05));
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  overflow-x: auto;
+  flex-shrink: 0;
+  
+  /* 平滑滚动 */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+}
+
+.toolbar-scroll-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.markdownToolbar::-webkit-scrollbar {
+  display: none;
+}
+
+.toolbarBtn {
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6)) !important;
+  min-width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+}
+
+.toolbarBtn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: var(--text-primary, #fff) !important;
+}
+
+.toolbarBtn span {
+  pointer-events: none;
+}
+
+.mobile-toolbar-toggle {
+  display: none !important;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .toolbarBtn {
+    min-width: 44px !important;
+    height: 44px !important;
+    font-size: 20px !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+  }
+  
+  /* 移动端点击交互 (移除对 hover 的依赖) */
+  .toolbarBtn:active {
+    background: rgba(255, 255, 255, 0.2) !important;
+    transform: scale(0.95);
+  }
+
+  .mobile-toolbar-toggle {
+    display: flex !important;
+    position: fixed;
+    bottom: 24px;
+    left: 16px; /* 移至左侧 */
+    z-index: 2021; /* 确保在最高层级 */
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 50% !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px !important;
+  }
+
+  /* 抽屉样式 */
+  .markdownToolbar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 72px; /* 固定宽度侧边栏 */
+    right: auto;
+    z-index: 2020; /* 高于 editorRoot */
+    background: rgba(13, 27, 42, 0.95);
+    backdrop-filter: blur(12px);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: none;
+    border-bottom: none;
+    border-radius: 0;
+    padding: 16px 8px 100px; /* 底部内边距预留给 FAB */
+    flex-direction: column;
+    
+    transform: translateX(-100%); /* 从左侧滑出 */
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.3);
+    overflow-y: auto;
+  }
+
+  .markdownToolbar.mobile-expanded {
+    transform: translateX(0);
+  }
+
+  .toolbar-scroll-container {
+    flex-direction: column; /* 垂直布局 */
+    gap: 12px;
+    width: 100%;
+    flex-wrap: nowrap;
+  }
+
+  /* 遮罩层 */
+  .mobile-toolbar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2019; /* 在工具栏之下，editorRoot 之上 */
+    backdrop-filter: blur(2px);
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+}

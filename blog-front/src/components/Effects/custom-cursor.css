@@ -1,0 +1,29 @@
+.customCursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: top left;
+  pointer-events: none;
+  z-index: 10000;
+  will-change: transform;
+  /* Adjust pointer offset if needed, usually top-left is 0,0 */
+  transform: translate3d(-100px, -100px, 0); 
+}
+
+.customCursorHover {
+  /* Optional: add hover effect like slight scale or opacity change */
+  transform: translate3d(-100px, -100px, 0) scale(1.1);
+}
+
+/* Hide default cursor globally when this component is active */
+/* Only hide if we are on a device that supports hover (usually desktop) */
+@media (hover: hover) and (pointer: fine) {
+  body.custom-cursor-active,
+  body.custom-cursor-active * {
+    cursor: none !important;
+  }
+}

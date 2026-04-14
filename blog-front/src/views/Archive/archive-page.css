@@ -1,0 +1,105 @@
+.archiveRoot {
+  width: min(960px, calc(100vw - 32px));
+  margin: 32px auto 64px;
+}
+
+.archiveHeader {
+  text-align: center;
+  margin-bottom: 48px;
+  padding: 48px 24px;
+  border-radius: 24px;
+  border: 1px solid var(--border-color);
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 20px 60px var(--shadow-color);
+  transition: all 0.3s ease;
+}
+
+.archiveTitle {
+  font-size: 32px;
+  font-weight: 800;
+  margin: 0 0 16px;
+  background: linear-gradient(to bottom right, var(--text-primary), var(--text-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.archiveSubtitle {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.archiveContent {
+  padding: 48px;
+  border-radius: 24px;
+  border: 1px solid var(--border-color);
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 20px 60px var(--shadow-color);
+  transition: all 0.3s ease;
+}
+
+.archiveYear {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 24px;
+}
+
+.archiveItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.archiveItem:hover {
+  background: var(--purple-soft);
+  transform: translateX(8px);
+}
+
+.archiveDate {
+  font-size: 14px;
+  color: var(--text-tertiary);
+  font-family: monospace;
+}
+
+.archiveItemTitle {
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+/* Antd Timeline Customization */
+.ant-timeline-item-head {
+  background-color: transparent !important;
+}
+
+.ant-timeline-item-tail {
+  border-left: 2px solid var(--border-color) !important;
+}
+
+.ant-timeline-item-content {
+  margin-left: 24px !important;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .archiveHeader {
+    padding: 24px;
+    margin-bottom: 24px;
+    border-radius: 20px;
+  }
+
+  .archiveTitle {
+    font-size: 24px;
+  }
+
+  .archiveContent {
+    padding: 24px;
+    border-radius: 20px;
+  }
+}

@@ -1,0 +1,19 @@
+.notFoundRoot {
+  min-height: 80vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: transparent;
+}
+
+.notFoundRoot .ant-result-title {
+  color: var(--text-primary) !important;
+  font-family: 'Fraunces', serif;
+  font-size: 72px !important;
+  text-shadow: 0 14px 30px var(--shadow-color);
+}
+
+.notFoundRoot .ant-result-subtitle {
+  color: var(--text-secondary) !important;
+  font-size: 18px !important;
+}

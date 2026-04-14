@@ -1,0 +1,108 @@
+/* 导入变量和主题文件 */
+@import './variables.css';
+@import './dark.css';
+@import './white.css';
+@import './buttons.css';
+
+/* 全局样式 */
+html {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg-gradient);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background 0.35s ease, color 0.35s ease;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--text-primary);
+}
+
+.appViewport {
+  min-height: 100vh;
+  position: relative;
+}
+
+.appView {
+  animation: appViewIn 460ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes appViewIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.appBackHome {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  z-index: 50;
+  height: 50px;
+  padding: 0 18px;
+  border-radius: var(--border-radius-full);
+  border: 1px solid var(--border-color);
+  font-size: 12px;
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-lg);
+  transition: transform var(--transition-fast), background var(--transition-normal), border-color var(--transition-normal), color var(--transition-normal);
+  color: var(--text-primary);
+  background: var(--glass-bg);
+}
+
+.appBackHome:hover {
+  background: var(--glass-border);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.appBackHome:active {
+  transform: translate3d(0, 1px, 0) scale(0.98);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+
+
+@media (prefers-reduced-motion: reduce) {
+  .appView,
+  .appBackHome {
+    animation: none;
+    transition: none;
+  }
+}

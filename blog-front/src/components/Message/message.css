@@ -1,0 +1,140 @@
+.messageHost {
+  position: fixed;
+  z-index: 9999;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+@media (min-width: 640px) {
+  .messageHost {
+    justify-items: end;
+  }
+}
+
+.messageToast {
+  width: min(420px, calc(100vw - 32px));
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(14, 16, 42, 0.72);
+  backdrop-filter: blur(14px);
+  box-shadow:
+    0 18px 60px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+  pointer-events: auto;
+  overflow: hidden;
+  transform-origin: 50% 0;
+  animation: messageIn 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes messageIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -10px, 0) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.messageRow {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px;
+}
+
+.messageBar {
+  align-self: stretch;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.messageText {
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 700;
+}
+
+.messageClose {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.78);
+  display: grid;
+  place-items: center;
+  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.messageClose:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.messageClose:active {
+  transform: translate3d(0, 1px, 0);
+}
+
+.messageCloseIcon {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  position: relative;
+}
+
+.messageCloseIcon::before,
+.messageCloseIcon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 16px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.messageCloseIcon::before {
+  transform: rotate(45deg);
+}
+
+.messageCloseIcon::after {
+  transform: rotate(-45deg);
+}
+
+.messageToastInfo .messageBar {
+  background: linear-gradient(180deg, rgba(61, 242, 255, 0.9), rgba(61, 242, 255, 0.35));
+}
+
+.messageToastSuccess .messageBar {
+  background: linear-gradient(180deg, rgba(124, 92, 255, 0.95), rgba(61, 242, 255, 0.45));
+}
+
+.messageToastWarning .messageBar {
+  background: linear-gradient(180deg, rgba(255, 214, 92, 0.95), rgba(255, 92, 168, 0.35));
+}
+
+.messageToastError .messageBar {
+  background: linear-gradient(180deg, rgba(255, 92, 168, 0.95), rgba(124, 92, 255, 0.4));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .messageToast {
+    animation: none;
+  }
+  .messageClose {
+    transition: none;
+  }
+}
+

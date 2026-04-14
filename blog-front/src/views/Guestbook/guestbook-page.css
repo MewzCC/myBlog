@@ -1,0 +1,96 @@
+.guestbookRoot {
+  width: min(800px, calc(100vw - 32px));
+  margin: 32px auto 64px;
+}
+
+.guestbookHeader {
+  text-align: center;
+  margin-bottom: 48px;
+  padding: 48px 24px;
+  border-radius: 24px;
+  border: 1px solid var(--border-color);
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 20px 60px var(--shadow-color);
+  transition: all 0.3s ease;
+}
+
+.guestbookTitle {
+  font-size: 32px;
+  font-weight: 800;
+  margin: 0 0 16px;
+  background: linear-gradient(to bottom right, var(--text-primary), var(--text-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.guestbookSubtitle {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.guestbookContent {
+  padding: 32px;
+  border-radius: 24px;
+  border: 1px solid var(--border-color);
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 20px 60px var(--shadow-color);
+  transition: all 0.3s ease;
+}
+
+.guestbookInput {
+  margin-bottom: 48px;
+}
+
+.guestbookClosed {
+  margin-bottom: 48px;
+  background: var(--glass-bg);
+  border: 1px dashed var(--border-color);
+  border-radius: 12px;
+  padding: 48px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.guestbookList .ant-list-item {
+  border-bottom: 1px solid var(--border-color) !important;
+  padding: 24px 0 !important;
+}
+
+.guestbookUser {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.guestbookText {
+  font-size: 15px;
+  color: var(--text-primary);
+  margin: 8px 0;
+  line-height: 1.6;
+}
+
+.guestbookDate {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .guestbookHeader {
+    padding: 24px;
+    margin-bottom: 24px;
+    border-radius: 20px;
+  }
+
+  .guestbookTitle {
+    font-size: 24px;
+  }
+
+  .guestbookContent {
+    padding: 24px;
+    border-radius: 20px;
+  }
+}

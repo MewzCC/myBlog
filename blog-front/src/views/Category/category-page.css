@@ -1,0 +1,62 @@
+.categoryRoot {
+  width: min(1160px, calc(100vw - 32px));
+  margin: 32px auto 60px;
+}
+
+.categoryHeader {
+  margin-bottom: 32px;
+  padding: 48px;
+  border-radius: 24px;
+  border: 1px solid var(--border-color);
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  text-align: center;
+  box-shadow: 0 20px 60px var(--shadow-color);
+  transition: all 0.3s ease;
+}
+
+.categoryTitle {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  background: linear-gradient(to bottom right, var(--text-primary), var(--text-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.categoryList {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .categoryRoot {
+    width: calc(100vw - 32px);
+    margin: 24px auto 40px;
+  }
+
+  .categoryHeader {
+    padding: 24px;
+    margin-bottom: 24px;
+    border-radius: 20px;
+  }
+
+  .categoryTitle {
+    font-size: 24px;
+  }
+
+  .categoryList {
+    gap: 16px;
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 加载状态动画 */
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.3; }
+}

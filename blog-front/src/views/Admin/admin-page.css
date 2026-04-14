@@ -1,0 +1,269 @@
+:root {
+  --admin-bg: #0f172a;
+  --admin-sidebar-bg: rgba(15, 23, 42, 0.85);
+  --admin-card-bg: rgba(30, 41, 59, 0.4);
+  --admin-card-hover: rgba(30, 41, 59, 0.6);
+  --admin-border: rgba(255, 255, 255, 0.08);
+  --primary-color: #818cf8;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.adminRoot {
+  width: 100vw;
+  height: 100vh;
+  background: var(--admin-bg);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.15) 0px, transparent 50%);
+  display: flex;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text-primary);
+}
+
+/* Sidebar Styling */
+.adminSidebar {
+  background: var(--admin-sidebar-bg) !important;
+  border-right: var(--glass-border);
+  backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+}
+
+.adminLogo {
+  height: 80px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
+  border-bottom: var(--glass-border);
+}
+
+.adminBackBtn {
+  color: var(--text-secondary) !important;
+  margin-right: 12px;
+  transition: all 0.3s ease !important;
+}
+
+.adminBackBtn:hover {
+  color: var(--text-primary) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.adminMenu {
+  background: transparent !important;
+  border: none !important;
+  padding: 16px;
+  flex: 1;
+}
+
+.adminMenu .ant-menu-item {
+  color: var(--text-secondary) !important;
+  border-radius: 8px !important;
+  margin: 4px 0 !important;
+  height: 46px !important;
+  line-height: 46px !important;
+  transition: all 0.3s ease !important;
+}
+
+.adminMenu .ant-menu-item:hover {
+  color: var(--text-primary) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.adminMenu .ant-menu-item-selected {
+  background: rgba(129, 140, 248, 0.15) !important;
+  color: var(--primary-color) !important;
+  font-weight: 600;
+}
+
+/* Content Area */
+.adminContent {
+  padding: 32px 48px;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.moduleTitle {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 32px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+}
+
+/* Settings Module */
+.settingsGrid {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  max-width: 1400px;
+}
+
+.settingCard {
+  background: var(--admin-card-bg);
+  border: var(--glass-border);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.settingCard:hover {
+  background: var(--admin-card-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--glass-shadow);
+  border-color: rgba(129, 140, 248, 0.3);
+}
+
+.settingInfo h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.settingInfo p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Review Module & Table Overrides */
+.reviewModule {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.reviewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.reviewSearch {
+  width: 300px;
+}
+
+.reviewSearch .ant-input-affix-wrapper {
+  background: rgba(15, 23, 42, 0.5);
+  border: var(--glass-border);
+  color: var(--text-primary);
+}
+
+.reviewSearch input {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+}
+
+/* Ant Design Table Dark Mode Override */
+.reviewTableWrapper {
+  flex: 1;
+  overflow: hidden;
+  background: var(--admin-card-bg);
+  border: var(--glass-border);
+  border-radius: 16px;
+  padding: 16px;
+  backdrop-filter: blur(10px);
+}
+
+.reviewTable .ant-table {
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.reviewTable .ant-table-thead > tr > th {
+  background: rgba(15, 23, 42, 0.5);
+  color: var(--text-secondary);
+  border-bottom: var(--glass-border);
+  font-weight: 600;
+}
+
+.reviewTable .ant-table-tbody > tr > td {
+  border-bottom: var(--glass-border);
+  color: var(--text-primary);
+  transition: background 0.3s;
+}
+
+.reviewTable .ant-table-tbody > tr:hover > td {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.reviewTable .ant-pagination {
+  margin-top: 16px;
+}
+
+.reviewTable .ant-pagination-item a {
+  color: var(--text-secondary);
+}
+
+.reviewTable .ant-pagination-item-active {
+  background: transparent;
+  border-color: var(--primary-color);
+}
+
+.reviewTable .ant-pagination-item-active a {
+  color: var(--primary-color);
+}
+
+/* Footer Actions */
+.reviewFooter {
+  margin-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4px;
+}
+
+/* Drawer Dark Mode */
+.ant-drawer-content {
+  background: #1e293b !important;
+  color: var(--text-primary) !important;
+}
+
+.ant-drawer-header {
+  background: #1e293b !important;
+  border-bottom: var(--glass-border) !important;
+}
+
+.ant-drawer-title {
+  color: var(--text-primary) !important;
+}
+
+.articlePreview h1 {
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.previewMeta {
+  margin-bottom: 24px;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.previewContent {
+  color: var(--text-secondary);
+  line-height: 1.8;
+  font-size: 15px;
+}

@@ -1,0 +1,64 @@
+:root {
+  /* 字体设置 */
+  --font-family: 'Manrope', 'Segoe UI', sans-serif;
+  --font-weight-normal: 500;
+  --font-weight-bold: 700;
+  --font-weight-black: 900;
+  --line-height: 1.6;
+  
+  /* 通用变量 */
+  --border-radius-sm: 12px;
+  --border-radius-md: 16px;
+  --border-radius-lg: 24px;
+  --border-radius-full: 999px;
+  
+  /* 间距 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 20px;
+  --spacing-2xl: 24px;
+  
+  /* 动画 */
+  --transition-fast: 140ms ease;
+  --transition-normal: 160ms ease;
+  --transition-slow: 240ms ease;
+  
+  /* 阴影 */
+  --shadow-sm: 0 4px 12px var(--shadow-color);
+  --shadow-md: 0 8px 24px var(--shadow-color);
+  --shadow-lg: 0 16px 48px var(--shadow-color);
+  --shadow-xl: 0 24px 90px var(--shadow-color);
+  
+  /* 扩展颜色变量 */
+  --code-text: #ff90c0;
+  --danger: #ff4d4f;
+  --warning: #faad14;
+  --success: #52c41a;
+  --purple: #7c5cff;
+  --purple-soft: rgba(124, 92, 255, 0.18);
+  
+  /* 主题变量（默认值） */
+  --bg-primary: #071427;
+  --bg-gradient: 
+    radial-gradient(1100px 620px at -8% -10%, rgba(104, 211, 255, 0.2), transparent 65%),
+    radial-gradient(900px 560px at 108% 6%, rgba(135, 246, 197, 0.16), transparent 64%),
+    radial-gradient(900px 620px at 56% 108%, rgba(112, 126, 255, 0.15), transparent 66%),
+    linear-gradient(165deg, #061225 0%, #0a1d33 48%, #122744 100%);
+  --text-primary: rgba(242, 248, 255, 0.96);
+  --text-secondary: rgba(207, 222, 239, 0.72);
+  --border-color: rgba(164, 205, 255, 0.2);
+  --glass-bg: rgba(10, 30, 52, 0.58);
+  --glass-border: rgba(176, 219, 255, 0.16);
+  --shadow-color: rgba(5, 18, 35, 0.44);
+  --input-bg: rgba(8, 24, 41, 0.52);
+  --code-bg: rgba(5, 20, 36, 0.62);
+  --quote-border: rgba(106, 186, 255, 0.72);
+  --accent: #61d6ff;
+  --accent-strong: #73a8ff;
+  --accent-soft: rgba(97, 214, 255, 0.18);
+  --action-bg: rgba(255, 255, 255, 0.1);
+  --action-border: rgba(255, 255, 255, 0.2);
+  --action-text: rgba(255, 255, 255, 0.8);
+}

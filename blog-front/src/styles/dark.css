@@ -1,0 +1,24 @@
+/* 深色主题变量 */
+[data-theme='dark'] {
+  --bg-primary: #071427;
+  --bg-gradient: 
+    radial-gradient(1100px 620px at -8% -10%, rgba(104, 211, 255, 0.2), transparent 65%),
+    radial-gradient(900px 560px at 108% 6%, rgba(135, 246, 197, 0.16), transparent 64%),
+    radial-gradient(900px 620px at 56% 108%, rgba(112, 126, 255, 0.15), transparent 66%),
+    linear-gradient(165deg, #061225 0%, #0a1d33 48%, #122744 100%);
+  --text-primary: rgba(242, 248, 255, 0.96);
+  --text-secondary: rgba(207, 222, 239, 0.72);
+  --border-color: rgba(164, 205, 255, 0.2);
+  --glass-bg: rgba(10, 30, 52, 0.58);
+  --glass-border: rgba(176, 219, 255, 0.16);
+  --shadow-color: rgba(5, 18, 35, 0.44);
+  --input-bg: rgba(8, 24, 41, 0.52);
+  --code-bg: rgba(5, 20, 36, 0.62);
+  --quote-border: rgba(106, 186, 255, 0.72);
+  --accent: #61d6ff;
+  --accent-strong: #73a8ff;
+  --accent-soft: rgba(97, 214, 255, 0.18);
+  --action-bg: rgba(255, 255, 255, 0.1);
+  --action-border: rgba(255, 255, 255, 0.2);
+  --action-text: rgba(255, 255, 255, 0.8);
+}

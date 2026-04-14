@@ -1,0 +1,90 @@
+.videoBackground {
+  --cursor-x: 50vw;
+  --cursor-y: 50vh;
+  --lens-alpha: 0;
+  --zoom-scale: 1.28;
+  --zoom-tx: 0px;
+  --zoom-ty: 0px;
+  --bg-blur: 0px;
+  --zoom-blur: 0px;
+
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+}
+
+.videoBackgroundBase {
+  position: absolute;
+  inset: 0;
+}
+
+.videoBackgroundVideo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(var(--bg-blur)) saturate(1.1) brightness(0.84);
+}
+
+.videoBackgroundOverlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(900px 520px at 18% 12%, rgba(124, 92, 255, 0.28), transparent 62%),
+    radial-gradient(900px 520px at 82% 18%, rgba(255, 92, 168, 0.22), transparent 64%),
+    radial-gradient(900px 520px at 56% 86%, rgba(61, 242, 255, 0.18), transparent 66%),
+    linear-gradient(180deg, rgba(10, 12, 34, 0.34), rgba(10, 12, 34, 0.52));
+}
+
+.videoBackgroundNoise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.12;
+  background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22240%22 height=%22240%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22240%22 height=%22240%22 filter=%22url(%23n)%22 opacity=%220.9%22/%3E%3C/svg%3E');
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+.videoBackgroundZoom {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: var(--lens-alpha);
+  transform: translate3d(var(--zoom-tx), var(--zoom-ty), 0) scale(var(--zoom-scale));
+  transform-origin: 0 0;
+  filter: blur(var(--zoom-blur)) saturate(1.26) brightness(1.02) contrast(1.02);
+  transition: opacity 160ms ease;
+  will-change: transform, opacity;
+  pointer-events: none;
+
+  -webkit-mask-image: radial-gradient(circle at var(--cursor-x) var(--cursor-y), #000 0 92px, transparent 142px);
+  mask-image: radial-gradient(circle at var(--cursor-x) var(--cursor-y), #000 0 92px, transparent 142px);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+.videoBackgroundBand {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: var(--band-alpha);
+  filter: blur(var(--band-blur)) saturate(1.1) brightness(0.84);
+  transition: opacity 160ms ease;
+  will-change: opacity;
+  pointer-events: none;
+  clip-path: inset(var(--band-top) var(--band-right) var(--band-bottom) var(--band-left) round var(--band-radius));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .videoBackgroundZoom {
+    transition: none;
+  }
+  .videoBackgroundBand {
+    transition: none;
+  }
+}

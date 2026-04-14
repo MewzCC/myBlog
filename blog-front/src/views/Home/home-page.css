@@ -1,0 +1,235 @@
+﻿.homeRoot {
+  min-height: 100vh;
+  position: relative;
+}
+
+.homeRoot::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(680px 300px at 12% 16%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 72%),
+    radial-gradient(520px 260px at 88% 12%, color-mix(in srgb, var(--accent-strong) 24%, transparent), transparent 74%),
+    radial-gradient(780px 360px at 52% 108%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 72%);
+  opacity: 0.42;
+}
+
+.homeMain {
+  position: relative;
+  z-index: 1;
+  width: min(1180px, calc(100vw - 30px));
+  margin: 22px auto 64px;
+  display: grid;
+  gap: 18px;
+}
+
+.homeTop {
+  border-radius: 28px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  background: linear-gradient(150deg, color-mix(in srgb, var(--glass-bg) 92%, transparent), color-mix(in srgb, var(--glass-bg) 78%, transparent));
+  box-shadow: 0 24px 54px var(--shadow-color);
+}
+
+.homeTopHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 18px 0;
+}
+
+.homeH1 {
+  margin: 0;
+  font-family: 'Fraunces', serif;
+  font-size: clamp(22px, 2.8vw, 30px);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--text-primary);
+}
+
+.homeCarousel {
+  position: relative;
+  padding: 18px;
+}
+
+.homeCarouselViewport {
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 85%, transparent);
+}
+
+.homeCarouselTrack {
+  display: flex;
+  width: 100%;
+  transition: transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+.homeSlide {
+  width: 100%;
+  flex: 0 0 100%;
+  min-height: clamp(260px, 40vw, 380px);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.homeSlideBg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: color-mix(in srgb, var(--glass-bg) 80%, #123552);
+  transform: scale(1.05);
+  transition: transform 6s ease;
+}
+
+.homeSlide:hover .homeSlideBg {
+  transform: scale(1.12);
+}
+
+.homeSlideOverlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(100deg, rgba(8, 24, 43, 0.1) 0%, rgba(8, 24, 43, 0.48) 42%, rgba(8, 24, 43, 0.85) 100%),
+    linear-gradient(180deg, rgba(14, 34, 54, 0.04), rgba(9, 28, 47, 0.64));
+}
+
+.homeSlideContent {
+  position: relative;
+  z-index: 1;
+  max-width: min(720px, 82%);
+  padding: clamp(22px, 4vw, 42px);
+  display: grid;
+  gap: 12px;
+}
+
+.homeSlideTitle {
+  margin: 0;
+  font-family: 'Fraunces', serif;
+  font-size: clamp(24px, 3.4vw, 42px);
+  font-weight: 700;
+  line-height: 1.2;
+  color: #f4fbff;
+  text-wrap: balance;
+  text-shadow: 0 12px 28px rgba(8, 20, 35, 0.45);
+}
+
+.homeSlideSummary {
+  margin: 0;
+  font-size: clamp(14px, 1.3vw, 17px);
+  font-weight: 600;
+  line-height: 1.68;
+  color: rgba(237, 247, 255, 0.88);
+  text-wrap: pretty;
+  max-width: 62ch;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.homeCarouselControls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 24px;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.homeDots {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(211, 237, 255, 0.24);
+  background: rgba(7, 22, 39, 0.5);
+  backdrop-filter: blur(6px);
+}
+
+.homeDot {
+  width: 8px;
+  height: 8px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(216, 241, 255, 0.46);
+  cursor: pointer;
+  transition: transform 180ms ease, background 180ms ease;
+}
+
+.homeDot:hover {
+  transform: scale(1.15);
+  background: rgba(216, 241, 255, 0.7);
+}
+
+.homeDotActive {
+  width: 24px;
+  background: linear-gradient(120deg, #89e8ff, #84a8ff);
+}
+
+.homeBody {
+  display: grid;
+  gap: 18px;
+}
+
+.homeContent {
+  min-width: 0;
+}
+
+.homeList {
+  display: grid;
+  gap: 14px;
+}
+
+.homeLoading {
+  text-align: center;
+  padding: 42px;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+@media (min-width: 920px) {
+  .homeMain {
+    gap: 20px;
+  }
+
+  .homeBody {
+    grid-template-columns: minmax(0, 1fr) 328px;
+    align-items: start;
+  }
+
+  .homeTopHead {
+    padding: 22px 22px 0;
+  }
+
+  .homeCarousel {
+    padding: 22px;
+  }
+}
+
+@media (max-width: 919px) {
+  .homeMain {
+    margin-top: 14px;
+  }
+
+  .homeSlideContent {
+    max-width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .homeCarouselTrack,
+  .homeSlideBg,
+  .homeDot {
+    transition: none;
+  }
+}

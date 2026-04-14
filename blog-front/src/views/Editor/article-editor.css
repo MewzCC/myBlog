@@ -1,0 +1,297 @@
+.editorRoot {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #0d1b2a;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+}
+
+.editorHeader {
+  height: 64px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.editorHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.backBtn {
+  color: rgba(255, 255, 255, 0.6) !important;
+  font-size: 18px !important;
+}
+
+.backBtn:hover {
+  color: #fff !important;
+}
+
+.editorTitle {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+  color: #fff;
+}
+
+.editorActions {
+  display: flex;
+  gap: 12px;
+}
+
+.actionBtn {
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.publishBtn {
+  background: #7c5cff !important;
+  border-color: #7c5cff !important;
+}
+
+.editorBody {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.editorForm {
+  width: 360px;
+  padding: 24px;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.editorForm .ant-form-item-label > label {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.titleInput {
+  font-size: 20px;
+  font-weight: 700;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 0 !important;
+  padding-left: 0 !important;
+  color: #fff !important;
+}
+
+.titleInput:focus {
+  border-color: #7c5cff !important;
+  box-shadow: none !important;
+}
+
+.metaGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.metaSelect .ant-select-selector {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+}
+
+.coverUploader .ant-upload {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px dashed rgba(255, 255, 255, 0.2) !important;
+  width: 100% !important;
+  height: 160px !important;
+}
+
+.summaryInput {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+}
+
+.editorWorkspace {
+  flex: 1;
+  display: flex;
+}
+
+.editorPane {
+  flex: 1;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.inputPane {
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.markdownInput {
+  width: 100%;
+  height: 100%;
+  padding: 24px;
+  background: transparent !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-family: 'Fira Code', monospace;
+  font-size: 15px;
+  line-height: 1.6;
+  resize: none !important;
+}
+
+.previewPane {
+  padding: 24px 40px;
+  background: #0d1b2a;
+}
+
+.markdownPreview {
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.8;
+}
+
+.markdownPreview h1,
+.markdownPreview h2,
+.markdownPreview h3 {
+  color: #fff;
+  margin-top: 1.5em;
+  margin-bottom: 0.8em;
+}
+
+.markdownPreview code {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #ff90c0;
+}
+
+.markdownPreview pre {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 16px;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.markdownPreview img {
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+.emptyPreview {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* 实用工具 */
+.mobile-only {
+  display: none !important;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .editorRoot {
+    /* 不支持自定义属性的浏览器回退 */
+    height: 100vh;
+    /* 使用动态可视视口高度 */
+    height: var(--visual-viewport-height, 100vh);
+    z-index: 2000; /* 提高层级，覆盖 NavBar */
+    top: 0; /* 确保从顶端开始 */
+  }
+
+  .editorHeader {
+    padding: 0 16px;
+    height: 56px;
+  }
+
+  .editorHeaderLeft h1 {
+    font-size: 16px;
+  }
+
+  .editorBody {
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* 表单 / 设置抽屉 */
+  .editorForm {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2010; /* 高于 editorRoot 的其他内容 */
+    background: #0d1b2a;
+    border-right: none;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0 20px 20px;
+    padding-top: 0; /* 或者是 SafeArea */
+  }
+
+  .editorForm.open {
+    transform: translateX(0);
+  }
+
+  .mobile-settings-header {
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .mobile-settings-header h3 {
+    margin: 0;
+    color: #fff;
+    font-size: 18px;
+  }
+
+  /* 工作区 */
+  .editorWorkspace {
+    width: 100%;
+  }
+
+  .inputPane {
+    width: 100%;
+    border-right: none;
+    padding-bottom: 80px; /* 为 FAB/工具栏预留空间 */
+  }
+
+  .markdownInput {
+    font-size: 16px;
+    line-height: 1.6;
+    padding: 16px;
+    /* 确保不触发系统缩放 */
+    touch-action: manipulation;
+  }
+
+  .previewPane {
+    display: none; /* 移动端暂时隐藏预览 */
+  }
+
+  /* 实用工具 */
+  .desktop-only {
+    display: none !important;
+  }
+
+  .mobile-only {
+    display: flex !important;
+  }
+  
+  /* 移动端表单项调整 */
+  .metaGrid {
+    grid-template-columns: 1fr;
+  }
+}
