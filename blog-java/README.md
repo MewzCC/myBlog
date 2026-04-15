@@ -1,8 +1,19 @@
-# blog-java
+# ⚙️ blog-java 后端项目
 
-`blog-java` 是博客单仓里的 Spring Boot 后端，负责认证、文章、评论、留言板、站点设置、后台审核和视频能力。
+`blog-java` 是博客单仓中的后端服务，基于 `Spring Boot 3` 构建，负责认证、文章、评论、留言板、后台审核、站点设置、视频能力以及缓存处理。
 
-## 技术栈
+## ✨ 后端能力
+
+- 🔐 登录、注册、找回密码、JWT 认证
+- 📝 文章列表、详情、发布、点赞、收藏
+- 💬 评论发布、点赞、删除、举报
+- 📮 留言板读写
+- 🧑 博主资料与分类标签聚合
+- 🛠️ 后台文章审核与系统设置
+- ⚡ Redis 缓存与验证码存储
+- 🎬 视频上传、弹幕、事件统计
+
+## 🧱 技术栈
 
 - Spring Boot 3
 - Java 17
@@ -12,9 +23,9 @@
 - Redis
 - SMTP 邮件服务
 
-## 后端分层
+## 🗂️ 分层结构
 
-当前代码已经按 `controller / service / mapper` 做目录分层，仍然保留按业务模块划分，便于继续扩展：
+当前代码采用 `controller / service / mapper` 分层，并按业务模块拆分：
 
 - `admin/controller`、`admin/service`
 - `article/controller`、`article/service`、`article/mapper`
@@ -26,7 +37,66 @@
 - `user/controller`、`user/mapper`
 - `video/controller`、`video/service`、`video/mapper`
 
-## 已实现接口
+## 🚀 本地运行
+
+```bash
+mvn spring-boot:run
+```
+
+## 🧪 测试与构建
+
+```bash
+mvn test
+mvn clean package -DskipTests
+```
+
+打包后会生成可直接部署的 Spring Boot `jar` 文件。
+
+## ⚙️ 环境变量
+
+示例文件：
+
+- [E:\Project\blog\blog-java\.env.example](E:/Project/blog/blog-java/.env.example)
+
+主要配置项包括：
+
+- `SERVER_PORT`
+- `MYSQL_URL`
+- `MYSQL_USERNAME`
+- `MYSQL_PASSWORD`
+- `REDIS_HOST`
+- `REDIS_PORT`
+- `REDIS_PASSWORD`
+- `MAIL_HOST`
+- `MAIL_PORT`
+- `MAIL_USERNAME`
+- `MAIL_PASSWORD`
+- `MAIL_FROM`
+- `JWT_SECRET`
+- `JWT_EXPIRATION_HOURS`
+- `UPLOAD_DIR`
+- `DEFAULT_ADMIN_EMAIL`
+- `DEFAULT_ADMIN_PASSWORD`
+
+## 🗄️ 数据库初始化
+
+MySQL 建表与模拟数据脚本位于：
+
+- [E:\Project\blog\blog-java\src\main\resources\sql\schema-mysql.sql](E:/Project/blog/blog-java/src/main/resources/sql/schema-mysql.sql)
+
+导入示例：
+
+```bash
+mysql -u root -p blog_java < src/main/resources/sql/schema-mysql.sql
+```
+
+当前项目保留了 Hibernate 的自动更新能力，默认配置中使用：
+
+```text
+ddl-auto: update
+```
+
+## 📡 已实现接口
 
 - `POST /api/auth/login`
 - `POST /api/auth/logout`
@@ -63,48 +133,25 @@
 - `POST /api/videos/{videoKey}/danmaku`
 - `GET /api/analytics/videos`
 
-## 环境变量
+## 🚀 部署建议
 
-启动前请参考 `.env.example` 配置以下变量：
+推荐生产环境方式：
 
-- `SERVER_PORT`
-- `MYSQL_URL`
-- `MYSQL_USERNAME`
-- `MYSQL_PASSWORD`
-- `REDIS_HOST`
-- `REDIS_PORT`
-- `REDIS_PASSWORD`
-- `MAIL_HOST`
-- `MAIL_PORT`
-- `MAIL_USERNAME`
-- `MAIL_PASSWORD`
-- `MAIL_FROM`
-- `JWT_SECRET`
-- `JWT_EXPIRATION_HOURS`
-- `UPLOAD_DIR`
-- `DEFAULT_ADMIN_EMAIL`
-- `DEFAULT_ADMIN_PASSWORD`
+- 后端以 `jar` 方式运行
+- 使用 `.env` 注入环境变量
+- Nginx 反向代理 `/api`
+- 上传目录使用绝对路径
+- MySQL 与 Redis 使用服务器本地服务
 
-## 数据库初始化
+如果使用宝塔部署：
 
-MySQL 建表脚本已经提供在 [src/main/resources/sql/schema-mysql.sql](/E:/Project/blog/blog-java/src/main/resources/sql/schema-mysql.sql)。
+- `jar` 与 `.env` 放在同级目录
+- 使用“Java 项目”运行后端
+- 启动前先导入数据库脚本
+- 确保 Java 版本为 `17`
 
-示例初始化命令：
+## 📌 说明
 
-```bash
-mysql -u root -p blog_java < src/main/resources/sql/schema-mysql.sql
-```
-
-如果你希望继续使用 Hibernate 自动补字段，保留当前 `application.yml` 里的 `ddl-auto: update` 即可。
-
-## 本地运行
-
-```bash
-mvn spring-boot:run
-```
-
-## 说明
-
-- Redis 负责登录态缓存、验证码缓存、热点数据缓存和视频事件缓冲。
-- 当 Redis 不可用时，视频事件会自动降级为直接写入数据库，不会阻塞接口。
-- 视频文件默认保存到本地文件系统。
+- Redis 负责登录态、验证码、热点数据与部分事件缓存
+- 当 Redis 不可用时，部分能力会自动降级，不会阻塞主要接口
+- 视频文件默认保存在本地文件系统
