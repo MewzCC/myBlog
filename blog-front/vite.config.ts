@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  assetsInclude: ['**/*.cur', '**/*.mp4'],
+  assetsInclude: ['**/*.cur', '**/*.ani', '**/*.mp4'],
   build: {
     rollupOptions: {
       output: {

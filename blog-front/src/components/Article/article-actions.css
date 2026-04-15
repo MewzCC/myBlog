@@ -22,6 +22,17 @@
   transition: all 0.3s ease !important;
 }
 
+/* 覆盖全局 .ant-btn-lg 的左右 padding，保证图标按钮始终是正圆 */
+.actionBtn.ant-btn-circle.ant-btn-lg {
+  width: 40px !important;
+  min-width: 40px !important;
+  height: 40px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
 .actionBtn:hover {
   background: var(--glass-border) !important;
   transform: translateY(-2px);

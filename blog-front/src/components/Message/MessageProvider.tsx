@@ -61,7 +61,7 @@ export default function MessageProvider({ children }: { children: ReactNode }) {
 
   const push = useCallback<PushFn>((kind, text, options) => {
     const id = makeId()
-    const durationMs = options?.durationMs ?? 2600
+    const durationMs = options?.durationMs ?? 1000
     const expiresAt = Date.now() + durationMs
 
     setItems((prev) => {
@@ -89,8 +89,7 @@ export default function MessageProvider({ children }: { children: ReactNode }) {
     const tick = () => {
       setItems((prev) => {
         const now = Date.now()
-        const next = prev.filter((x) => x.expiresAt > now)
-        return next
+        return prev.filter((x) => x.expiresAt > now)
       })
       rafRef.current = window.requestAnimationFrame(tick)
     }
@@ -135,4 +134,3 @@ export default function MessageProvider({ children }: { children: ReactNode }) {
     </MessageContext.Provider>
   )
 }
-

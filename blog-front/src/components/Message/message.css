@@ -28,7 +28,9 @@
   pointer-events: auto;
   overflow: hidden;
   transform-origin: 50% 0;
-  animation: messageIn 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation:
+    messageIn 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both,
+    messageOut 360ms ease 500ms forwards;
 }
 
 @keyframes messageIn {
@@ -39,6 +41,17 @@
   to {
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes messageOut {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(0, -6px, 0) scale(0.985);
   }
 }
 

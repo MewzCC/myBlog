@@ -89,11 +89,6 @@ export default function CommentSection({
       <div className="commentInputWrapper">
         <div className="inputHeader">
           <span className="inputTitle">发表评论</span>
-          <Space>
-            <Button type="text" size="small">B</Button>
-            <Button type="text" size="small">I</Button>
-            <Button type="text" size="small">Code</Button>
-          </Space>
         </div>
         <TextArea
           value={inputValue}
@@ -103,7 +98,6 @@ export default function CommentSection({
           className="commentTextarea"
         />
         <div className="inputFooter">
-          <span className="tip">支持 Markdown 语法</span>
           <Button type="primary" onClick={handleSubmit}>发表评论</Button>
         </div>
       </div>

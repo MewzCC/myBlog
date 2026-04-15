@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
     String message = ex.getBindingResult().getFieldErrors().stream()
         .map(error -> error.getDefaultMessage() == null ? error.getField() : error.getDefaultMessage())
         .findFirst()
-        .orElse("Invalid request");
+        .orElse("请求参数不合法");
     return ResponseEntity.badRequest().body(ApiResponse.error(400, message));
   }
 
@@ -32,7 +32,7 @@ public class GlobalExceptionHandler {
     String message = ex.getFieldErrors().stream()
         .map(error -> error.getDefaultMessage() == null ? error.getField() : error.getDefaultMessage())
         .findFirst()
-        .orElse("Invalid request");
+        .orElse("请求参数不合法");
     return ResponseEntity.badRequest().body(ApiResponse.error(400, message));
   }
 
@@ -47,7 +47,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ApiResponse<Void>> handleUnknown(Exception ex) {
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .body(ApiResponse.error(500, ex.getMessage() == null ? "Server error" : ex.getMessage()));
+        .body(ApiResponse.error(500, ex.getMessage() == null ? "服务器内部错误" : ex.getMessage()));
   }
 
   private HttpStatus resolveStatus(int code) {

@@ -17,6 +17,7 @@ describe('LoginPage', () => {
         registerSubmitting={false}
         registerStrength={{ percent: 0, label: '弱' }}
         registerCodeSecondsLeft={0}
+        registerCodeSending={false}
         onRegisterChange={() => undefined}
         onRegisterSubmit={(e) => e.preventDefault()}
         onRegisterRequestCode={() => undefined}
@@ -25,6 +26,7 @@ describe('LoginPage', () => {
         forgotSubmitting={false}
         forgotStrength={{ percent: 0, label: '弱' }}
         forgotCodeSecondsLeft={0}
+        forgotCodeSending={false}
         onForgotChange={() => undefined}
         onForgotSubmit={(e) => e.preventDefault()}
         onForgotRequestCode={() => undefined}

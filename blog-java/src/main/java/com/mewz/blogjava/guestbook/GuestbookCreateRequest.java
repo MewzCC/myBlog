@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class GuestbookCreateRequest {
 
-  @NotBlank(message = "Message content is required")
+  @NotBlank(message = "留言内容不能为空")
   private String content;
 }
 

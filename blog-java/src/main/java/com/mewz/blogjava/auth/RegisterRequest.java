@@ -8,14 +8,14 @@ import lombok.Data;
 @Data
 public class RegisterRequest {
 
-  @Email(message = "Please enter a valid email")
-  @NotBlank(message = "Email is required")
+  @Email(message = "请输入正确的邮箱地址")
+  @NotBlank(message = "请输入邮箱地址")
   private String email;
 
-  @NotBlank(message = "Verification code is required")
+  @NotBlank(message = "请输入验证码")
   private String code;
 
-  @Size(min = 8, message = "Password must be at least 8 characters")
+  @Size(min = 8, message = "密码长度不能少于 8 位")
   private String password;
 }
 

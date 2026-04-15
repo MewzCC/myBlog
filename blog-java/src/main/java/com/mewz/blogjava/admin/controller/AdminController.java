@@ -28,13 +28,13 @@ public class AdminController {
   @PostMapping("/{id}/approve")
   public ApiResponse<Void> approve(@PathVariable String id) {
     adminService.approve(id);
-    return ApiResponse.successMessage("Article approved");
+    return ApiResponse.successMessage("文章审核已通过");
   }
 
   @PostMapping("/{id}/reject")
   public ApiResponse<Void> reject(@PathVariable String id) {
     adminService.reject(id);
-    return ApiResponse.successMessage("Article rejected");
+    return ApiResponse.successMessage("文章已驳回");
   }
 }
 

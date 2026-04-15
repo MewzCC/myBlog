@@ -19,9 +19,10 @@ public class ActorService {
 
   public ActorContext getActor(String visitorId) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication != null && authentication.getPrincipal() instanceof JwtUserPrincipal principal) {
+    if (authentication != null && authentication.getPrincipal() instanceof JwtUserPrincipal) {
+      JwtUserPrincipal principal = (JwtUserPrincipal) authentication.getPrincipal();
       UserAccount user = userRepository.findById(principal.getId())
-          .orElseThrow(() -> new ApiException(401, "User not found"));
+          .orElseThrow(() -> new ApiException(401, "用户不存在或登录已失效"));
       return ActorContext.builder()
           .authenticated(true)
           .admin(user.getRoleList().contains("admin"))
@@ -36,7 +37,7 @@ public class ActorService {
         .authenticated(false)
         .admin(false)
         .visitorId(visitorId == null || visitorId.isBlank() ? "anonymous" : visitorId)
-        .userName("Visitor")
+        .userName("访客")
         .userAvatar("https://api.dicebear.com/7.x/avataaars/svg?seed=Visitor")
         .build();
   }

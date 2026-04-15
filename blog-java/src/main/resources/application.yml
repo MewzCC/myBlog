@@ -1,13 +1,17 @@
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${SERVER_PORT}
 
 spring:
+  config:
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:.env.example[.properties]
   application:
     name: blog-java
   datasource:
-    url: ${MYSQL_URL:jdbc:mysql://localhost:3306/blog_java?useSSL=false&serverTimezone=UTC&characterEncoding=utf8&allowPublicKeyRetrieval=true}
-    username: ${MYSQL_USERNAME:root}
-    password: ${MYSQL_PASSWORD:zcc520}
+    url: ${MYSQL_URL}
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
@@ -18,16 +22,16 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
       repositories:
         enabled: false
   mail:
-    host: ${MAIL_HOST:}
-    port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME:}
-    password: ${MAIL_PASSWORD:}
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -37,13 +41,14 @@ spring:
 
 app:
   jwt:
-    secret: ${JWT_SECRET:ZW1lcmdlbmN5LWRldmVsb3BtZW50LXNlY3JldC1yZXBsYWNlLW1lLTAxMjM0NTY3ODlhYmNkZWY=}
-    expiration-hours: ${JWT_EXPIRATION_HOURS:72}
+    secret: ${JWT_SECRET}
+    expiration-hours: ${JWT_EXPIRATION_HOURS}
   storage:
-    upload-dir: ${UPLOAD_DIR:uploads}
+    upload-dir: ${UPLOAD_DIR}
     public-prefix: /uploads/
   mail:
-    from: ${MAIL_FROM:no-reply@example.com}
+    from: ${MAIL_FROM}
+    dev-mock-enabled: ${MAIL_DEV_MOCK_ENABLED}
   admin:
-    email: ${DEFAULT_ADMIN_EMAIL:admin@example.com}
-    password: ${DEFAULT_ADMIN_PASSWORD:admin123}
+    email: ${DEFAULT_ADMIN_EMAIL}
+    password: ${DEFAULT_ADMIN_PASSWORD}

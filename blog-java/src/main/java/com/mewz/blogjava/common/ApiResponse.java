@@ -12,7 +12,7 @@ public class ApiResponse<T> {
   private T data;
 
   public static <T> ApiResponse<T> success(T data) {
-    return new ApiResponse<>(200, "Success", data);
+    return new ApiResponse<>(200, "成功", data);
   }
 
   public static <T> ApiResponse<T> success(String message, T data) {

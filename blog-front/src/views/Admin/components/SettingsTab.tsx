@@ -34,9 +34,9 @@ export default function SettingsTab() {
       const res = await updateAdminSiteSettings(next)
       if (res.data.code === 200) {
         applyServerSettings(res.data.data)
-        message.success('Settings saved')
+        message.success('设置已保存')
       } else {
-        message.error(res.data.message || 'Failed to save settings')
+        message.error(res.data.message || '保存设置失败')
       }
     } catch (error) {
       console.error(error)
@@ -55,12 +55,12 @@ export default function SettingsTab() {
 
   return (
     <div className="adminModule settingsModule">
-      <h2 className="moduleTitle">System Settings</h2>
+      <h2 className="moduleTitle">系统设置</h2>
       <div className="settingsGrid" style={{ opacity: saving ? 0.75 : 1 }}>
         <div className="settingCard">
           <div className="settingInfo">
-            <h3>Guestbook</h3>
-            <p>Allow visitors to read and post messages on the guestbook page.</p>
+            <h3>留言板</h3>
+            <p>允许访客在留言板页面阅读和发布消息。</p>
           </div>
           <div className="settingControl">
             <Switch
@@ -79,8 +79,8 @@ export default function SettingsTab() {
 
         <div className="settingCard">
           <div className="settingInfo">
-            <h3>User Profile Editing</h3>
-            <p>Allow regular users to edit extended profile information like social links.</p>
+            <h3>用户资料编辑</h3>
+            <p>允许普通用户编辑社交链接等扩展资料信息。</p>
           </div>
           <div className="settingControl">
             <Switch

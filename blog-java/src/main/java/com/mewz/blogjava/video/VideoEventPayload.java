@@ -7,10 +7,10 @@ import lombok.Data;
 @Data
 public class VideoEventPayload {
 
-  @NotBlank(message = "viewerId is required")
+  @NotBlank(message = "viewerId 不能为空")
   private String viewerId;
 
-  @NotBlank(message = "event is required")
+  @NotBlank(message = "事件类型不能为空")
   private String event;
 
   private long at;

@@ -1,29 +1,64 @@
-.customCursor {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 20px;
-  height: 20px;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: top left;
-  pointer-events: none;
-  z-index: 10000;
-  will-change: transform;
-  /* Adjust pointer offset if needed, usually top-left is 0,0 */
-  transform: translate3d(-100px, -100px, 0); 
+:root {
+  --cursor-normal: auto;
+  --cursor-link: pointer;
+  --cursor-pin: pointer;
+  --cursor-text: text;
+  --cursor-unavailable: not-allowed;
+  --cursor-working: progress;
 }
 
-.customCursorHover {
-  /* Optional: add hover effect like slight scale or opacity change */
-  transform: translate3d(-100px, -100px, 0) scale(1.1);
-}
-
-/* Hide default cursor globally when this component is active */
-/* Only hide if we are on a device that supports hover (usually desktop) */
 @media (hover: hover) and (pointer: fine) {
   body.custom-cursor-active,
   body.custom-cursor-active * {
-    cursor: none !important;
+    cursor: var(--cursor-normal) !important;
+  }
+
+  body.custom-cursor-active a,
+  body.custom-cursor-active area,
+  body.custom-cursor-active summary,
+  body.custom-cursor-active [data-cursor='link'],
+  body.custom-cursor-active .pointer {
+    cursor: var(--cursor-link) !important;
+  }
+
+  body.custom-cursor-active button,
+  body.custom-cursor-active [role='button'],
+  body.custom-cursor-active .ant-btn,
+  body.custom-cursor-active .authLink,
+  body.custom-cursor-active .authCodeBtn,
+  body.custom-cursor-active .authSubmit,
+  body.custom-cursor-active .navAuthBtn,
+  body.custom-cursor-active .navMenuItem,
+  body.custom-cursor-active .navMobileMenuItem,
+  body.custom-cursor-active .userMenuItem,
+  body.custom-cursor-active [data-cursor='pin'] {
+    cursor: var(--cursor-pin) !important;
+  }
+
+  body.custom-cursor-active input:not([type='checkbox']):not([type='radio']),
+  body.custom-cursor-active textarea,
+  body.custom-cursor-active [contenteditable='true'],
+  body.custom-cursor-active .ant-input,
+  body.custom-cursor-active .ant-input-affix-wrapper,
+  body.custom-cursor-active .ant-select-selector,
+  body.custom-cursor-active [data-cursor='text'] {
+    cursor: var(--cursor-text) !important;
+  }
+
+  body.custom-cursor-active button:disabled,
+  body.custom-cursor-active input:disabled,
+  body.custom-cursor-active textarea:disabled,
+  body.custom-cursor-active .ant-btn[disabled],
+  body.custom-cursor-active .ant-btn-disabled,
+  body.custom-cursor-active [aria-disabled='true'],
+  body.custom-cursor-active [data-cursor='unavailable'] {
+    cursor: var(--cursor-unavailable) !important;
+  }
+
+  body.custom-cursor-active .ant-btn-loading,
+  body.custom-cursor-active [aria-busy='true'],
+  body.custom-cursor-active [data-loading='true'],
+  body.custom-cursor-active [data-cursor='working'] {
+    cursor: var(--cursor-working) !important;
   }
 }

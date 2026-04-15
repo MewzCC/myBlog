@@ -47,17 +47,17 @@ export default function AboutPage() {
         {enableSocials && (
           <div className="aboutSocials">
             {profile?.socials?.github && (
-              <a href={profile.socials.github} target="_blank" rel="noopener noreferrer">
+              <a href={profile.socials.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub">
                 <GithubOutlined />
               </a>
             )}
             {profile?.socials?.twitter && (
-              <a href={profile.socials.twitter} target="_blank" rel="noopener noreferrer">
+              <a href={profile.socials.twitter} target="_blank" rel="noopener noreferrer" aria-label="Twitter">
                 <TwitterOutlined />
               </a>
             )}
             {profile?.socials?.email && (
-              <a href={`mailto:${profile.socials.email}`}>
+              <a href={`mailto:${profile.socials.email}`} aria-label="邮箱">
                 <MailOutlined />
               </a>
             )}
@@ -84,15 +84,15 @@ export default function AboutPage() {
           <h2 className="aboutSectionTitle">
             <RocketOutlined /> 关于这个站点
           </h2>
-          <p>这个博客用来记录工程实践、技术实验，以及在做产品过程中的复盘与总结。</p>
-          <p>现在它已经不再只是静态展示页，而是一套真正可运行的 React 前端与 Spring Boot 后端应用。</p>
+          <p>这个博客用来记录工程实践、技术实验，以及在做产品过程中产生的复盘与总结。</p>
+          <p>现在它已经不再只是一个静态展示页，而是一套真正可运行的 React 前端与 Spring Boot 后端应用。</p>
         </section>
 
         <section className="aboutSection">
           <h2 className="aboutSectionTitle">
             <HeartOutlined /> 一点碎碎念
           </h2>
-          <p>我希望做出来的软件不仅好用、可维护，也能对使用它和维护它的人保持足够友好。</p>
+          <p>我希望做出来的软件不只好用、可维护，也能对使用它和维护它的人保持足够友好。</p>
         </section>
       </div>
     </div>

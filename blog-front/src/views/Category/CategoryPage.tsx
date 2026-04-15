@@ -29,8 +29,6 @@ export default function CategoryPage({ id, name, onArticleClick }: CategoryPageP
         if (res.data.code === 200) {
           setArticles(res.data.data.list)
           setTotal(res.data.data.total)
-        } else {
-          message.error(res.data.message || '加载文章失败')
         }
       } catch (error) {
         console.error(error)

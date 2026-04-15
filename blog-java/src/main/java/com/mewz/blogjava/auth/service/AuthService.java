@@ -48,10 +48,10 @@ public class AuthService {
     String account = request.getUsername().trim().toLowerCase(Locale.ROOT);
     UserAccount user = userRepository.findByEmail(account)
         .or(() -> userRepository.findByName(request.getUsername().trim()))
-        .orElseThrow(() -> new ApiException(401, "Invalid username or password"));
+        .orElseThrow(() -> new ApiException(401, "账号或密码错误"));
 
     if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-      throw new ApiException(401, "Invalid username or password");
+      throw new ApiException(401, "账号或密码错误");
     }
     return buildAuthResponse(user);
   }
@@ -77,7 +77,7 @@ public class AuthService {
       userRepository.findByName(normalized)
           .filter(existing -> !existing.getId().equals(user.getId()))
           .ifPresent(existing -> {
-            throw new ApiException(400, "Display name already exists");
+            throw new ApiException(400, "昵称已存在");
           });
       user.setName(normalized);
     }
@@ -95,22 +95,22 @@ public class AuthService {
 
   public VerificationCodeResult sendRegisterCode(VerificationCodeRequest request) {
     if (userRepository.findByEmail(request.getEmail().trim().toLowerCase(Locale.ROOT)).isPresent()) {
-      throw new ApiException(400, "Email already registered");
+      throw new ApiException(400, "该邮箱已注册");
     }
-    return sendCode("register", request.getEmail(), "Blog registration verification code");
+    return sendCode("register", request.getEmail(), "博客注册验证码");
   }
 
   public VerificationCodeResult sendPasswordResetCode(VerificationCodeRequest request) {
     userRepository.findByEmail(request.getEmail().trim().toLowerCase(Locale.ROOT))
-        .orElseThrow(() -> new ApiException(404, "Email is not registered"));
-    return sendCode("password", request.getEmail(), "Blog password reset verification code");
+        .orElseThrow(() -> new ApiException(404, "该邮箱尚未注册"));
+    return sendCode("password", request.getEmail(), "博客重置密码验证码");
   }
 
   @Transactional
   public AuthResponse register(RegisterRequest request) {
     String email = request.getEmail().trim().toLowerCase(Locale.ROOT);
     if (userRepository.findByEmail(email).isPresent()) {
-      throw new ApiException(400, "Email already registered");
+      throw new ApiException(400, "该邮箱已注册");
     }
     validateCode("register", email, request.getCode());
 
@@ -119,7 +119,7 @@ public class AuthService {
     user.setName(generateUniqueName(email));
     user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
     user.setAvatar("https://api.dicebear.com/7.x/avataaars/svg?seed=" + sanitizeSeed(user.getName()));
-    user.setBio("New user of the blog platform.");
+    user.setBio("欢迎来到樱花博客，开始记录你的想法吧。");
     SocialLinks socials = new SocialLinks();
     socials.setEmail(email);
     user.setSocialsJson(jsonHelper.toJson(socials));
@@ -134,7 +134,7 @@ public class AuthService {
   public void resetPassword(ResetPasswordRequest request) {
     String email = request.getEmail().trim().toLowerCase(Locale.ROOT);
     UserAccount user = userRepository.findByEmail(email)
-        .orElseThrow(() -> new ApiException(404, "Email is not registered"));
+        .orElseThrow(() -> new ApiException(404, "该邮箱尚未注册"));
     validateCode("password", email, request.getCode());
     user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
     userRepository.save(user);
@@ -144,17 +144,18 @@ public class AuthService {
   @Transactional(readOnly = true)
   public UserDto getBloggerProfile() {
     UserAccount admin = userRepository.findByEmail(adminEmail)
-        .orElseThrow(() -> new ApiException(404, "Admin not found"));
+        .orElseThrow(() -> new ApiException(404, "未找到站长账号"));
     return toUserDto(admin);
   }
 
   public UserAccount getAuthenticatedUser() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication == null || !(authentication.getPrincipal() instanceof JwtUserPrincipal principal)) {
-      throw new ApiException(401, "Unauthorized");
+    if (authentication == null || !(authentication.getPrincipal() instanceof JwtUserPrincipal)) {
+      throw new ApiException(401, "未登录或登录已失效");
     }
+    JwtUserPrincipal principal = (JwtUserPrincipal) authentication.getPrincipal();
     return userRepository.findById(principal.getId())
-        .orElseThrow(() -> new ApiException(401, "Unauthorized"));
+        .orElseThrow(() -> new ApiException(401, "未登录或登录已失效"));
   }
 
   public UserDto toUserDto(UserAccount user) {
@@ -198,7 +199,7 @@ public class AuthService {
   private void validateCode(String scene, String email, String code) {
     String stored = authStateCacheService.getVerificationCode(codeKey(scene, email));
     if (stored == null || !stored.equals(code)) {
-      throw new ApiException(400, "Invalid or expired verification code");
+      throw new ApiException(400, "验证码错误或已过期");
     }
   }
 

@@ -4,7 +4,7 @@ import './navbar.css'
 import { useUserStore } from '../../stores/userStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { EditOutlined, BgColorsOutlined, CheckOutlined } from '@ant-design/icons'
-import { Button, Tooltip, Dropdown, MenuProps } from 'antd'
+import { Button, Tooltip, Dropdown, type MenuProps } from 'antd'
 
 export type NavBarProps = {
   onNavigate: (route: Route) => void
@@ -37,19 +37,19 @@ export default function NavBar({ onNavigate, onOpenAuth, onOpenRegister, onLogou
     {
       key: 'light',
       label: '浅色模式',
-      icon: theme === 'light' && <CheckOutlined />,
+      icon: theme === 'light' ? <CheckOutlined /> : undefined,
       onClick: () => setTheme('light'),
     },
     {
       key: 'dark',
       label: '深色模式',
-      icon: theme === 'dark' && <CheckOutlined />,
+      icon: theme === 'dark' ? <CheckOutlined /> : undefined,
       onClick: () => setTheme('dark'),
     },
     {
       key: 'system',
       label: '跟随系统',
-      icon: theme === 'system' && <CheckOutlined />,
+      icon: theme === 'system' ? <CheckOutlined /> : undefined,
       onClick: () => setTheme('system'),
     },
   ]
@@ -70,7 +70,7 @@ export default function NavBar({ onNavigate, onOpenAuth, onOpenRegister, onLogou
           {
             key: 'admin',
             label: '后台管理',
-            onClick: () => handleNav({ name: 'admin' as const }),
+            onClick: () => handleNav({ name: 'admin' }),
           },
         ]
       : []),
@@ -92,7 +92,7 @@ export default function NavBar({ onNavigate, onOpenAuth, onOpenRegister, onLogou
         <span className="navName">Sakura BLOG</span>
       </div>
 
-      <nav className="navMenu" aria-label="菜单">
+      <nav className="navMenu" aria-label="主菜单">
         <button className="navMenuItem" onClick={() => handleNav({ name: 'home' })}>首页</button>
         <button className="navMenuItem" onClick={() => handleNav({ name: 'category', params: { id: 'all', name: '全部分类' } })}>分类</button>
         <button className="navMenuItem" onClick={() => handleNav({ name: 'archive' })}>归档</button>
@@ -107,7 +107,7 @@ export default function NavBar({ onNavigate, onOpenAuth, onOpenRegister, onLogou
             placeholder="搜索文章"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            aria-label="搜索"
+            aria-label="搜索文章"
           />
         </form>
         {isAdmin && (
@@ -116,10 +116,16 @@ export default function NavBar({ onNavigate, onOpenAuth, onOpenRegister, onLogou
           </Tooltip>
         )}
         <Dropdown menu={{ items: themeItems }} placement="bottomRight" arrow>
-          <Button type="text" icon={<BgColorsOutlined />} className="navWriteBtn" />
+          <Button type="text" icon={<BgColorsOutlined />} className="navWriteBtn" aria-label="切换主题" />
         </Dropdown>
         {userInfo ? (
-          <Dropdown menu={{ items: userItems }} trigger={['hover']} placement="bottomRight" overlayClassName="navUserDropdownOverlay" arrow>
+          <Dropdown
+            menu={{ items: userItems }}
+            trigger={['hover']}
+            placement="bottomRight"
+            overlayClassName="navUserDropdownOverlay"
+            arrow
+          >
             <button type="button" className="navUser" aria-label="账户菜单">
               <img src={userInfo.avatar} alt={userInfo.name} className="navUserAvatar" />
               <span className="navUserName">{userInfo.name}</span>
@@ -154,7 +160,7 @@ export default function NavBar({ onNavigate, onOpenAuth, onOpenRegister, onLogou
               placeholder="搜索文章"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              aria-label="搜索"
+              aria-label="搜索文章"
             />
           </form>
           <button className="navMobileMenuItem" onClick={() => handleNav({ name: 'home' })}>首页</button>

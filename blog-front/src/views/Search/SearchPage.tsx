@@ -26,6 +26,7 @@ export default function SearchPage({ query, onArticleClick }: SearchPageProps) {
           message.error(res.data.message || '搜索失败')
         }
       } catch (error) {
+        console.error(error)
         message.error('搜索失败')
       } finally {
         setLoading(false)

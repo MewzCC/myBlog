@@ -26,7 +26,9 @@ export const updateUserInfo = (data: Partial<User>) => {
 }
 
 export const sendRegisterCode = (data: VerificationCodeRequest) => {
-  return request.post<ApiResponse<VerificationCodeResult>>('/auth/register/code', data)
+  return request.post<ApiResponse<VerificationCodeResult>>('/auth/register/code', data, {
+    timeout: 70000,
+  })
 }
 
 export const register = (data: RegisterRequest) => {
@@ -34,7 +36,9 @@ export const register = (data: RegisterRequest) => {
 }
 
 export const sendResetPasswordCode = (data: VerificationCodeRequest) => {
-  return request.post<ApiResponse<VerificationCodeResult>>('/auth/password/code', data)
+  return request.post<ApiResponse<VerificationCodeResult>>('/auth/password/code', data, {
+    timeout: 70000,
+  })
 }
 
 export const resetPassword = (data: ResetPasswordRequest) => {

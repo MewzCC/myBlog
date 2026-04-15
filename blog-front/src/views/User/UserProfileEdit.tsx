@@ -19,15 +19,15 @@ const SYSTEM_AVATARS = [
   'https://api.dicebear.com/7.x/avataaars/svg?seed=Bob',
   'https://api.dicebear.com/7.x/avataaars/svg?seed=Willow',
   'https://api.dicebear.com/7.x/avataaars/svg?seed=Jack',
-  'https://api.dicebear.com/7.x/avataaars/svg?seed=Precious'
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Precious',
 ]
 
 export default function UserProfileEdit() {
-  const userInfo = useUserStore(s => s.userInfo)
-  const login = useUserStore(s => s.login)
-  const token = useUserStore(s => s.token)
+  const userInfo = useUserStore((s) => s.userInfo)
+  const login = useUserStore((s) => s.login)
+  const token = useUserStore((s) => s.token)
   const { enableUserEdit } = useSettingsStore()
-  
+
   const isAdmin = userInfo?.roles?.includes('admin')
   const showFullEdit = isAdmin || enableUserEdit
 
@@ -37,7 +37,7 @@ export default function UserProfileEdit() {
     bio: userInfo?.bio || '',
     socials: userInfo?.socials || {},
   })
-  
+
   const [errors, setErrors] = useState<{ name?: string }>({})
   const [saving, setSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState<number | null>(null)
@@ -45,8 +45,8 @@ export default function UserProfileEdit() {
   const [previewImage, setPreviewImage] = useState('')
 
   const validateName = (name: string): string | undefined => {
-    if (name.length < 2 || name.length > 20) return '昵称长度需在2-20个字符之间'
-    if (!/^[\u4e00-\u9fa5a-zA-Z0-9_]+$/.test(name)) return '昵称只能包含中英文、数字和下划线'
+    if (name.length < 2 || name.length > 20) return '昵称长度需要在 2 到 20 个字符之间'
+    if (!/^[\u4e00-\u9fa5a-zA-Z0-9_]+$/.test(name)) return '昵称只能包含中文、英文、数字和下划线'
     return undefined
   }
 
@@ -57,14 +57,14 @@ export default function UserProfileEdit() {
       if (res.data.code === 200) {
         setLastSaved(Date.now())
         if (token && userInfo) {
-            login(token, { ...userInfo, ...data } as User)
+          login(token, { ...userInfo, ...data } as User)
         }
       } else {
-        message.error(res.data.message)
+        message.error(res.data.message || '保存失败')
       }
     } catch (error) {
       console.error(error)
-      message.error('保存失败，请重试')
+      message.error('保存失败，请稍后重试')
     } finally {
       setSaving(false)
     }
@@ -72,9 +72,9 @@ export default function UserProfileEdit() {
 
   const debouncedSave = useCallback(
     debounce((data: Partial<User>) => {
-      saveProfile(data)
-    }, 500), 
-    [token, userInfo]
+      void saveProfile(data)
+    }, 500),
+    [token, userInfo],
   )
 
   useEffect(() => {
@@ -86,11 +86,11 @@ export default function UserProfileEdit() {
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value
     const err = validateName(val)
-    setErrors(prev => ({ ...prev, name: err }))
-    
+    setErrors((prev) => ({ ...prev, name: err }))
+
     const newProfile = { ...profile, name: val }
     setProfile(newProfile)
-    
+
     if (!err) {
       debouncedSave(newProfile)
     }
@@ -112,21 +112,21 @@ export default function UserProfileEdit() {
 
   const beforeUpload = (file: RcFile) => {
     if (!ALLOWED_TYPES.includes(file.type)) {
-      message.error('只支持 JPG/PNG 格式')
+      message.error('仅支持 JPG 或 PNG 格式图片')
       return Upload.LIST_IGNORE
     }
     if (file.size > MAX_FILE_SIZE) {
       message.error('图片大小不能超过 2MB')
       return Upload.LIST_IGNORE
     }
-    
+
     const reader = new FileReader()
     reader.readAsDataURL(file)
     reader.onload = () => {
       const base64 = reader.result as string
       const newProfile = { ...profile, avatar: base64 }
       setProfile(newProfile)
-      saveProfile(newProfile)
+      void saveProfile(newProfile)
     }
 
     return false
@@ -147,7 +147,7 @@ export default function UserProfileEdit() {
   const handleSystemAvatar = (url: string) => {
     const newProfile = { ...profile, avatar: url }
     setProfile(newProfile)
-    saveProfile(newProfile)
+    void saveProfile(newProfile)
   }
 
   const uploadButton = (
@@ -171,34 +171,34 @@ export default function UserProfileEdit() {
             onPreview={handlePreview}
           >
             {profile.avatar ? (
-              <img src={profile.avatar} alt="avatar" style={{ width: '100%', borderRadius: '50%' }} />
+              <img src={profile.avatar} alt="头像" style={{ width: '100%', borderRadius: '50%' }} />
             ) : (
               uploadButton
             )}
           </Upload>
           <Modal open={previewOpen} footer={null} onCancel={() => setPreviewOpen(false)}>
-            <img alt="example" style={{ width: '100%' }} src={previewImage} />
+            <img alt="头像预览" style={{ width: '100%' }} src={previewImage} />
           </Modal>
-          
+
           <div style={{ marginTop: 12 }}>
-            <div className="formLabel" style={{ fontSize: 12, marginBottom: 8 }}>或选择系统头像：</div>
+            <div className="formLabel" style={{ fontSize: 12, marginBottom: 8 }}>或者选择系统头像：</div>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               {SYSTEM_AVATARS.map((url, i) => (
-                <div 
+                <div
                   key={i}
                   onClick={() => handleSystemAvatar(url)}
-                  style={{ 
-                    width: 40, 
-                    height: 40, 
-                    borderRadius: '50%', 
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
                     cursor: 'pointer',
                     border: profile.avatar === url ? '2px solid #7c5cff' : '2px solid transparent',
                     overflow: 'hidden',
-                    transition: 'transform 0.2s'
+                    transition: 'transform 0.2s',
                   }}
                   className="systemAvatarItem"
                 >
-                  <img src={url} alt={`avatar-${i}`} style={{ width: '100%', height: '100%' }} />
+                  <img src={url} alt={`系统头像-${i + 1}`} style={{ width: '100%', height: '100%' }} />
                 </div>
               ))}
             </div>
@@ -232,40 +232,40 @@ export default function UserProfileEdit() {
           <div className="formItem">
             <label className="formLabel">社交链接</label>
             <div style={{ display: 'grid', gap: 12 }}>
-              <Input 
-                className="formInput" 
-                prefix={<span style={{ color: '#fff', opacity: 0.5, width: 60 }}>Github</span>}
+              <Input
+                className="formInput"
+                prefix={<span style={{ color: '#fff', opacity: 0.5, width: 60 }}>GitHub</span>}
                 value={profile.socials?.github}
-                onChange={e => handleSocialChange('github', e.target.value)}
+                onChange={(e) => handleSocialChange('github', e.target.value)}
                 placeholder="https://github.com/..."
               />
-              <Input 
-                className="formInput" 
+              <Input
+                className="formInput"
                 prefix={<span style={{ color: '#fff', opacity: 0.5, width: 60 }}>Twitter</span>}
                 value={profile.socials?.twitter}
-                onChange={e => handleSocialChange('twitter', e.target.value)}
+                onChange={(e) => handleSocialChange('twitter', e.target.value)}
                 placeholder="https://twitter.com/..."
               />
-              <Input 
-                className="formInput" 
+              <Input
+                className="formInput"
                 prefix={<span style={{ color: '#fff', opacity: 0.5, width: 60 }}>Bilibili</span>}
                 value={profile.socials?.bilibili}
-                onChange={e => handleSocialChange('bilibili', e.target.value)}
+                onChange={(e) => handleSocialChange('bilibili', e.target.value)}
                 placeholder="https://space.bilibili.com/..."
               />
-              <Input 
-                className="formInput" 
+              <Input
+                className="formInput"
                 prefix={<span style={{ color: '#fff', opacity: 0.5, width: 60 }}>抖音</span>}
                 value={profile.socials?.douyin}
-                onChange={e => handleSocialChange('douyin', e.target.value)}
+                onChange={(e) => handleSocialChange('douyin', e.target.value)}
                 placeholder="https://v.douyin.com/..."
               />
-              <Input 
-                className="formInput" 
-                prefix={<span style={{ color: '#fff', opacity: 0.5, width: 60 }}>Email</span>}
+              <Input
+                className="formInput"
+                prefix={<span style={{ color: '#fff', opacity: 0.5, width: 60 }}>邮箱</span>}
                 value={profile.socials?.email}
-                onChange={e => handleSocialChange('email', e.target.value)}
-                placeholder="contact@example.com"
+                onChange={(e) => handleSocialChange('email', e.target.value)}
+                placeholder="请输入联系邮箱"
               />
             </div>
           </div>
@@ -275,7 +275,7 @@ export default function UserProfileEdit() {
           {saving ? (
             <span className="statusSaving">保存中...</span>
           ) : lastSaved ? (
-            <span className="statusSaved">已保存 {new Date(lastSaved).toLocaleTimeString()}</span>
+            <span className="statusSaved">已保存于 {new Date(lastSaved).toLocaleTimeString()}</span>
           ) : null}
         </div>
       </div>

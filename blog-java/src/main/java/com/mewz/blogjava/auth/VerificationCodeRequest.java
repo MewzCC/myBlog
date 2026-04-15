@@ -7,8 +7,8 @@ import lombok.Data;
 @Data
 public class VerificationCodeRequest {
 
-  @Email(message = "Please enter a valid email")
-  @NotBlank(message = "Email is required")
+  @Email(message = "请输入正确的邮箱地址")
+  @NotBlank(message = "请输入邮箱地址")
   private String email;
 }
 

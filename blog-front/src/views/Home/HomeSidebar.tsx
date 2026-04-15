@@ -51,7 +51,7 @@ export default function HomeSidebar() {
         <div className="profileContent">
           <Avatar size={80} src={profile.avatar} className="profileAvatar" />
           <h3 className="profileName">{profile.name}</h3>
-          <p className="profileBio">{profile.bio || '这个人有点低调，还没写简介。'}</p>
+          <p className="profileBio">{profile.bio || '这个人有点低调，还没有留下个人简介。'}</p>
 
           <div className="profileStats">
             <div className="statItem">
@@ -75,27 +75,27 @@ export default function HomeSidebar() {
           {enableSocials && (
             <div className="socialLinks">
               {profile.socials?.github && (
-                <a href={profile.socials.github} target="_blank" rel="noopener noreferrer">
+                <a href={profile.socials.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub">
                   <GithubOutlined className="socialIcon" />
                 </a>
               )}
               {profile.socials?.twitter && (
-                <a href={profile.socials.twitter} target="_blank" rel="noopener noreferrer">
+                <a href={profile.socials.twitter} target="_blank" rel="noopener noreferrer" aria-label="Twitter">
                   <TwitterOutlined className="socialIcon" />
                 </a>
               )}
               {profile.socials?.bilibili && (
-                <a href={profile.socials.bilibili} target="_blank" rel="noopener noreferrer">
+                <a href={profile.socials.bilibili} target="_blank" rel="noopener noreferrer" aria-label="哔哩哔哩">
                   <YoutubeOutlined className="socialIcon" />
                 </a>
               )}
               {profile.socials?.douyin && (
-                <a href={profile.socials.douyin} target="_blank" rel="noopener noreferrer">
+                <a href={profile.socials.douyin} target="_blank" rel="noopener noreferrer" aria-label="抖音">
                   <VideoCameraOutlined className="socialIcon" />
                 </a>
               )}
               {profile.socials?.email && (
-                <a href={`mailto:${profile.socials.email}`}>
+                <a href={`mailto:${profile.socials.email}`} aria-label="邮箱">
                   <MailOutlined className="socialIcon" />
                 </a>
               )}

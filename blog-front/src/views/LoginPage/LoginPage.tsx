@@ -25,6 +25,7 @@ export type LoginPageProps = {
   registerSubmitting: boolean
   registerStrength: PasswordStrength
   registerCodeSecondsLeft: number
+  registerCodeSending: boolean
   onRegisterChange: (next: RegisterFormValue) => void
   onRegisterSubmit: (event: FormEvent) => void
   onRegisterRequestCode: () => void
@@ -34,6 +35,7 @@ export type LoginPageProps = {
   forgotSubmitting: boolean
   forgotStrength: PasswordStrength
   forgotCodeSecondsLeft: number
+  forgotCodeSending: boolean
   onForgotChange: (next: ForgotFormValue) => void
   onForgotSubmit: (event: FormEvent) => void
   onForgotRequestCode: () => void
@@ -59,6 +61,7 @@ export default function LoginPage({
   registerSubmitting,
   registerStrength,
   registerCodeSecondsLeft,
+  registerCodeSending,
   onRegisterChange,
   onRegisterSubmit,
   onRegisterRequestCode,
@@ -67,6 +70,7 @@ export default function LoginPage({
   forgotSubmitting,
   forgotStrength,
   forgotCodeSecondsLeft,
+  forgotCodeSending,
   onForgotChange,
   onForgotSubmit,
   onForgotRequestCode,
@@ -87,6 +91,7 @@ export default function LoginPage({
           registerSubmitting={registerSubmitting}
           registerStrength={registerStrength}
           registerCodeSecondsLeft={registerCodeSecondsLeft}
+          registerCodeSending={registerCodeSending}
           onRegisterChange={onRegisterChange}
           onRegisterSubmit={onRegisterSubmit}
           onRegisterRequestCode={onRegisterRequestCode}
@@ -95,6 +100,7 @@ export default function LoginPage({
           forgotSubmitting={forgotSubmitting}
           forgotStrength={forgotStrength}
           forgotCodeSecondsLeft={forgotCodeSecondsLeft}
+          forgotCodeSending={forgotCodeSending}
           onForgotChange={onForgotChange}
           onForgotSubmit={onForgotSubmit}
           onForgotRequestCode={onForgotRequestCode}

@@ -29,7 +29,7 @@ export default function LoginCard({ value, submitting, banner, onChange, onSubmi
         <div className="loginBrandRow">
           <div className="loginBrandMark" aria-hidden="true" />
           <div>
-            <div className="loginBrandName">NEON</div>
+            <div className="loginBrandName">Sakura</div>
             <div className="loginBrandSub">Sign in</div>
           </div>
         </div>

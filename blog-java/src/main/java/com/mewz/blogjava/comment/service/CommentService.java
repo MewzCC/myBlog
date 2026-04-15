@@ -60,9 +60,9 @@ public class CommentService {
     entity.setContent(request.getContent().trim());
     if (request.getParentId() != null && !request.getParentId().isBlank()) {
       CommentEntity parent = commentRepository.findById(request.getParentId())
-          .orElseThrow(() -> new ApiException(404, "Parent comment not found"));
+          .orElseThrow(() -> new ApiException(404, "父评论不存在"));
       if (!parent.getArticle().getId().equals(articleId)) {
-        throw new ApiException(400, "Parent comment does not belong to this article");
+        throw new ApiException(400, "父评论不属于当前文章");
       }
       entity.setParent(parent);
     }
@@ -73,7 +73,7 @@ public class CommentService {
       entity.setAuthorAvatar(actor.getUserAvatar());
     } else {
       entity.setVisitorId(actor.getVisitorId());
-      entity.setAuthorName("Visitor");
+      entity.setAuthorName("访客");
       entity.setAuthorAvatar(actor.getUserAvatar());
     }
     CommentEntity saved = commentRepository.save(entity);
@@ -83,7 +83,7 @@ public class CommentService {
   @Transactional
   public CommentActionResponse toggleLike(String commentId, String visitorId) {
     CommentEntity comment = commentRepository.findById(commentId)
-        .orElseThrow(() -> new ApiException(404, "Comment not found"));
+        .orElseThrow(() -> new ApiException(404, "评论不存在"));
     ActorContext actor = actorService.getActor(visitorId);
     CommentReactionEntity existing = actor.isAuthenticated()
         ? commentReactionRepository.findByCommentIdAndUserId(commentId, actor.getUserId()).orElse(null)
@@ -117,7 +117,7 @@ public class CommentService {
         ? actor.getUserId().equals(comment.getUser() == null ? null : comment.getUser().getId())
         : actor.getVisitorId().equals(comment.getVisitorId());
     if (!canDelete && !actor.isAdmin()) {
-      throw new ApiException(403, "You cannot delete this comment");
+      throw new ApiException(403, "你无权删除这条评论");
     }
     deleteRecursively(comment);
   }
@@ -125,7 +125,7 @@ public class CommentService {
   @Transactional
   public void reportComment(String commentId, String visitorId) {
     CommentEntity comment = commentRepository.findById(commentId)
-        .orElseThrow(() -> new ApiException(404, "Comment not found"));
+        .orElseThrow(() -> new ApiException(404, "评论不存在"));
     ActorContext actor = actorService.getActor(visitorId);
     boolean exists = actor.isAuthenticated()
         ? commentReportRepository.findByCommentIdAndUserId(commentId, actor.getUserId()).isPresent()

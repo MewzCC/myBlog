@@ -8,21 +8,21 @@ import lombok.Data;
 @Data
 public class CreateArticleRequest {
 
-  @NotBlank(message = "Title is required")
+  @NotBlank(message = "请输入文章标题")
   private String title;
 
-  @NotBlank(message = "Content is required")
+  @NotBlank(message = "请输入文章内容")
   private String content;
 
-  @NotBlank(message = "Summary is required")
+  @NotBlank(message = "请输入文章摘要")
   private String summary;
 
   private String cover;
 
-  @NotBlank(message = "Category is required")
+  @NotBlank(message = "请选择文章分类")
   private String category;
 
-  @NotEmpty(message = "Tags are required")
+  @NotEmpty(message = "请至少填写一个标签")
   private List<String> tags;
 }
 

@@ -63,7 +63,7 @@
   padding: var(--spacing-md) var(--spacing-lg);
   border-top: 1px solid var(--border-color);
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
 }
 

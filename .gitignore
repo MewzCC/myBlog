@@ -18,7 +18,9 @@ blog-java/uploads
 .vite
 .env
 .env.*
-!.env.example
+!blog-front/.env.example
+!blog-java/.env.example
+dump.rdb
 
 # Editor directories and files
 .vscode/*

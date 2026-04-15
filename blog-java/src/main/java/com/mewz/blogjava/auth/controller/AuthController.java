@@ -32,7 +32,7 @@ public class AuthController {
         ? authorization.substring(7)
         : null;
     authService.logout(token);
-    return ApiResponse.success("Success", null);
+    return ApiResponse.success("退出成功", null);
   }
 
   @GetMapping("/me")
@@ -48,7 +48,7 @@ public class AuthController {
   @PostMapping("/register/code")
   public ApiResponse<VerificationCodeResult> sendRegisterCode(@Valid @RequestBody VerificationCodeRequest request) {
     VerificationCodeResult result = authService.sendRegisterCode(request);
-    String message = "email".equals(result.getDelivery()) ? "Verification code sent" : "Development verification code generated";
+    String message = "email".equals(result.getDelivery()) ? "验证码已发送" : "开发环境验证码已生成";
     return ApiResponse.success(message, result);
   }
 
@@ -60,14 +60,14 @@ public class AuthController {
   @PostMapping("/password/code")
   public ApiResponse<VerificationCodeResult> sendPasswordCode(@Valid @RequestBody VerificationCodeRequest request) {
     VerificationCodeResult result = authService.sendPasswordResetCode(request);
-    String message = "email".equals(result.getDelivery()) ? "Verification code sent" : "Development verification code generated";
+    String message = "email".equals(result.getDelivery()) ? "验证码已发送" : "开发环境验证码已生成";
     return ApiResponse.success(message, result);
   }
 
   @PostMapping("/password/reset")
   public ApiResponse<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
     authService.resetPassword(request);
-    return ApiResponse.successMessage("Password reset successful");
+    return ApiResponse.successMessage("密码重置成功");
   }
 }
 

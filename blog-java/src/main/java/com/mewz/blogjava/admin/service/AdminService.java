@@ -53,7 +53,7 @@ public class AdminService {
   }
 
   private ArticleEntity findArticle(String articleId) {
-    return articleRepository.findById(articleId).orElseThrow(() -> new ApiException(404, "Article not found"));
+    return articleRepository.findById(articleId).orElseThrow(() -> new ApiException(404, "文章不存在"));
   }
 
   private AdminArticleReviewItemDto toReviewItem(ArticleEntity article) {

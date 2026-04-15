@@ -31,12 +31,12 @@ public class GuestbookService {
   @Transactional
   public GuestbookMessageDto createMessage(GuestbookCreateRequest request, String visitorId) {
     if (!siteSettingsService.getSettings().isEnableGuestbook()) {
-      throw new ApiException(403, "Guestbook is disabled");
+      throw new ApiException(403, "留言板当前已关闭");
     }
     ActorContext actor = actorService.getActor(visitorId);
     GuestbookMessageEntity entity = new GuestbookMessageEntity();
     entity.setContent(request.getContent().trim());
-    entity.setAuthorName(actor.isAuthenticated() ? actor.getUserName() : "Visitor");
+    entity.setAuthorName(actor.isAuthenticated() ? actor.getUserName() : "访客");
     entity.setAuthorAvatar(actor.getUserAvatar());
     if (actor.isAuthenticated()) {
       entity.setUser(authService.getAuthenticatedUser());

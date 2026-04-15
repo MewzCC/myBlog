@@ -82,9 +82,9 @@ public class ArticleService {
   @Transactional
   public ArticleDetailDto getArticleDetail(String id, String visitorId) {
     ArticleEntity article = articleRepository.findById(id)
-        .orElseThrow(() -> new ApiException(404, "Article not found"));
+        .orElseThrow(() -> new ApiException(404, "文章不存在"));
     if (article.getStatus() != ArticleStatus.APPROVED && !isAdmin()) {
-      throw new ApiException(404, "Article not found");
+      throw new ApiException(404, "文章不存在");
     }
 
     article.setViews(article.getViews() + 1);
@@ -126,7 +126,7 @@ public class ArticleService {
 
   @Transactional(readOnly = true)
   public ArticleEntity getEntity(String id) {
-    return articleRepository.findById(id).orElseThrow(() -> new ApiException(404, "Article not found"));
+    return articleRepository.findById(id).orElseThrow(() -> new ApiException(404, "文章不存在"));
   }
 
   public ArticleSummaryDto toSummary(ArticleEntity article) {

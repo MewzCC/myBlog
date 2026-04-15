@@ -56,7 +56,7 @@ public class VideoService {
   @Transactional
   public VideoUploadResponse upload(MultipartFile file) {
     if (file == null || file.isEmpty()) {
-      throw new ApiException(400, "Video file is required");
+      throw new ApiException(400, "请选择要上传的视频文件");
     }
     try {
       String originalName = Optional.ofNullable(file.getOriginalFilename()).orElse("video.mp4");
@@ -77,7 +77,7 @@ public class VideoService {
       addVideoKeyToCache(videoKey);
       return new VideoUploadResponse(videoKey, entity.getPublicUrl(), entity.getMime(), entity.getSize(), entity.getPoster(), entity.getThumbnailsVtt());
     } catch (IOException ex) {
-      throw new ApiException(500, "Failed to save video");
+      throw new ApiException(500, "视频保存失败");
     }
   }
 
@@ -100,7 +100,7 @@ public class VideoService {
     entity.setBorderEnabled(Boolean.TRUE.equals(payload.getBorder()));
     entity.setStyleJson(jsonHelper.toJson(payload.getStyle() == null ? Map.of() : payload.getStyle()));
     entity.setAnonymous(!actor.isAuthenticated());
-    entity.setAuthorName(actor.isAuthenticated() ? actor.getUserName() : "Anonymous");
+    entity.setAuthorName(actor.isAuthenticated() ? actor.getUserName() : "匿名访客");
     entity.setAuthorAvatar(actor.getUserAvatar());
     if (actor.isAuthenticated()) {
       entity.setUserId(actor.getUserId());
@@ -199,7 +199,7 @@ public class VideoService {
 
   private void ensureVideo(String videoKey) {
     videoAssetRepository.findByVideoKey(videoKey)
-        .orElseThrow(() -> new ApiException(404, "Video not found"));
+        .orElseThrow(() -> new ApiException(404, "视频不存在"));
   }
 
   private VideoDanmakuItemDto toDanmakuItem(VideoDanmakuEntity entity) {

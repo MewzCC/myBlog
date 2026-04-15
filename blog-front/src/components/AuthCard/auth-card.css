@@ -262,12 +262,12 @@
   padding: 0 8px;
   border-radius: 12px;
   cursor: pointer;
-  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+  transition: color 160ms ease, transform 160ms ease, opacity 160ms ease;
 }
 
 .authLink:hover {
-  background: var(--accent-soft);
   color: var(--accent-strong);
+  opacity: 0.92;
 }
 
 .authLink:active {

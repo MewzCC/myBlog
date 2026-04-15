@@ -14,6 +14,7 @@ import VideoBackground from './components/VideoBackground/VideoBackground'
 import SakuraEffect from './components/Effects/SakuraEffect'
 import CustomCursor from './components/Effects/CustomCursor'
 import { message } from './components/Message/MessageProvider'
+import bgMainVideo from './assets/videos/bg_main.mp4'
 import type { Route } from './types/route'
 import {
   getUserInfo,
@@ -41,6 +42,8 @@ const ArticleEditorPage = lazy(() => import('./views/Editor/ArticleEditorPage'))
 const AdminPage = lazy(() => import('./views/Admin/AdminPage'))
 const NotFoundPage = lazy(() => import('./views/NotFound/NotFoundPage'))
 
+const DEFAULT_BACKGROUND_VIDEO = bgMainVideo
+
 const isLikelyEmail = (value: string) => /^\S+@\S+\.\S+$/.test(value.trim())
 
 const getPasswordStrength = (password: string): PasswordStrength => {
@@ -65,7 +68,7 @@ const routeToUrl = (route: Route): string => {
       params.set(key, String(value))
     })
   }
-  return '?' + params.toString()
+  return `?${params.toString()}`
 }
 
 const urlToRoute = (): Route => {
@@ -118,6 +121,7 @@ export default function App() {
   const [registerErrors, setRegisterErrors] = useState<RegisterErrors>({})
   const [registerSubmitting, setRegisterSubmitting] = useState(false)
   const [registerCodeSecondsLeft, setRegisterCodeSecondsLeft] = useState(0)
+  const [registerCodeSending, setRegisterCodeSending] = useState(false)
 
   const [forgotValue, setForgotValue] = useState({
     email: '',
@@ -128,6 +132,7 @@ export default function App() {
   const [forgotErrors, setForgotErrors] = useState<ForgotErrors>({})
   const [forgotSubmitting, setForgotSubmitting] = useState(false)
   const [forgotCodeSecondsLeft, setForgotCodeSecondsLeft] = useState(0)
+  const [forgotCodeSending, setForgotCodeSending] = useState(false)
 
   const registerStrength = useMemo(() => getPasswordStrength(registerValue.password), [registerValue.password])
   const forgotStrength = useMemo(() => getPasswordStrength(forgotValue.password), [forgotValue.password])
@@ -162,6 +167,7 @@ export default function App() {
         setRoute(urlToRoute())
       }
     }
+
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)
   }, [])
@@ -179,6 +185,7 @@ export default function App() {
 
       const token = useUserStore.getState().token
       if (!token) return
+
       try {
         const userRes = await getUserInfo()
         if (userRes.data.code === 200) {
@@ -220,10 +227,12 @@ export default function App() {
     setRegisterErrors({})
     setRegisterSubmitting(false)
     setRegisterCodeSecondsLeft(0)
+    setRegisterCodeSending(false)
     setForgotValue({ email: '', code: '', password: '', confirmPassword: '' })
     setForgotErrors({})
     setForgotSubmitting(false)
     setForgotCodeSecondsLeft(0)
+    setForgotCodeSending(false)
   }
 
   useEffect(() => {
@@ -330,25 +339,26 @@ export default function App() {
       setRegisterErrors((prev) => ({ ...prev, email: '请输入正确的邮箱地址' }))
       return
     }
-    if (registerCodeSecondsLeft > 0) return
+    if (registerCodeSecondsLeft > 0 || registerCodeSending) return
 
     void (async () => {
+      setRegisterCodeSecondsLeft(60)
+      setRegisterCodeSending(true)
       try {
         const res = await sendRegisterCode({ email: registerValue.email.trim() })
         if (res.data.code === 200) {
           setRegisterErrors((prev) => ({ ...prev, email: undefined }))
-          setRegisterCodeSecondsLeft(60)
           const debugCode = res.data.data?.debugCode
-          message.success(
-            debugCode
-              ? `开发环境验证码：${debugCode}`
-              : res.data.message || '验证码已发送'
-          )
+          message.success(debugCode ? `开发环境验证码：${debugCode}` : res.data.message || '验证码已发送')
         } else {
+          setRegisterCodeSecondsLeft(0)
           message.error(res.data.message || '验证码发送失败')
         }
       } catch (error) {
+        setRegisterCodeSecondsLeft(0)
         console.error(error)
+      } finally {
+        setRegisterCodeSending(false)
       }
     })()
   }
@@ -358,25 +368,26 @@ export default function App() {
       setForgotErrors((prev) => ({ ...prev, email: '请输入正确的邮箱地址' }))
       return
     }
-    if (forgotCodeSecondsLeft > 0) return
+    if (forgotCodeSecondsLeft > 0 || forgotCodeSending) return
 
     void (async () => {
+      setForgotCodeSecondsLeft(60)
+      setForgotCodeSending(true)
       try {
         const res = await sendResetPasswordCode({ email: forgotValue.email.trim() })
         if (res.data.code === 200) {
           setForgotErrors((prev) => ({ ...prev, email: undefined }))
-          setForgotCodeSecondsLeft(60)
           const debugCode = res.data.data?.debugCode
-          message.success(
-            debugCode
-              ? `开发环境验证码：${debugCode}`
-              : res.data.message || '验证码已发送'
-          )
+          message.success(debugCode ? `开发环境验证码：${debugCode}` : res.data.message || '验证码已发送')
         } else {
+          setForgotCodeSecondsLeft(0)
           message.error(res.data.message || '验证码发送失败')
         }
       } catch (error) {
+        setForgotCodeSecondsLeft(0)
         console.error(error)
+      } finally {
+        setForgotCodeSending(false)
       }
     })()
   }
@@ -462,7 +473,7 @@ export default function App() {
         <CustomCursor />
         <SakuraEffect />
         <VideoBackground
-          videoSrc=""
+          videoSrc={DEFAULT_BACKGROUND_VIDEO}
           active={route.name === 'auth'}
           backgroundBlurPx={5}
           zoomScale={1.28}
@@ -490,6 +501,7 @@ export default function App() {
                 registerSubmitting={registerSubmitting}
                 registerStrength={registerStrength}
                 registerCodeSecondsLeft={registerCodeSecondsLeft}
+                registerCodeSending={registerCodeSending}
                 onRegisterChange={onRegisterChange}
                 onRegisterSubmit={onRegisterSubmit}
                 onRegisterRequestCode={onRegisterRequestCode}
@@ -498,6 +510,7 @@ export default function App() {
                 forgotSubmitting={forgotSubmitting}
                 forgotStrength={forgotStrength}
                 forgotCodeSecondsLeft={forgotCodeSecondsLeft}
+                forgotCodeSending={forgotCodeSending}
                 onForgotChange={onForgotChange}
                 onForgotSubmit={onForgotSubmit}
                 onForgotRequestCode={onForgotRequestCode}

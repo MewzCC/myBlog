@@ -60,6 +60,7 @@ export type AuthCardProps = {
   registerSubmitting: boolean
   registerStrength: PasswordStrength
   registerCodeSecondsLeft: number
+  registerCodeSending: boolean
   onRegisterChange: (next: RegisterFormValue) => void
   onRegisterSubmit: (event: FormEvent) => void
   onRegisterRequestCode: () => void
@@ -69,6 +70,7 @@ export type AuthCardProps = {
   forgotSubmitting: boolean
   forgotStrength: PasswordStrength
   forgotCodeSecondsLeft: number
+  forgotCodeSending: boolean
   onForgotChange: (next: ForgotFormValue) => void
   onForgotSubmit: (event: FormEvent) => void
   onForgotRequestCode: () => void
@@ -88,6 +90,7 @@ export default function AuthCard({
   registerSubmitting,
   registerStrength,
   registerCodeSecondsLeft,
+  registerCodeSending,
   onRegisterChange,
   onRegisterSubmit,
   onRegisterRequestCode,
@@ -96,6 +99,7 @@ export default function AuthCard({
   forgotSubmitting,
   forgotStrength,
   forgotCodeSecondsLeft,
+  forgotCodeSending,
   onForgotChange,
   onForgotSubmit,
   onForgotRequestCode,
@@ -125,13 +129,13 @@ export default function AuthCard({
             <div className="authBrandRow">
               <div className="authBrandMark" aria-hidden="true" />
               <div>
-                <div className="authBrandName">NEON</div>
-                <div className="authBrandSub">登录</div>
+                <div className="authBrandName">Sakura</div>
+                <div className="authBrandSub">登录账号</div>
               </div>
             </div>
 
             <h1 className="authTitle">欢迎回来</h1>
-            <p className="authSubtitle">输入账号密码，进入系统。</p>
+            <p className="authSubtitle">输入账号和密码</p>
 
             <form className="authForm" onSubmit={onLoginSubmit}>
               <label className="authField">
@@ -142,7 +146,7 @@ export default function AuthCard({
                   onChange={(e) => onLoginChange({ ...loginValue, account: e.target.value })}
                   autoComplete="username"
                   inputMode="email"
-                  placeholder="邮箱 / 用户名"
+                  placeholder="邮箱或用户名"
                   aria-invalid={loginErrors.account ? 'true' : 'false'}
                   aria-describedby={loginErrors.account ? loginAccountErrorId : undefined}
                 />
@@ -161,7 +165,7 @@ export default function AuthCard({
                   onChange={(e) => onLoginChange({ ...loginValue, password: e.target.value })}
                   autoComplete="current-password"
                   type="password"
-                  placeholder="你的密码"
+                  placeholder="请输入密码"
                   aria-invalid={loginErrors.password ? 'true' : 'false'}
                   aria-describedby={loginErrors.password ? loginPasswordErrorId : undefined}
                 />
@@ -183,14 +187,14 @@ export default function AuthCard({
               </div>
 
               <button className="authSubmit" type="submit" disabled={loginSubmitting}>
-                <span className="authSubmitText">{loginSubmitting ? '登录中…' : '登录'}</span>
+                <span className="authSubmitText">{loginSubmitting ? '登录中...' : '登录'}</span>
                 <span className="authSubmitShine" aria-hidden="true" />
               </button>
 
               <div className="authFoot">
                 <span className="authFootText">还没有账号？</span>
                 <button className="authLink" type="button" onClick={() => onModeChange('register')}>
-                  注册
+                  立即注册
                 </button>
               </div>
             </form>
@@ -203,13 +207,13 @@ export default function AuthCard({
             <div className="authBrandRow">
               <div className="authBrandMark" aria-hidden="true" />
               <div>
-                <div className="authBrandName">NEON</div>
+                <div className="authBrandName">Sakura</div>
                 <div className="authBrandSub">创建账号</div>
               </div>
             </div>
 
             <h1 className="authTitle">创建账号</h1>
-            <p className="authSubtitle">使用邮箱注册，完成验证码验证。</p>
+            <p className="authSubtitle">使用邮箱注册，完成验证码验证后即可登录。</p>
 
             <form className="authForm" onSubmit={onRegisterSubmit}>
               <label className="authField">
@@ -221,7 +225,7 @@ export default function AuthCard({
                     onChange={(e) => onRegisterChange({ ...registerValue, email: e.target.value })}
                     autoComplete="email"
                     inputMode="email"
-                    placeholder="name@example.com"
+                    placeholder="请输入邮箱地址"
                     type="email"
                     aria-invalid={registerErrors.email ? 'true' : 'false'}
                     aria-describedby={registerErrors.email ? registerEmailErrorId : undefined}
@@ -230,7 +234,7 @@ export default function AuthCard({
                     className="authCodeBtn"
                     type="button"
                     onClick={onRegisterRequestCode}
-                    disabled={registerCodeSecondsLeft > 0}
+                    disabled={registerCodeSecondsLeft > 0 || registerCodeSending}
                   >
                     {registerCodeSecondsLeft > 0 ? `${registerCodeSecondsLeft}s` : '获取验证码'}
                   </button>
@@ -249,7 +253,7 @@ export default function AuthCard({
                   value={registerValue.code}
                   onChange={(e) => onRegisterChange({ ...registerValue, code: e.target.value })}
                   inputMode="numeric"
-                  placeholder="6 位验证码"
+                  placeholder="请输入 6 位验证码"
                   aria-invalid={registerErrors.code ? 'true' : 'false'}
                   aria-describedby={registerErrors.code ? registerCodeErrorId : undefined}
                 />
@@ -268,7 +272,7 @@ export default function AuthCard({
                   onChange={(e) => onRegisterChange({ ...registerValue, password: e.target.value })}
                   autoComplete="new-password"
                   type="password"
-                  placeholder="设置密码"
+                  placeholder="请设置密码"
                   aria-invalid={registerErrors.password ? 'true' : 'false'}
                   aria-describedby={registerErrors.password ? registerPasswordErrorId : undefined}
                 />
@@ -297,7 +301,7 @@ export default function AuthCard({
                   onChange={(e) => onRegisterChange({ ...registerValue, confirmPassword: e.target.value })}
                   autoComplete="new-password"
                   type="password"
-                  placeholder="再次输入密码"
+                  placeholder="请再次输入密码"
                   aria-invalid={registerErrors.confirmPassword ? 'true' : 'false'}
                   aria-describedby={registerErrors.confirmPassword ? registerConfirmPasswordErrorId : undefined}
                 />
@@ -309,12 +313,12 @@ export default function AuthCard({
               </label>
 
               <button className="authSubmit" type="submit" disabled={registerSubmitting}>
-                <span className="authSubmitText">{registerSubmitting ? '注册中…' : '注册'}</span>
+                <span className="authSubmitText">{registerSubmitting ? '注册中...' : '注册'}</span>
                 <span className="authSubmitShine" aria-hidden="true" />
               </button>
 
               <div className="authFoot">
-                <span className="authFootText">已有账号？</span>
+                <span className="authFootText">已经有账号了？</span>
                 <button className="authLink" type="button" onClick={() => onModeChange('login')}>
                   返回登录
                 </button>
@@ -329,13 +333,13 @@ export default function AuthCard({
             <div className="authBrandRow">
               <div className="authBrandMark" aria-hidden="true" />
               <div>
-                <div className="authBrandName">NEON</div>
+                <div className="authBrandName">Sakura</div>
                 <div className="authBrandSub">重置密码</div>
               </div>
             </div>
 
             <h1 className="authTitle">找回密码</h1>
-            <p className="authSubtitle">发送验证码到邮箱，重设密码。</p>
+            <p className="authSubtitle">发送验证码到邮箱，验证后即可重置密码。</p>
 
             <form className="authForm" onSubmit={onForgotSubmit}>
               <label className="authField">
@@ -347,7 +351,7 @@ export default function AuthCard({
                     onChange={(e) => onForgotChange({ ...forgotValue, email: e.target.value })}
                     autoComplete="email"
                     inputMode="email"
-                    placeholder="name@example.com"
+                    placeholder="请输入邮箱地址"
                     type="email"
                     aria-invalid={forgotErrors.email ? 'true' : 'false'}
                     aria-describedby={forgotErrors.email ? forgotEmailErrorId : undefined}
@@ -356,7 +360,7 @@ export default function AuthCard({
                     className="authCodeBtn"
                     type="button"
                     onClick={onForgotRequestCode}
-                    disabled={forgotCodeSecondsLeft > 0}
+                    disabled={forgotCodeSecondsLeft > 0 || forgotCodeSending}
                   >
                     {forgotCodeSecondsLeft > 0 ? `${forgotCodeSecondsLeft}s` : '获取验证码'}
                   </button>
@@ -375,7 +379,7 @@ export default function AuthCard({
                   value={forgotValue.code}
                   onChange={(e) => onForgotChange({ ...forgotValue, code: e.target.value })}
                   inputMode="numeric"
-                  placeholder="6 位验证码"
+                  placeholder="请输入 6 位验证码"
                   aria-invalid={forgotErrors.code ? 'true' : 'false'}
                   aria-describedby={forgotErrors.code ? forgotCodeErrorId : undefined}
                 />
@@ -394,7 +398,7 @@ export default function AuthCard({
                   onChange={(e) => onForgotChange({ ...forgotValue, password: e.target.value })}
                   autoComplete="new-password"
                   type="password"
-                  placeholder="设置新密码"
+                  placeholder="请设置新密码"
                   aria-invalid={forgotErrors.password ? 'true' : 'false'}
                   aria-describedby={forgotErrors.password ? forgotPasswordErrorId : undefined}
                 />
@@ -423,7 +427,7 @@ export default function AuthCard({
                   onChange={(e) => onForgotChange({ ...forgotValue, confirmPassword: e.target.value })}
                   autoComplete="new-password"
                   type="password"
-                  placeholder="再次输入新密码"
+                  placeholder="请再次输入新密码"
                   aria-invalid={forgotErrors.confirmPassword ? 'true' : 'false'}
                   aria-describedby={forgotErrors.confirmPassword ? forgotConfirmPasswordErrorId : undefined}
                 />
@@ -435,7 +439,7 @@ export default function AuthCard({
               </label>
 
               <button className="authSubmit" type="submit" disabled={forgotSubmitting}>
-                <span className="authSubmitText">{forgotSubmitting ? '提交中…' : '重置密码'}</span>
+                <span className="authSubmitText">{forgotSubmitting ? '提交中...' : '重置密码'}</span>
                 <span className="authSubmitShine" aria-hidden="true" />
               </button>
 

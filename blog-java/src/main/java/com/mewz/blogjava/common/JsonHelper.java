@@ -19,7 +19,7 @@ public class JsonHelper {
     try {
       return objectMapper.writeValueAsString(value);
     } catch (JsonProcessingException ex) {
-      throw new ApiException(500, "Failed to serialize json");
+      throw new ApiException(500, "序列化 JSON 失败");
     }
   }
 
