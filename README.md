@@ -57,11 +57,11 @@ npm run build
 
 ### 前端环境变量
 
-- [E:\Project\blog\blog-front\.env.example](E:/Project/blog/blog-front/.env.example)
+- [blog-front/.env.example](blog-front/.env.example)
 
 ### 前端接口说明
 
-- [E:\Project\blog\blog-front\API.md](E:/Project/blog/blog-front/API.md)
+- [blog-front/API.md](blog-front/API.md)
 
 ## ⚙️ 后端说明
 
@@ -95,11 +95,11 @@ mvn test
 
 ### 后端环境变量
 
-- [E:\Project\blog\blog-java\.env.example](E:/Project/blog/blog-java/.env.example)
+- [blog-java/.env.example](blog-java/.env.example)
 
 ### 数据库初始化脚本
 
-- [E:\Project\blog\blog-java\src\main\resources\sql\schema-mysql.sql](E:/Project/blog/blog-java/src/main/resources/sql/schema-mysql.sql)
+- [blog-java/src/main/resources/sql/schema-mysql.sql](blog-java/src/main/resources/sql/schema-mysql.sql)
 
 ## 🚀 部署建议
 

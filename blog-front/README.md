@@ -52,7 +52,7 @@ dist/
 
 示例文件：
 
-- [E:\Project\blog\blog-front\.env.example](E:/Project/blog/blog-front/.env.example)
+- [blog-front/.env.example](.env.example)
 
 当前主要使用：
 
@@ -60,8 +60,8 @@ dist/
 
 ## 📚 相关文档
 
-- [接口文档](E:/Project/blog/blog-front/API.md)
-- [移动端适配说明](E:/Project/blog/blog-front/docs/mobile-adaptation.md)
+- [接口文档](API.md)
+- [移动端适配说明](docs/mobile-adaptation.md)
 
 ## 🧩 目录说明
 

@@ -56,7 +56,7 @@ mvn clean package -DskipTests
 
 示例文件：
 
-- [E:\Project\blog\blog-java\.env.example](E:/Project/blog/blog-java/.env.example)
+- [blog-java/.env.example](.env.example)
 
 主要配置项包括：
 
@@ -82,7 +82,7 @@ mvn clean package -DskipTests
 
 MySQL 建表与模拟数据脚本位于：
 
-- [E:\Project\blog\blog-java\src\main\resources\sql\schema-mysql.sql](E:/Project/blog/blog-java/src/main/resources/sql/schema-mysql.sql)
+- [blog-java/src/main/resources/sql/schema-mysql.sql](src/main/resources/sql/schema-mysql.sql)
 
 导入示例：
 
@@ -155,3 +155,5 @@ ddl-auto: update
 - Redis 负责登录态、验证码、热点数据与部分事件缓存
 - 当 Redis 不可用时，部分能力会自动降级，不会阻塞主要接口
 - 视频文件默认保存在本地文件系统
+- 视频上传仅限管理员，支持 MP4 / WebM；扩展名、MIME 和文件头须匹配，默认单文件上限为 100MB。
+- 文章列表在数据库中筛选和分页，`pageSize` 默认 10，最大 100。
