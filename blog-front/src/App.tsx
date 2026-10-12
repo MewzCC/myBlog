@@ -94,6 +94,8 @@ const urlToRoute = (): Route => {
       return { name: 'editor' }
     case 'user':
       return { name: 'user' }
+    case 'admin':
+      return { name: 'admin' }
     case 'auth':
       return { name: 'auth' }
     default:
