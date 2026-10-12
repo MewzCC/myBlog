@@ -3,17 +3,22 @@
   top: 0;
   z-index: 40;
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
   border-bottom: 1px solid var(--border-color);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-bg) 92%, transparent), color-mix(in srgb, var(--glass-bg) 82%, transparent));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--glass-bg) 92%, transparent),
+    color-mix(in srgb, var(--glass-bg) 82%, transparent)
+  );
   backdrop-filter: blur(18px);
   box-shadow: 0 10px 28px var(--shadow-color);
 }
 
 .navBrand {
+  min-width: 0;
   display: inline-flex;
   align-items: center;
   gap: 12px;
@@ -27,6 +32,7 @@
 }
 
 .navLogo {
+  flex-shrink: 0;
   width: 38px;
   height: 38px;
   border-radius: 13px;
@@ -40,6 +46,9 @@
 }
 
 .navName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-family: 'Fraunces', serif;
   font-size: 15px;
   font-weight: 700;
@@ -68,7 +77,11 @@
   cursor: pointer;
   border: 1px solid transparent;
   background: transparent;
-  transition: color 220ms ease, border-color 220ms ease, background 220ms ease, transform 220ms ease;
+  transition:
+    color 220ms ease,
+    border-color 220ms ease,
+    background 220ms ease,
+    transform 220ms ease;
 }
 
 .navMenuItem:hover {
@@ -90,7 +103,8 @@
 
 .navSearchInput {
   height: 42px;
-  width: 270px;
+  width: clamp(140px, 14vw, 270px);
+  max-width: 100%;
   border-radius: 999px;
   border: 1px solid var(--border-color);
   background: var(--input-bg);
@@ -99,7 +113,10 @@
   padding: 0 16px;
   font-size: 13px;
   font-weight: 600;
-  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease;
 }
 
 .navSearchInput::placeholder {
@@ -119,7 +136,9 @@
   cursor: pointer;
   padding: 4px 12px 4px 4px;
   border-radius: 999px;
-  transition: background 200ms ease, border-color 200ms ease;
+  transition:
+    background 200ms ease,
+    border-color 200ms ease;
   border: 1px solid transparent;
   background: transparent;
 }
@@ -138,6 +157,10 @@
 }
 
 .navUserName {
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 13px;
   font-weight: 700;
   color: var(--text-primary);
@@ -154,7 +177,11 @@
   font-weight: 800;
   letter-spacing: 0.06em;
   cursor: pointer;
-  transition: transform 180ms ease, background 180ms ease, border-color 180ms ease, color 180ms ease;
+  transition:
+    transform 180ms ease,
+    background 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
 }
 
 .navAuthBtn:hover {
@@ -176,13 +203,21 @@
 
 .navAuthBtnRegister {
   border-color: color-mix(in srgb, var(--accent) 50%, var(--border-color));
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 42%, transparent), color-mix(in srgb, #69c6ff 38%, transparent));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 42%, transparent),
+    color-mix(in srgb, #69c6ff 38%, transparent)
+  );
   color: var(--text-primary);
 }
 
 .navAuthBtnRegister:hover {
   border-color: var(--accent);
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 62%, transparent), color-mix(in srgb, #69c6ff 52%, transparent));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 62%, transparent),
+    color-mix(in srgb, #69c6ff 52%, transparent)
+  );
   color: var(--text-primary);
 }
 
@@ -196,7 +231,9 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: border-color 180ms ease, background 180ms ease;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease;
 }
 
 .navBurger:hover {
@@ -271,7 +308,10 @@
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
 }
 
 .navMobileMenuItem:hover {
@@ -290,7 +330,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: border-color 180ms ease, background 180ms ease, color 180ms ease;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease;
 }
 
 .navWriteBtn.ant-btn:hover {
@@ -319,9 +362,9 @@
   background: color-mix(in srgb, var(--glass-border) 70%, transparent);
 }
 
-@media (min-width: 920px) {
+@media (min-width: 1100px) {
   .navRoot {
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     padding: 12px 26px;
   }
 
@@ -342,5 +385,41 @@
 
   .navBurger {
     display: none;
+  }
+  .navMobileMenu {
+    display: none;
+  }
+}
+
+@media (max-width: 759px) {
+  .navUserName {
+    display: none;
+  }
+  .navUser {
+    padding: 3px;
+  }
+}
+
+@media (max-width: 479px) {
+  .navUserName {
+    display: none;
+  }
+  .navUser {
+    padding: 3px;
+  }
+  .navAuthBtn {
+    padding-inline: 10px;
+  }
+  .navAuthBtnRegister {
+    display: none;
+  }
+  .navBrand {
+    gap: 8px;
+  }
+  .navActions {
+    gap: 5px;
+  }
+  .navName {
+    font-size: 12px;
   }
 }

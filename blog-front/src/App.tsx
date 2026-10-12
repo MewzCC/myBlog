@@ -471,7 +471,7 @@ export default function App() {
         },
       }}
     >
-      <div className="appViewport">
+      <div className={`appViewport${route.name === 'home' ? ' appViewport--home' : ''}`}>
         <CustomCursor />
         <SakuraEffect />
         <VideoBackground
