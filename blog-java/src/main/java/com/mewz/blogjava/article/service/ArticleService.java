@@ -12,11 +12,17 @@ import com.mewz.blogjava.common.ApiException;
 import com.mewz.blogjava.meta.service.MetaService;
 import com.mewz.blogjava.user.UserAccount;
 import java.time.Instant;
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.stream.Stream;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,42 +47,47 @@ public class ArticleService {
       String tag,
       boolean includeAllStatuses) {
     int safePage = page == null || page < 1 ? 1 : page;
-    int safePageSize = pageSize == null || pageSize < 1 ? 10 : pageSize;
+    int safePageSize = pageSize == null || pageSize < 1 ? 10 : Math.min(pageSize, 100);
 
-    Stream<ArticleEntity> stream = articleRepository.findAll().stream();
-    if (!includeAllStatuses) {
-      stream = stream.filter(article -> article.getStatus() == ArticleStatus.APPROVED);
+    Specification<ArticleEntity> specification = (root, query, builder) -> {
+      List<Predicate> filters = new ArrayList<>();
+      if (!includeAllStatuses) {
+        filters.add(builder.equal(root.get("status"), ArticleStatus.APPROVED));
+      }
+      if (keyword != null && !keyword.isBlank()) {
+        String normalized = keyword.trim().toLowerCase(Locale.ROOT);
+        // LOCATE preserves literal substring matching, including '%' and '_'.
+        filters.add(builder.or(
+            builder.gt(builder.locate(builder.lower(root.get("title")), normalized), 0),
+            builder.gt(builder.locate(builder.lower(root.get("summary")), normalized), 0),
+            builder.gt(builder.locate(builder.lower(root.get("content")), normalized), 0)));
+      }
+      if (category != null && !category.isBlank()) {
+        String normalized = category.trim().toLowerCase(Locale.ROOT);
+        filters.add(builder.or(
+            builder.equal(builder.lower(root.get("category")), normalized),
+            builder.equal(builder.lower(builder.function("replace", String.class,
+                root.get("category"), builder.literal("-"), builder.literal(""))), normalized)));
+      }
+      if (tag != null && !tag.isBlank()) {
+        Subquery<Integer> matchingTag = query.subquery(Integer.class);
+        Root<ArticleEntity> taggedArticle = matchingTag.correlate(root);
+        matchingTag.select(builder.literal(1)).where(builder.equal(
+            builder.lower(taggedArticle.join("tags")), tag.trim().toLowerCase(Locale.ROOT)));
+        filters.add(builder.exists(matchingTag));
+      }
+      return builder.and(filters.toArray(Predicate[]::new));
+    };
+    if ((long) (safePage - 1) * safePageSize > Integer.MAX_VALUE) {
+      return new ArticleListResponse(List.of(), articleRepository.count(specification));
     }
-    if (keyword != null && !keyword.isBlank()) {
-      String normalized = keyword.trim().toLowerCase(Locale.ROOT);
-      stream = stream.filter(article ->
-          article.getTitle().toLowerCase(Locale.ROOT).contains(normalized)
-              || article.getSummary().toLowerCase(Locale.ROOT).contains(normalized)
-              || article.getContent().toLowerCase(Locale.ROOT).contains(normalized));
-    }
-    if (category != null && !category.isBlank()) {
-      String normalized = category.trim().toLowerCase(Locale.ROOT);
-      stream = stream.filter(article ->
-          article.getCategory().toLowerCase(Locale.ROOT).equals(normalized)
-              || article.getCategory().replace("-", "").equalsIgnoreCase(normalized));
-    }
-    if (tag != null && !tag.isBlank()) {
-      String normalized = tag.trim().toLowerCase(Locale.ROOT);
-      stream = stream.filter(article -> article.getTags().stream()
-          .map(value -> value.toLowerCase(Locale.ROOT))
-          .anyMatch(value -> value.equals(normalized)));
-    }
-
-    List<ArticleEntity> filtered = stream
-        .sorted(Comparator.comparing(ArticleEntity::getPublishDate).reversed())
-        .toList();
-
-    int fromIndex = Math.min((safePage - 1) * safePageSize, filtered.size());
-    int toIndex = Math.min(fromIndex + safePageSize, filtered.size());
-    List<ArticleSummaryDto> list = filtered.subList(fromIndex, toIndex).stream()
+    Page<ArticleEntity> result = articleRepository.findAll(specification,
+        PageRequest.of(safePage - 1, safePageSize, Sort.by(
+            Sort.Order.desc("publishDate"), Sort.Order.asc("id"))));
+    List<ArticleSummaryDto> list = result.getContent().stream()
         .map(this::toSummary)
         .toList();
-    return new ArticleListResponse(list, filtered.size());
+    return new ArticleListResponse(list, result.getTotalElements());
   }
 
   @Transactional

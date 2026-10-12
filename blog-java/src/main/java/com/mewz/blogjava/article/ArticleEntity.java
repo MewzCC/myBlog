@@ -20,6 +20,8 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Getter
 @Setter
@@ -36,7 +38,7 @@ public class ArticleEntity extends BaseEntity {
   @Column(nullable = false, length = 500)
   private String summary;
 
-  @Lob
+  @JdbcTypeCode(SqlTypes.LONGVARCHAR)
   @Column(nullable = false, columnDefinition = "LONGTEXT")
   private String content;
 

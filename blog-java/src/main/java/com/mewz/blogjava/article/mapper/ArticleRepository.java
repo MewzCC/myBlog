@@ -5,8 +5,16 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-public interface ArticleRepository extends JpaRepository<ArticleEntity, String> {
+public interface ArticleRepository extends JpaRepository<ArticleEntity, String>, JpaSpecificationExecutor<ArticleEntity> {
+
+  // Fetch only the to-one relation here: fetching tags would paginate in memory.
+  @EntityGraph(attributePaths = "author")
+  Page<ArticleEntity> findAll(Specification<ArticleEntity> specification, Pageable pageable);
 
   @EntityGraph(attributePaths = {"author", "tags"})
   List<ArticleEntity> findAll();

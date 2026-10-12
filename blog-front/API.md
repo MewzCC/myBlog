@@ -70,7 +70,7 @@ interface ApiResponse<T = any> {
 - **描述**: 分页获取文章列表，支持筛选
 - **Query Parameters**:
   - `page`: 当前页码 (默认 1)
-  - `pageSize`: 每页数量 (默认 10)
+  - `pageSize`: 每页数量 (默认 10，最大 100)
   - `keyword`: 搜索关键字 (可选)
   - `category`: 分类 ID 或名称 (可选)
   - `tag`: 标签 ID 或名称 (可选)

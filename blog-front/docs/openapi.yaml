@@ -78,6 +78,7 @@ paths:
           schema:
             type: integer
             default: 10
+            maximum: 100
         - name: keyword
           in: query
           schema:
