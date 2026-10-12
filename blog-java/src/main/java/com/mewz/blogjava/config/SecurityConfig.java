@@ -47,11 +47,11 @@ public class SecurityConfig {
                 "/api/articles/*/comments",
                 "/api/comments/*/like",
                 "/api/comments/*/report",
-                "/api/upload/video",
                 "/api/videos/*/danmaku",
                 "/api/videos/*/events").permitAll()
             .requestMatchers(HttpMethod.DELETE, "/api/comments/*").permitAll()
             .requestMatchers("/api/admin/**").hasRole("ADMIN")
+            .requestMatchers(HttpMethod.POST, "/api/upload/video").hasRole("ADMIN")
             .requestMatchers(HttpMethod.POST, "/api/articles").hasRole("ADMIN")
             .requestMatchers("/api/auth/me", "/api/auth/logout").authenticated()
             .requestMatchers(HttpMethod.PUT, "/api/auth/me").authenticated()

@@ -10,6 +10,7 @@ import com.mewz.blogjava.common.JsonHelper;
 import com.mewz.blogjava.config.StorageProperties;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -47,6 +48,7 @@ public class VideoService {
   private final JsonHelper jsonHelper;
   private final StringRedisTemplate redisTemplate;
   private final ActorService actorService;
+  private final VideoFileValidator videoFileValidator;
 
   @PostConstruct
   public void ensureUploadDir() throws IOException {
@@ -55,16 +57,14 @@ public class VideoService {
 
   @Transactional
   public VideoUploadResponse upload(MultipartFile file) {
-    if (file == null || file.isEmpty()) {
-      throw new ApiException(400, "请选择要上传的视频文件");
-    }
+    String extension = videoFileValidator.validate(file);
     try {
-      String originalName = Optional.ofNullable(file.getOriginalFilename()).orElse("video.mp4");
-      String safeName = originalName.replaceAll("[^a-zA-Z0-9._-]", "_");
       String videoKey = "video_" + UUID.randomUUID().toString().replace("-", "");
-      String storedFileName = videoKey + "-" + safeName;
+      String storedFileName = videoKey + "." + extension;
       Path target = Paths.get(storageProperties.getUploadDir()).resolve(storedFileName);
-      Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+      try (InputStream input = file.getInputStream()) {
+        Files.copy(input, target, StandardCopyOption.REPLACE_EXISTING);
+      }
 
       VideoAssetEntity entity = new VideoAssetEntity();
       entity.setVideoKey(videoKey);

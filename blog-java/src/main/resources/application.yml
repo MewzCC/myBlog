@@ -8,6 +8,10 @@ spring:
       - optional:file:.env.example[.properties]
   application:
     name: blog-java
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 101MB
   datasource:
     url: ${MYSQL_URL}
     username: ${MYSQL_USERNAME}
