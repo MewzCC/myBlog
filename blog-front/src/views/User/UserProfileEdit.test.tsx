@@ -1,84 +1,71 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { act, fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import UserProfileEdit from './UserProfileEdit'
-import * as commonUtils from '../../utils/common'
+import { updateUserInfo } from '../../api/user'
+import { useUserStore } from '../../stores/userStore'
 
-// Mock the simulateApiCall
-vi.mock('../../utils/common', async () => {
-  const actual = await vi.importActual('../../utils/common')
-  return {
-    ...actual,
-    simulateApiCall: vi.fn().mockResolvedValue({}),
-  }
-})
+vi.mock('../../api/user', () => ({
+  updateUserInfo: vi.fn().mockResolvedValue({ data: { code: 200 } }),
+}))
 
 describe('UserProfileEdit', () => {
-  afterEach(() => {
-    cleanup()
+  beforeEach(() => {
+    vi.useFakeTimers()
     vi.clearAllMocks()
-    vi.useRealTimers()
+    useUserStore.setState({
+      token: 'test-token',
+      userInfo: { id: '1', name: 'Admin', avatar: '', bio: '', roles: ['admin'] },
+    })
   })
 
-  it('renders initial state correctly', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+    useUserStore.getState().logout()
+  })
+
+  it('renders the logged-in user profile', () => {
     render(<UserProfileEdit />)
     expect(screen.getByDisplayValue('Admin')).toBeTruthy()
-    expect(screen.getByLabelText('保密')).toBeTruthy()
+    expect(screen.getByPlaceholderText('https://github.com/...')).toBeTruthy()
   })
 
   it('validates nickname length', () => {
     render(<UserProfileEdit />)
     const input = screen.getByDisplayValue('Admin')
-    
     fireEvent.change(input, { target: { value: 'A' } })
-    expect(screen.getByText('昵称长度需在2-20个字符之间')).toBeTruthy()
-    
+    expect(screen.getByText('昵称长度需要在 2 到 20 个字符之间')).toBeTruthy()
     fireEvent.change(input, { target: { value: 'ValidName' } })
-    expect(screen.queryByText('昵称长度需在2-20个字符之间')).toBeNull()
+    expect(screen.queryByText('昵称长度需要在 2 到 20 个字符之间')).toBeNull()
   })
 
   it('validates nickname characters', () => {
     render(<UserProfileEdit />)
-    const input = screen.getByDisplayValue('Admin')
-    
-    fireEvent.change(input, { target: { value: 'Invalid@Name' } })
-    expect(screen.getByText('昵称只能包含中英文、数字和下划线')).toBeTruthy()
+    fireEvent.change(screen.getByDisplayValue('Admin'), { target: { value: 'Invalid@Name' } })
+    expect(screen.getByText('昵称只能包含中文、英文、数字和下划线')).toBeTruthy()
   })
 
-  it('triggers auto-save on valid change', async () => {
-    // Use real timers to debug mock issues
+  it('debounces saving and updates the user store after success', async () => {
     render(<UserProfileEdit />)
-    const input = screen.getByDisplayValue('Admin')
-    
-    fireEvent.change(input, { target: { value: 'NewName' } })
-    
-    // Wait for debounce (500ms) + buffer
-    await waitFor(() => {
-      expect(commonUtils.simulateApiCall).toHaveBeenCalled()
-    }, { timeout: 2000 })
+    fireEvent.change(screen.getByDisplayValue('Admin'), { target: { value: 'NewName' } })
+    expect(updateUserInfo).not.toHaveBeenCalled()
+    await act(() => vi.advanceTimersByTimeAsync(500))
+    expect(updateUserInfo).toHaveBeenCalledWith(expect.objectContaining({ name: 'NewName' }))
+    expect(useUserStore.getState().userInfo?.name).toBe('NewName')
   })
 
-  it('does not save on invalid input', async () => {
+  it('does not save an invalid nickname', async () => {
     render(<UserProfileEdit />)
-    const input = screen.getByDisplayValue('Admin')
-    
-    fireEvent.change(input, { target: { value: 'A' } }) // Invalid
-    
-    // Wait to ensure it's NOT called
-    await new Promise(r => setTimeout(r, 600))
-    
-    expect(commonUtils.simulateApiCall).not.toHaveBeenCalled()
+    fireEvent.change(screen.getByDisplayValue('Admin'), { target: { value: 'A' } })
+    await act(() => vi.advanceTimersByTimeAsync(600))
+    expect(updateUserInfo).not.toHaveBeenCalled()
   })
 
-  it('updates gender', async () => {
+  it('saves changes to the biography', async () => {
     render(<UserProfileEdit />)
-    
-    const maleRadio = screen.getByLabelText('男')
-    fireEvent.click(maleRadio)
-    
-    expect(maleRadio).toHaveProperty('checked', true)
-    
-    await waitFor(() => {
-      expect(commonUtils.simulateApiCall).toHaveBeenCalled()
-    }, { timeout: 2000 })
+    fireEvent.change(screen.getByPlaceholderText('介绍一下自己...'), {
+      target: { value: '新简介' },
+    })
+    await act(() => vi.advanceTimersByTimeAsync(500))
+    expect(updateUserInfo).toHaveBeenCalledWith(expect.objectContaining({ bio: '新简介' }))
   })
 })

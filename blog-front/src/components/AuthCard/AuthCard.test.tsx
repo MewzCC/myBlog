@@ -35,10 +35,10 @@ describe('AuthCard', () => {
         onModeChange={(m) => {
           nextMode = m
         }}
-      />
+      />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: '注册' }))
+    fireEvent.click(screen.getByRole('button', { name: '立即注册' }))
     expect(nextMode).toBe('register')
   })
 
@@ -70,7 +70,7 @@ describe('AuthCard', () => {
         onForgotSubmit={(e) => e.preventDefault()}
         onForgotRequestCode={() => undefined}
         onModeChange={() => undefined}
-      />
+      />,
     )
 
     expect(screen.getByText('请输入账号')).toBeTruthy()

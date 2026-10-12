@@ -16,7 +16,7 @@ export default defineConfig({
     target: 'esnext',
     minify: 'esbuild',
   },
-  server: { 
+  server: {
     port: 3000,
     proxy: {
       '/api': {
@@ -27,5 +27,6 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
   },
 })
