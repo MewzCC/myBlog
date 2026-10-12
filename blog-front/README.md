@@ -23,6 +23,8 @@
 
 ## 🚀 本地开发
 
+使用 Node.js 22.12+（22.x）或 24.x / 26+，推荐 Node.js 24 LTS；可用 `node -v` 检查版本。
+
 ```bash
 npm install
 npm run dev
