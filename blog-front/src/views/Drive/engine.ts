@@ -4,6 +4,7 @@ import { buildCar, buildIsland } from './models'
 import { createVehicleBody, applyVehicleInput } from './physics'
 import { StationArrival } from './arrival'
 import { buildResidents } from './residents'
+import { createSceneBody } from './scenePhysics'
 import {
   initialTelemetry,
   islandSize,
@@ -69,34 +70,7 @@ export async function createIslandEngine(
   world.timestep = 1 / 60
   const dynamics: { body: RAPIER.RigidBody; mesh: T.Object3D; x: number; z: number }[] = []
   for (const s of models.solids) {
-    const desc = s.dynamic
-      ? RAPIER.RigidBodyDesc.dynamic().setLinearDamping(0.5).setAngularDamping(0.8)
-      : RAPIER.RigidBodyDesc.fixed()
-    desc.setTranslation(s.x, s.y, s.z)
-    if (s.rotation)
-      desc.setRotation({ x: Math.sin(s.rotation / 2), y: 0, z: 0, w: Math.cos(s.rotation / 2) })
-    const body = world.createRigidBody(desc)
-    let collider = RAPIER.ColliderDesc.cuboid(s.w / 2, s.h / 2, s.d / 2)
-    if (s.shape === 'cylinder') collider = RAPIER.ColliderDesc.cylinder(s.h / 2, s.w / 2)
-    if (s.shape === 'cone') collider = RAPIER.ColliderDesc.cone(s.h / 2, s.w / 2)
-    if (s.shape === 'ball') collider = RAPIER.ColliderDesc.ball(s.w / 2)
-    if (s.shape === 'road') {
-      const vertices: number[] = []
-      for (const level of [-1, 1])
-        for (const x of [-1, 1])
-          for (const z of [-1, 1]) {
-            const inset = level > 0 ? -0.05 : 0.2
-            vertices.push(x * (s.w / 2 + inset), (level * s.h) / 2, z * (s.d / 2 + inset))
-          }
-      collider = RAPIER.ColliderDesc.convexHull(new Float32Array(vertices))!
-    }
-    world.createCollider(
-      collider
-        .setFriction(0.65)
-        .setRestitution(0.15)
-        .setDensity(s.dynamic ? 0.4 : 1),
-      body,
-    )
+    const body = createSceneBody(world, s)
     if (s.dynamic && s.mesh) dynamics.push({ body, mesh: s.mesh, x: s.x, z: s.z })
   }
   const body = createVehicleBody(world)
@@ -514,6 +488,16 @@ export async function createIslandEngine(
           const p = d.body.translation()
           return Math.hypot(p.x - d.x, p.z - d.z) > 0.35
         }).length,
+      )
+      canvas.dataset.props = JSON.stringify(
+        dynamics.map((d) => ({
+          name: d.mesh.name,
+          origin: { x: d.x, z: d.z },
+          position: d.body.translation(),
+          rotation: d.body.rotation(),
+          mass: d.body.mass(),
+          colliders: d.body.numColliders(),
+        })),
       )
     }
     renderer.render(scene, camera)

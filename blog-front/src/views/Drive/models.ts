@@ -3,7 +3,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js'
 import { islandSize, stations, tokens } from './island'
 
-export type Solid = {
+export type SolidPart = {
   x: number
   y: number
   z: number
@@ -12,10 +12,19 @@ export type Solid = {
   d: number
   rotation?: number
   shape?: 'cylinder' | 'cone' | 'road' | 'ball'
+}
+export type Solid = SolidPart & {
   dynamic?: boolean
+  mass?: number
+  parts?: SolidPart[]
   mesh?: T.Object3D
 }
 export type IslandModels = ReturnType<typeof buildIsland>
+export const trafficConeParts: SolidPart[] = [
+  { x: 0, y: 0.06, z: 0, w: 0.9, h: 0.12, d: 0.9, shape: 'cylinder' },
+  { x: 0, y: 0.65, z: 0, w: 0.7, h: 1.1, d: 0.7, shape: 'cone' },
+  { x: 0, y: 0.6, z: 0, w: 0.4, h: 0.18, d: 0.4, shape: 'cylinder' },
+]
 const palette = {
   sand: '#e6ca92',
   grass: '#71947a',
@@ -109,7 +118,7 @@ export function buildIsland(scene: T.Scene) {
     dynamic = false,
   ) => {
     const item = box(x, y, z, w, h, d, color, parent, 0.08)
-    solids.push({ x, y, z, w, h, d, dynamic, mesh: item })
+    solids.push({ x, y, z, w, h, d, dynamic, mass: dynamic ? 0.4 : undefined, mesh: item })
     return item
   }
   const obstacle = (x: number, y: number, z: number, radius: number, height: number) => {
@@ -488,9 +497,27 @@ export function buildIsland(scene: T.Scene) {
     [-8, 6],
     [8, -6],
   ] as const) {
-    box(x, 0.65, z, 2.7, 0.18, 1.3, palette.wood)
-    for (const dx of [-1, 1]) box(x + dx, 0.3, z, 0.12, 0.6, 0.8, palette.ink)
-    solids.push({ x, y: 0.5, z, w: 2.7, h: 1, d: 1.3 })
+    const bench = new T.Group()
+    bench.name = 'bench'
+    bench.position.set(x, 0.05, z)
+    scene.add(bench)
+    box(0, 0.65, 0, 2.7, 0.18, 1.3, palette.wood, bench)
+    for (const dx of [-1, 1]) box(dx, 0.3, 0, 0.12, 0.6, 0.8, palette.ink, bench)
+    solids.push({
+      x,
+      y: 0.05,
+      z,
+      w: 2.7,
+      h: 0.74,
+      d: 1.3,
+      dynamic: true,
+      mass: 1.1,
+      mesh: bench,
+      parts: [
+        { x: 0, y: 0.65, z: 0, w: 2.7, h: 0.18, d: 1.3 },
+        ...[-1, 1].map((dx) => ({ x: dx, y: 0.3, z: 0, w: 0.12, h: 0.6, d: 0.8 })),
+      ],
+    })
   }
   for (const [x, z] of [
     [-12, 5],
@@ -498,12 +525,27 @@ export function buildIsland(scene: T.Scene) {
     [-12, -5],
     [12, 5],
   ] as const) {
-    cylinder(x, 0.4, z, 0.7, 0.7, palette.coral)
-    obstacle(x, 0.4, z, 0.7, 0.7)
+    const pot = new T.Group()
+    pot.name = 'flower-pot'
+    pot.position.set(x, 0.05, z)
+    scene.add(pot)
+    cylinder(0, 0.4, 0, 0.7, 0.7, palette.coral, pot)
+    solids.push({
+      x,
+      y: 0.05,
+      z,
+      w: 1.4,
+      h: 0.7,
+      d: 1.4,
+      dynamic: true,
+      mass: 0.8,
+      mesh: pot,
+      parts: [{ x: 0, y: 0.4, z: 0, w: 1.4, h: 0.7, d: 1.4, shape: 'cylinder' }],
+    })
     for (let i = 0; i < 5; i++) {
       const a = i * 1.25
-      cylinder(x + Math.cos(a) * 0.3, 0.9, z + Math.sin(a) * 0.3, 0.03, 0.7, palette.grass)
-      sphere(x + Math.cos(a) * 0.3, 1.3, z + Math.sin(a) * 0.3, 0.18, palette.gold)
+      cylinder(Math.cos(a) * 0.3, 0.9, Math.sin(a) * 0.3, 0.03, 0.7, palette.grass, pot)
+      sphere(Math.cos(a) * 0.3, 1.3, Math.sin(a) * 0.3, 0.18, palette.gold, pot)
     }
   }
   for (const x of [-50, 50])
@@ -546,6 +588,7 @@ export function buildIsland(scene: T.Scene) {
     const x = 7 + (i % 3) * 1.1,
       z = 23 + Math.floor(i / 3) * 1.1
     const crate = solidBox(x, 0.55 + (i === 6 ? 1.1 : 0), z, 1, 1, 1, palette.wood, scene, true)
+    crate.name = 'crate'
     // Strapped crate faces; child geometry moves with the simulated box.
     for (const dx of [-0.3, 0.3]) {
       const strap = box(dx, 0, 0.51, 0.12, 0.94, 0.03, palette.cream, crate)
@@ -558,10 +601,25 @@ export function buildIsland(scene: T.Scene) {
     [17, 6],
     [-17, -6],
   ] as const) {
-    cylinder(x, 0.3, z, 0.45, 0.12, palette.ink)
-    solids.push({ x, y: 0.55, z, w: 0.75, h: 1.1, d: 0.75, shape: 'cone' })
-    cylinder(x, 0.65, z, 0, 1.1, palette.coral, scene, 0.35)
-    cylinder(x, 0.6, z, 0.18, 0.18, palette.cream)
+    const cone = new T.Group()
+    cone.name = 'traffic-cone'
+    cone.position.set(x, 0.14, z)
+    scene.add(cone)
+    cylinder(0, 0.06, 0, 0.45, 0.12, palette.ink, cone)
+    cylinder(0, 0.65, 0, 0, 1.1, palette.coral, cone, 0.35)
+    cylinder(0, 0.6, 0, 0.2, 0.18, palette.cream, cone)
+    solids.push({
+      x,
+      y: 0.14,
+      z,
+      w: 0.9,
+      h: 1.2,
+      d: 0.9,
+      dynamic: true,
+      mass: 0.06,
+      mesh: cone,
+      parts: trafficConeParts,
+    })
   }
   // Warm street lamps and spherical bulbs (shared emissive materials).
   const lampLights: T.PointLight[] = []
@@ -776,8 +834,19 @@ export function buildIsland(scene: T.Scene) {
     cylinder(x, 1.8, z, 0.06, 3.6, palette.wood)
     obstacle(x, 1.8, z, 0.08, 3.6)
     cylinder(x, 3.6, z, 0.1, 0.8, color, scene, 2.5, 12)
-    box(x + 0.8, 0.2, z + 1, 1.3, 0.25, 3, palette.cream, scene, 0.1)
-    solids.push({ x: x + 0.8, y: 0.2, z: z + 1, w: 1.3, h: 0.25, d: 3 })
+    const chair = box(x + 0.8, 0.2, z + 1, 1.3, 0.25, 3, palette.cream, scene, 0.1)
+    chair.name = 'beach-chair'
+    solids.push({
+      x: x + 0.8,
+      y: 0.2,
+      z: z + 1,
+      w: 1.3,
+      h: 0.25,
+      d: 3,
+      dynamic: true,
+      mass: 0.35,
+      mesh: chair,
+    })
   }
   const fireflies = new T.Group()
   scene.add(fireflies)

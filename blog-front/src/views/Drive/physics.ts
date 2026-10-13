@@ -2,6 +2,7 @@ import RAPIER from '@dimforge/rapier3d-compat'
 import { spawn, type DriveInput } from './island'
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
+export const vehicleMass = 10
 
 export function createVehicleBody(world: RAPIER.World) {
   const body = world.createRigidBody(
@@ -20,13 +21,13 @@ export function createVehicleBody(world: RAPIER.World) {
       .setFriction(0)
       .setFrictionCombineRule(RAPIER.CoefficientCombineRule.Min)
       .setRestitution(0.08)
-      .setDensity(2),
+      .setMass(vehicleMass * 0.93),
     body,
   )
   // Cabin and luggage are solid too, including when hitting a fallen resident.
-  for (const [x, y, z, hx, hy, hz] of [
-    [0, 0.56, -0.3, 0.76, 0.5, 0.76],
-    [0, 1.36, -0.3, 0.5, 0.2, 0.44],
+  for (const [x, y, z, hx, hy, hz, mass] of [
+    [0, 0.56, -0.3, 0.76, 0.5, 0.76, vehicleMass * 0.06],
+    [0, 1.36, -0.3, 0.5, 0.2, 0.44, vehicleMass * 0.01],
   ]) {
     world.createCollider(
       RAPIER.ColliderDesc.cuboid(hx!, hy!, hz!)
@@ -34,7 +35,7 @@ export function createVehicleBody(world: RAPIER.World) {
         .setFriction(0)
         .setFrictionCombineRule(RAPIER.CoefficientCombineRule.Min)
         .setRestitution(0.08)
-        .setDensity(0.3),
+        .setMass(mass!),
       body,
     )
   }
