@@ -1362,3 +1362,406 @@
     border-top-color: var(--drift-accent);
   }
 }
+
+/* Travel tickets fall into the scene; their printed content stays upright. */
+.drift__passing {
+  position: absolute;
+  z-index: 5;
+  top: 116px;
+  left: clamp(24px, 4vw, 64px);
+  width: 270px;
+  color: var(--drift-ink);
+  background: var(--drift-paper);
+  border: 1px solid var(--drift-ink);
+  border-radius: 9px 9px 18px 18px;
+  box-shadow: 5px 7px 0 #10253730;
+  transform: rotate(-4deg);
+  transform-origin: 50% 12%;
+  animation: drift-ticket-drop 650ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+.drift__passing::before,
+.drift__panel--arrival::before {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  width: 76px;
+  height: 24px;
+  top: -12px;
+  left: 35%;
+  background: color-mix(in srgb, var(--station-color) 60%, transparent);
+  border-left: 2px dotted var(--drift-paper);
+  border-right: 2px dotted var(--drift-paper);
+  transform: rotate(7deg);
+  pointer-events: none;
+}
+.drift__passing-content {
+  padding: 22px 24px 25px;
+  transform: rotate(4deg);
+}
+.drift__arrival-label {
+  display: block;
+  font:
+    700 9px/1.6 'Space Grotesk',
+    sans-serif;
+  letter-spacing: 0.12em;
+  color: var(--drift-muted);
+}
+.drift__station-art {
+  display: block;
+  width: 100%;
+  height: 115px;
+}
+.drift__passing small {
+  font:
+    700 10px/1.7 'Space Grotesk',
+    sans-serif;
+  letter-spacing: 0.1em;
+  color: var(--drift-muted);
+}
+.drift__passing strong {
+  display: block;
+  font-size: 18px;
+  margin: 4px 0;
+}
+.drift__passing p {
+  font-size: 12px;
+  line-height: 1.8;
+  margin: 8px 0 12px;
+}
+.drift__passing button {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--drift-ink);
+  background: var(--station-color);
+  color: #21373d;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.drift__parking-note {
+  display: block;
+  border-top: 1px dashed var(--drift-line);
+  margin-top: 15px;
+  padding-top: 10px;
+  font-size: 10px;
+  color: var(--drift-muted);
+  text-align: center;
+}
+.drift__modal-shade--arrival {
+  padding: 36px clamp(28px, 5vw, 80px);
+  background: linear-gradient(90deg, #10253728, #102537a3);
+  backdrop-filter: blur(3px);
+}
+.drift__panel--arrival {
+  --ticket-tilt: -2deg;
+  width: min(490px, 100%);
+  max-height: calc(100% - 22px);
+  padding: 28px 32px;
+  border-radius: 10px 10px 24px 10px;
+  border-top: 8px solid var(--station-color);
+  transform: rotate(var(--ticket-tilt));
+  transform-origin: 50% 10%;
+  animation: drift-postcard-drop 700ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  box-shadow: 10px 12px 0 #10253740;
+}
+.drift__panel--arrival .drift__panel-content {
+  transform: rotate(2deg);
+}
+.drift__panel-content {
+  position: relative;
+}
+.drift__panel-content > .drift__close {
+  z-index: 2;
+  top: 0;
+  right: 0;
+}
+.drift__panel-content > p {
+  font-size: 12px;
+  line-height: 1.9;
+  color: var(--drift-muted);
+}
+.drift__arrival-header {
+  position: relative;
+  border-bottom: 1px dashed var(--drift-line);
+  padding-bottom: 12px;
+}
+.drift__arrival-header .drift__station-art {
+  width: 64%;
+  height: 135px;
+}
+.drift__arrival-header .drift__arrival-label {
+  padding-right: 30px;
+}
+.drift__arrival-stamp {
+  position: absolute;
+  right: 4px;
+  top: 62px;
+  width: 92px;
+  height: 64px;
+  display: grid;
+  align-content: center;
+  text-align: center;
+  border: 2px double var(--drift-muted);
+  border-radius: 50%;
+  color: var(--drift-muted);
+  font:
+    700 11px/1.6 'Space Grotesk',
+    sans-serif;
+  transform: rotate(12deg);
+}
+.drift__panel--arrival h2 {
+  margin: 16px 0 8px;
+}
+.drift__preview {
+  margin: 20px 0;
+  padding: 14px 16px;
+  border: 1px dashed var(--drift-line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--station-color) 10%, var(--drift-paper));
+}
+.drift__preview-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 11px;
+  margin-bottom: 12px;
+}
+.drift__preview-heading small {
+  font-size: 9px;
+  color: var(--drift-muted);
+}
+.drift__preview-window {
+  height: 98px;
+  overflow: hidden;
+  mask-image: linear-gradient(transparent, black 10%, black 85%, transparent);
+}
+.drift__preview-reel {
+  animation: drift-preview-scroll 24s linear infinite;
+}
+.drift__preview-reel > div {
+  padding-bottom: 14px;
+}
+.drift__preview-reel p {
+  display: flex;
+  gap: 12px;
+  margin: 0;
+  padding: 10px 0;
+  line-height: 1.8;
+  font-size: 12px;
+}
+.drift__preview-reel p span {
+  font:
+    700 10px/2 'Space Grotesk',
+    sans-serif;
+  color: var(--drift-muted);
+}
+.drift__preview:hover .drift__preview-reel,
+.drift__preview:focus-within .drift__preview-reel {
+  animation-play-state: paused;
+}
+@keyframes drift-ticket-drop {
+  0% {
+    transform: translateY(-90vh) rotate(-18deg);
+    opacity: 0;
+  }
+  65% {
+    transform: translateY(12px) rotate(3deg);
+    opacity: 1;
+  }
+  82% {
+    transform: translateY(-5px) rotate(-6deg);
+  }
+  100% {
+    transform: translateY(0) rotate(-4deg);
+  }
+}
+@keyframes drift-postcard-drop {
+  0% {
+    transform: translateY(-110vh) rotate(-12deg);
+    opacity: 0;
+  }
+  65% {
+    transform: translateY(15px) rotate(2deg);
+    opacity: 1;
+  }
+  83% {
+    transform: translateY(-5px) rotate(-3deg);
+  }
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+}
+@keyframes drift-preview-scroll {
+  to {
+    transform: translateY(-50%);
+  }
+}
+@media (max-width: 760px) {
+  .drift__passing {
+    top: 86px;
+    left: 22px;
+    width: min(220px, calc(100% - 48px));
+  }
+  .drift__passing-content {
+    padding: 16px 20px 18px;
+  }
+  .drift__passing .drift__station-art {
+    height: 76px;
+  }
+  .drift__passing strong {
+    font-size: 15px;
+  }
+  .drift__passing p {
+    margin: 5px 0 8px;
+  }
+  .drift__parking-note {
+    margin-top: 10px;
+  }
+  .drift__modal-shade--arrival {
+    padding: 22px;
+  }
+  .drift__panel--arrival {
+    padding: 22px 22px;
+    max-height: calc(100% - 14px);
+  }
+  .drift__arrival-header .drift__station-art {
+    height: 105px;
+  }
+  .drift__arrival-stamp {
+    top: 42px;
+    width: 78px;
+    height: 54px;
+    font-size: 9px;
+  }
+}
+@media (max-height: 600px) and (min-width: 480px) {
+  .drift__passing {
+    top: 80px;
+    width: 245px;
+  }
+  .drift__passing-content {
+    padding: 14px 20px;
+  }
+  .drift__passing .drift__station-art {
+    position: absolute;
+    right: 0;
+    top: 10px;
+    width: 70px;
+    height: 55px;
+  }
+  .drift__passing .drift__arrival-label {
+    max-width: 150px;
+  }
+  .drift__passing strong {
+    font-size: 15px;
+  }
+  .drift__passing p {
+    margin: 5px 0;
+  }
+  .drift__parking-note {
+    margin-top: 8px;
+    padding-top: 6px;
+  }
+  .drift__modal-shade--arrival {
+    padding: 16px 28px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .drift__passing,
+  .drift__panel--arrival,
+  .drift__preview-reel {
+    animation: none;
+  }
+  .drift__preview-window {
+    overflow: auto;
+    mask-image: none;
+  }
+  .drift__preview-reel > div[aria-hidden='true'] {
+    display: none;
+  }
+}
+@media (max-height: 600px) and (min-width: 480px) {
+  .drift__passing {
+    top: 72px;
+  }
+  .drift__passing p,
+  .drift__passing .drift__parking-note {
+    display: none;
+  }
+  .drift__passing small {
+    font-size: 8px;
+  }
+  .drift__passing button {
+    padding: 6px;
+    margin-top: 8px;
+  }
+}
+@media (max-width: 360px) {
+  .drift__passing-content {
+    padding: 14px 18px 16px;
+  }
+  .drift__passing .drift__station-art {
+    height: 52px;
+  }
+  .drift__passing .drift__arrival-label {
+    font-size: 8px;
+  }
+  .drift__passing p {
+    font-size: 11px;
+    line-height: 1.65;
+  }
+  .drift__passing button {
+    padding: 8px;
+  }
+  .drift__parking-note {
+    font-size: 9px;
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+  .drift--nearby .drift__map {
+    top: auto;
+    bottom: 180px;
+  }
+}
+@media (max-height: 600px) and (min-width: 480px) {
+  .drift__passing {
+    top: 66px;
+  }
+  .drift__passing-content {
+    padding: 10px 16px;
+  }
+  .drift__passing .drift__arrival-label {
+    line-height: 12px;
+  }
+  .drift__passing small {
+    display: block;
+    line-height: 12px;
+  }
+  .drift__passing strong {
+    line-height: 20px;
+    margin: 4px 0;
+  }
+  .drift__passing button {
+    font-size: 12px;
+    line-height: 18px;
+    padding: 5px;
+    margin-top: 6px;
+  }
+}
+.drift__panel--arrival .drift__postcard {
+  rotate: none;
+}
+@media (max-width: 760px) {
+  .drift__panel--arrival .drift__postcard {
+    padding: 18px;
+    margin: 18px 0;
+  }
+  .drift__panel--arrival .drift__postcard p {
+    font-size: 22px;
+    line-height: 1.5;
+    margin: 18px 0;
+  }
+  .drift__panel--arrival .drift__postcard i {
+    font-size: 30px;
+  }
+}

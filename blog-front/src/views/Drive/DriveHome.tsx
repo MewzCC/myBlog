@@ -13,6 +13,7 @@ import {
   type StationId,
 } from './island'
 import type { IslandEngine } from './engine'
+import StationArt from './StationArt'
 import './drive-home.css'
 
 export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) => void }) {
@@ -244,6 +245,23 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
     Object.assign(touch.current, { [field]: typeof touch.current[field] === 'boolean' ? false : 0 })
   }
   const station = stations.find((s) => s.id === panel)
+  const nearby = visibleStations.find((s) => s.id === telemetry.nearest)
+  const previewLines =
+    station?.id === 'about'
+      ? [
+          profile?.bio || '喜欢创造，喜欢探索。把这座小岛，当成我们认识的起点。',
+          '写代码，也收集生活里的小小惊喜。',
+        ]
+      : station?.id === 'guestbook'
+        ? ['路过，停留，留下一点回声。', '一张明信片，就是我们故事的起点。']
+        : articles.length
+          ? articles.slice(0, 4).map((a) => `${a.title} · ${a.summary || a.publishDate}`)
+          : [
+              station?.description || '',
+              articleState === 'error'
+                ? '书架暂时无法连接，仍可进入文章归档。'
+                : '正在整理新的故事与灵感。',
+            ]
   const name = profile?.name || 'Sakura'
   const close = () => {
     setPanel(null)
@@ -253,7 +271,7 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
     miniY = 50 + (telemetry.z / 60) * 88
   return (
     <main
-      className={`drift${driving ? ' drift--driving' : ''}${dark ? ' drift--night' : ' drift--day'}`}
+      className={`drift${driving ? ' drift--driving' : ''}${nearby ? ' drift--nearby' : ''}${dark ? ' drift--night' : ' drift--day'}`}
     >
       <canvas
         key={attempt}
@@ -328,7 +346,7 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
           </div>
         </section>
       )}
-      {driving && (
+      {driving && !nearby && (
         <div className="drift__journey">
           <span className="drift__eyebrow">ON THE ROAD</span>
           <strong>今天，去哪里？</strong>
@@ -337,6 +355,26 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
             {visibleStations.length} 个站点已发现
           </span>
         </div>
+      )}
+      {driving && nearby && !panel && !help && (
+        <aside
+          key={nearby.id}
+          className="drift__passing"
+          aria-label="路过站点提示"
+          style={{ '--station-color': nearby.color } as React.CSSProperties}
+        >
+          <div className="drift__passing-content">
+            <span className="drift__arrival-label">
+              ✦ 发现一处停靠点 / 0{stations.indexOf(nearby) + 1}
+            </span>
+            <StationArt id={nearby.id} />
+            <small>{nearby.en}</small>
+            <strong>{nearby.name}</strong>
+            <p>{nearby.description}</p>
+            <button onClick={() => engineRef.current?.interact()}>看看这里 ↗</button>
+            <span className="drift__parking-note">减速驶入光圈 · 停稳自动展开</span>
+          </div>
+        </aside>
       )}
       {!ready && !error && (
         <div className="drift__loading" role="status">
@@ -418,13 +456,6 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
               <i style={{ width: `${Math.min(100, (telemetry.speed / 61) * 100)}%` }} />
             </div>
           </div>
-          {telemetry.nearest && (telemetry.nearest !== 'guestbook' || enableGuestbook) && (
-            <button className="drift__nearby" onClick={() => engineRef.current?.interact()}>
-              <kbd>E</kbd> 停靠
-              {stations.find((s) => s.id === telemetry.nearest)?.name.split(' / ')[0]}{' '}
-              <span>↗</span>
-            </button>
-          )}
           {telemetry.collected === tokens.length && (
             <div className="drift__achievement" role="status">
               ✦ 全部灵感已收集，愿你的旅途充满好奇。
@@ -459,7 +490,7 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
         <div className="drift__controls-note">
           {driving ? (
             <>
-              <kbd>W A S D</kbd> 驾驶 <kbd>SPACE</kbd> 刹车 <kbd>SHIFT</kbd> 加速
+              <kbd>W A S D</kbd> 驾驶 <kbd>S</kbd> 减速 / 倒车 <kbd>SPACE</kbd> 刹车
             </>
           ) : (
             <>拖动旋转小岛 · 滚轮缩放 · 点击站点探索</>
@@ -498,9 +529,15 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
         </div>
       )}
       {(panel || help) && (
-        <div className="drift__modal-shade" onClick={close}>
+        <div
+          className={`drift__modal-shade${station && !help ? ' drift__modal-shade--arrival' : ''}`}
+          onClick={close}
+        >
           <section
-            className="drift__panel"
+            className={`drift__panel${station && !help ? ' drift__panel--arrival' : ''}`}
+            style={
+              station ? ({ '--station-color': station.color } as React.CSSProperties) : undefined
+            }
             role="dialog"
             aria-modal="true"
             aria-labelledby="drift-panel-title"
@@ -508,179 +545,219 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
             tabIndex={-1}
             onClick={(e) => e.stopPropagation()}
           >
-            <button className="drift__close" onClick={close} aria-label="关闭面板">
-              ×
-            </button>
-            <div className="drift__eyebrow">
-              {help ? 'DRIVING MANUAL' : station?.en || 'YOUR ISLAND GUIDE'}
-            </div>
-            <h2 id="drift-panel-title">
-              {help ? '开车，也别忘了看风景。' : station?.name || '四个站点，一座小岛。'}
-            </h2>
-            {help ? (
-              <>
-                <p>无需闯关，随便逛逛。开近站点会出现停靠提示，也可以直接点击地图和目录。</p>
-                <dl className="drift__manual">
-                  <div>
-                    <dt>WASD / 方向键</dt>
-                    <dd>前进、倒车、转向</dd>
-                  </div>
-                  <div>
-                    <dt>SPACE / SHIFT</dt>
-                    <dd>刹车漂移 / 加速</dd>
-                  </div>
-                  <div>
-                    <dt>E / R / C</dt>
-                    <dd>停靠站点 / 回到起点 / 切换镜头</dd>
-                  </div>
-                  <div>
-                    <dt>触屏按钮</dt>
-                    <dd>按住驾驶，松开停止输入</dd>
-                  </div>
-                  <div>
-                    <dt>鼠标拖动 / 滚轮</dt>
-                    <dd>全岛镜头旋转 / 缩放</dd>
-                  </div>
-                </dl>
-                <label className="drift__quality">
-                  画面质量
-                  <select
-                    value={quality}
-                    onChange={(e) => setQuality(e.target.value as IslandSettings['quality'])}
-                  >
-                    <option value="auto">自动适应设备</option>
-                    <option value="high">高画质</option>
-                    <option value="low">节能模式</option>
-                  </select>
-                </label>
-                <p className="drift__fine-print">
-                  声音默认关闭。小岛和车辆均为原创程序建模，所有资源随网站加载。
-                </p>
-              </>
-            ) : panel === 'map' ? (
-              <>
-                <p>喜欢开车就上路，想看内容也可以直接停靠。</p>
-                <div className="drift__directory">
-                  {visibleStations.map((s) => (
-                    <button key={s.id} onClick={() => goStation(s.id)}>
-                      <span>{s.icon}</span>
-                      <div>
-                        <strong>{s.name}</strong>
-                        <small>{s.description}</small>
-                      </div>
-                      <b>↗</b>
-                    </button>
-                  ))}
+            <div className="drift__panel-content">
+              <button className="drift__close" onClick={close} aria-label="关闭面板">
+                ×
+              </button>
+              {station && !help && (
+                <div className="drift__arrival-header">
+                  <span className="drift__arrival-label">DRIFT ISLAND / 到站明信片</span>
+                  <StationArt id={station.id} />
+                  <span className="drift__arrival-stamp">
+                    已停靠
+                    <br />
+                    BON VOYAGE
+                  </span>
                 </div>
-                {!driving && (
-                  <button
-                    className="drift__primary"
-                    onClick={() => {
-                      close()
-                      start()
-                    }}
-                    disabled={!ready || !!error}
+              )}
+              <div className="drift__eyebrow">
+                {help ? 'DRIVING MANUAL' : station?.en || 'YOUR ISLAND GUIDE'}
+              </div>
+              <h2 id="drift-panel-title">
+                {help ? '开车，也别忘了看风景。' : station?.name || '四个站点，一座小岛。'}
+              </h2>
+              {help ? (
+                <>
+                  <p>
+                    路过站点时会掉落一张旅行票。驶入光圈停稳，会自动展开明信片；也可点击卡片或按 E
+                    提前查看。
+                  </p>
+                  <dl className="drift__manual">
+                    <div>
+                      <dt>WASD / 方向键</dt>
+                      <dd>W 前进，A 左转，D 右转；S 前进时减速，停下后倒车</dd>
+                    </div>
+                    <div>
+                      <dt>SPACE / SHIFT</dt>
+                      <dd>空格刹车 / Shift 加速</dd>
+                    </div>
+                    <div>
+                      <dt>E / R / C</dt>
+                      <dd>停靠站点 / 回到起点 / 切换镜头</dd>
+                    </div>
+                    <div>
+                      <dt>触屏按钮</dt>
+                      <dd>按住驾驶，松开停止输入</dd>
+                    </div>
+                    <div>
+                      <dt>鼠标拖动 / 滚轮</dt>
+                      <dd>全岛镜头旋转 / 缩放</dd>
+                    </div>
+                  </dl>
+                  <label className="drift__quality">
+                    画面质量
+                    <select
+                      value={quality}
+                      onChange={(e) => setQuality(e.target.value as IslandSettings['quality'])}
+                    >
+                      <option value="auto">自动适应设备</option>
+                      <option value="high">高画质</option>
+                      <option value="low">节能模式</option>
+                    </select>
+                  </label>
+                  <p className="drift__fine-print">
+                    声音默认关闭。小岛和车辆均为原创程序建模，所有资源随网站加载。
+                  </p>
+                </>
+              ) : panel === 'map' ? (
+                <>
+                  <p>喜欢开车就上路，想看内容也可以直接停靠。</p>
+                  <div className="drift__directory">
+                    {visibleStations.map((s) => (
+                      <button key={s.id} onClick={() => goStation(s.id)}>
+                        <span>{s.icon}</span>
+                        <div>
+                          <strong>{s.name}</strong>
+                          <small>{s.description}</small>
+                        </div>
+                        <b>↗</b>
+                      </button>
+                    ))}
+                  </div>
+                  {!driving && (
+                    <button
+                      className="drift__primary"
+                      onClick={() => {
+                        close()
+                        start()
+                      }}
+                      disabled={!ready || !!error}
+                    >
+                      开始驾驶 ↗
+                    </button>
+                  )}
+                </>
+              ) : (
+                <>
+                  <p>{station?.description}</p>
+                  <div
+                    className="drift__preview"
+                    tabIndex={0}
+                    aria-label="滚动内容预览，悬停或聚焦暂停"
                   >
-                    开始驾驶 ↗
-                  </button>
-                )}
-              </>
-            ) : (
-              <>
-                <p>{station?.description}</p>
-                {panel === 'about' && (
-                  <>
-                    <div className="drift__profile">
-                      <span>
-                        {profile?.avatar ? (
-                          <img src={profile.avatar} alt={`${name}的头像`} />
-                        ) : (
-                          name.slice(0, 1)
-                        )}
-                      </span>
-                      <div>
-                        <strong>你好，我是 {name}。</strong>
-                        <p>
-                          {profile?.bio || '喜欢创造，喜欢探索。把这座小岛，当成我们认识的起点。'}
-                        </p>
+                    <div className="drift__preview-heading">
+                      <span>✦ 岛上的片段</span>
+                      <small>悬停暂停 / 自动播放</small>
+                    </div>
+                    <div className="drift__preview-window">
+                      <div className="drift__preview-reel">
+                        {[false, true].map((duplicate) => (
+                          <div key={String(duplicate)} aria-hidden={duplicate || undefined}>
+                            {previewLines.map((line, i) => (
+                              <p key={i}>
+                                <span>0{i + 1}</span>
+                                {line}
+                              </p>
+                            ))}
+                          </div>
+                        ))}
                       </div>
                     </div>
-                    <button
-                      className="drift__primary"
-                      onClick={() => onNavigate({ name: 'about' })}
-                    >
-                      认识完整的我 ↗
-                    </button>
-                  </>
-                )}
-                {(panel === 'notes' || panel === 'work') && (
-                  <>
-                    <div className="drift__article-list">
-                      {articleState === 'loading' ? (
-                        <p role="status">正在取回岛上的笔记…</p>
-                      ) : articleState === 'error' ? (
-                        <p>文章暂时无法连接。你仍可继续探索小岛，或进入归档查看。</p>
-                      ) : articles.length === 0 ? (
-                        <p>书架正在整理，下一篇故事很快到来。</p>
-                      ) : (
-                        articles.slice(0, 6).map((a, i) => (
-                          <button
-                            key={a.id}
-                            onClick={() => onNavigate({ name: 'article', params: { id: a.id } })}
-                          >
-                            <span>0{i + 1}</span>
-                            <div>
-                              <strong>{a.title}</strong>
-                              <small>{a.summary || a.publishDate}</small>
-                            </div>
-                            <b>↗</b>
-                          </button>
-                        ))
-                      )}
-                    </div>
-                    <button
-                      className="drift__primary"
-                      onClick={() => onNavigate({ name: 'archive' })}
-                    >
-                      查看全部文章 ↗
-                    </button>
-                  </>
-                )}
-                {panel === 'guestbook' && enableGuestbook && (
-                  <>
-                    <div className="drift__postcard">
-                      <span>HELLO FROM DRIFT ISLAND</span>
-                      <p>
-                        路过，停留，
-                        <br />
-                        留下一点回声。
-                      </p>
-                      <i>✉</i>
-                    </div>
-                    <button
-                      className="drift__primary"
-                      onClick={() => onNavigate({ name: 'guestbook' })}
-                    >
-                      写一张明信片 ↗
-                    </button>
-                  </>
-                )}
-                {panel === 'about' && enableSocials && profile?.socials && (
-                  <div className="drift__socials">
-                    {Object.entries(profile.socials)
-                      .filter(([, url]) => url)
-                      .map(([key, url]) => {
-                        const href = key === 'email' ? `mailto:${url}` : url
-                        return /^(https?:\/\/|mailto:)/i.test(href) ? (
-                          <a key={key} href={href} target="_blank" rel="noreferrer">
-                            {key} ↗
-                          </a>
-                        ) : null
-                      })}
                   </div>
-                )}
-              </>
-            )}
+                  {panel === 'about' && (
+                    <>
+                      <div className="drift__profile">
+                        <span>
+                          {profile?.avatar ? (
+                            <img src={profile.avatar} alt={`${name}的头像`} />
+                          ) : (
+                            name.slice(0, 1)
+                          )}
+                        </span>
+                        <div>
+                          <strong>你好，我是 {name}。</strong>
+                          <p>
+                            {profile?.bio || '喜欢创造，喜欢探索。把这座小岛，当成我们认识的起点。'}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        className="drift__primary"
+                        onClick={() => onNavigate({ name: 'about' })}
+                      >
+                        认识完整的我 ↗
+                      </button>
+                    </>
+                  )}
+                  {(panel === 'notes' || panel === 'work') && (
+                    <>
+                      <div className="drift__article-list">
+                        {articleState === 'loading' ? (
+                          <p role="status">正在取回岛上的笔记…</p>
+                        ) : articleState === 'error' ? (
+                          <p>文章暂时无法连接。你仍可继续探索小岛，或进入归档查看。</p>
+                        ) : articles.length === 0 ? (
+                          <p>书架正在整理，下一篇故事很快到来。</p>
+                        ) : (
+                          articles.slice(0, 6).map((a, i) => (
+                            <button
+                              key={a.id}
+                              onClick={() => onNavigate({ name: 'article', params: { id: a.id } })}
+                            >
+                              <span>0{i + 1}</span>
+                              <div>
+                                <strong>{a.title}</strong>
+                                <small>{a.summary || a.publishDate}</small>
+                              </div>
+                              <b>↗</b>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                      <button
+                        className="drift__primary"
+                        onClick={() => onNavigate({ name: 'archive' })}
+                      >
+                        查看全部文章 ↗
+                      </button>
+                    </>
+                  )}
+                  {panel === 'guestbook' && enableGuestbook && (
+                    <>
+                      <div className="drift__postcard">
+                        <span>HELLO FROM DRIFT ISLAND</span>
+                        <p>
+                          路过，停留，
+                          <br />
+                          留下一点回声。
+                        </p>
+                        <i>✉</i>
+                      </div>
+                      <button
+                        className="drift__primary"
+                        onClick={() => onNavigate({ name: 'guestbook' })}
+                      >
+                        写一张明信片 ↗
+                      </button>
+                    </>
+                  )}
+                  {panel === 'about' && enableSocials && profile?.socials && (
+                    <div className="drift__socials">
+                      {Object.entries(profile.socials)
+                        .filter(([, url]) => url)
+                        .map(([key, url]) => {
+                          const href = key === 'email' ? `mailto:${url}` : url
+                          return /^(https?:\/\/|mailto:)/i.test(href) ? (
+                            <a key={key} href={href} target="_blank" rel="noreferrer">
+                              {key} ↗
+                            </a>
+                          ) : null
+                        })}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </section>
         </div>
       )}

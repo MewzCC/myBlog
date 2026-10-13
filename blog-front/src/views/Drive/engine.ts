@@ -2,6 +2,7 @@ import * as T from 'three'
 import RAPIER from '@dimforge/rapier3d-compat'
 import { buildCar, buildIsland } from './models'
 import { createVehicleBody, applyVehicleInput } from './physics'
+import { StationArrival } from './arrival'
 import {
   initialTelemetry,
   spawn,
@@ -111,6 +112,7 @@ export async function createIslandEngine(
     visible = true
   const visited = new Set<StationId>(),
     collected = new Set<number>()
+  const arrival = new StationArrival()
   let nearest: StationId | null = null,
     dragging = false,
     orbit = 0.75,
@@ -159,6 +161,7 @@ export async function createIslandEngine(
   resize()
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
   const reset = () => {
+    arrival.suppress(null)
     body.setTranslation(spawn, true)
     body.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true)
     body.setLinvel({ x: 0, y: 0, z: 0 }, true)
@@ -177,10 +180,12 @@ export async function createIslandEngine(
     body.setAngvel({ x: 0, y: 0, z: 0 }, true)
     visited.add(id)
     nearest = id
+    arrival.suppress(id)
     options.onStation(id)
   }
   const interact = () => {
     if (nearest) {
+      arrival.suppress(nearest)
       visited.add(nearest)
       options.onStation(nearest)
     }
@@ -337,12 +342,24 @@ export async function createIslandEngine(
     let distance = Infinity
     stations.forEach((s) => {
       const d = Math.hypot(p.x - s.x, p.z - s.z)
-      if (d < 4.5 && d < distance) {
+      if (d < 7 && d < distance) {
         distance = d
         nearest = s.id
         visited.add(s.id)
       }
     })
+    const arrived = arrival.update(
+      nearest,
+      distance,
+      speed,
+      dt,
+      settings.driving &&
+        !settings.paused &&
+        p.y < 1.1 &&
+        (input.brake || !input.throttle) &&
+        !input.steer,
+    )
+    if (arrived) options.onStation(arrived)
     tokens.forEach(([x, z], i) => {
       if (!collected.has(i) && Math.hypot(p.x - x, p.z - z) < 1.7) {
         collected.add(i)

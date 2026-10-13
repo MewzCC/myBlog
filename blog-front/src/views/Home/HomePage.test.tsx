@@ -1,8 +1,9 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import HomePage from './HomePage'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { getArticles } from '../../api/article'
+import { initialTelemetry } from '../Drive/island'
 
 const engine = vi.hoisted(() => ({
   dispose: vi.fn(),
@@ -47,6 +48,24 @@ beforeEach(() => {
 })
 
 describe('3D island homepage', () => {
+  it('shows a passing ticket, then a decorated arrival preview with navigation', async () => {
+    const navigate = vi.fn()
+    render(<HomePage onNavigate={navigate} onOpenAuth={vi.fn()} />)
+    const start = await screen.findByRole('button', { name: /出发，环岛兜风/ })
+    await waitFor(() => expect(start.hasAttribute('disabled')).toBe(false))
+    fireEvent.click(start)
+    const options = createEngine.mock.calls.at(-1)![1]
+    act(() => options.onTelemetry({ ...initialTelemetry, nearest: 'about', speed: 20 }))
+    expect(screen.getByRole('complementary', { name: '路过站点提示' })).toBeTruthy()
+    expect(screen.queryByRole('dialog')).toBeNull()
+    act(() => options.onStation('about'))
+    expect(screen.getByRole('dialog', { name: '灯塔 / 关于我' }).className).toContain('arrival')
+    expect(screen.getByLabelText('滚动内容预览，悬停或聚焦暂停')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: /认识完整的我/ }))
+    expect(navigate).toHaveBeenCalledWith({ name: 'about' })
+    fireEvent.click(screen.getByRole('button', { name: '关闭面板' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
   it('loads real articles and opens the selected article from a station', async () => {
     const navigate = vi.fn()
     render(<HomePage onNavigate={navigate} onOpenAuth={vi.fn()} />)

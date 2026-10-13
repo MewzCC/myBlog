@@ -28,6 +28,16 @@ const yaw = () => {
 }
 
 describe('island vehicle physics on real Rapier contacts', () => {
+  it('S slows forward motion then reverses; space overrides the throttle and stops', () => {
+    run({ throttle: 1, steer: 0, brake: false, boost: false })
+    const speed = body.linvel().z
+    run({ throttle: -1, steer: 0, brake: false, boost: false }, 15)
+    expect(body.linvel().z).toBeLessThan(speed)
+    run({ throttle: -1, steer: 0, brake: false, boost: false }, 90)
+    expect(body.linvel().z).toBeLessThan(-2)
+    run({ throttle: 1, steer: 0, brake: true, boost: false }, 90)
+    expect(Math.abs(body.linvel().z)).toBeLessThan(0.01)
+  })
   it('accelerates on the floor and brakes without sliding indefinitely', () => {
     run({ throttle: 1, steer: 0, brake: false, boost: false })
     const z = body.translation().z

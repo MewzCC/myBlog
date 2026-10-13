@@ -34,7 +34,7 @@ export function applyVehicleInput(body: RAPIER.RigidBody, input: DriveInput, dri
     cz = Math.cos(yaw),
     speed = v.x * sx + v.z * cz,
     side = v.x * cz - v.z * sx
-  const throttle = drive ? clamp(input.throttle, -1, 1) : 0,
+  const throttle = drive && !input.brake ? clamp(input.throttle, -1, 1) : 0,
     maxSpeed = input.boost ? 17 : 10
   const acceleration =
     throttle * (Math.sign(throttle) !== Math.sign(speed) && Math.abs(speed) > 1 ? 18 : 10)
