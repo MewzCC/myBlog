@@ -305,11 +305,11 @@ export async function createIslandEngine(
         w.rotation.x += (longitudinal * dt) / 0.38
       })
       vehicle.steering.slice(2).forEach((w) => {
-        w.rotation.y = input.steer * 0.35
+        w.rotation.y = -input.steer * 0.35
       })
       vehicle.body.rotation.z = T.MathUtils.lerp(
         vehicle.body.rotation.z,
-        -input.steer * Math.min(speed / 80, 0.12),
+        input.steer * Math.min(speed / 80, 0.12),
         0.1,
       )
       vehicle.body.rotation.x = T.MathUtils.lerp(

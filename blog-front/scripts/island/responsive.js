@@ -90,6 +90,8 @@ async (page) => {
     }
   }
   await page.evaluate((v) => (window.__islandResponsive = v), results)
+  const failures = results.filter(r => r.overflow > 0 || r.outside.length || r.overlap.length)
+  if (failures.length) throw new Error(JSON.stringify(failures))
   await page.setViewportSize({ width: 390, height: 844 })
   await page.evaluate(() => window.scrollTo(0, 0))
   await page.screenshot({ path: 'output/playwright/island-mobile-drive.png' })

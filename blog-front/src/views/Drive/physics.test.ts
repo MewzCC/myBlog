@@ -49,16 +49,22 @@ describe('island vehicle physics on real Rapier contacts', () => {
   })
   it('does not let ground friction cancel low-speed steering', () => {
     run({ throttle: 0, steer: 1, brake: true, boost: false }, 120)
-    expect(yaw()).toBeGreaterThan(0.25)
+    expect(yaw()).toBeLessThan(-0.25)
     expect(Math.abs(body.translation().y - 0.56)).toBeLessThan(0.02)
   })
   it('keeps steering direction stable after braking but reverses it while backing up', () => {
     body.setLinvel({ x: 0, y: 0, z: -0.00001 }, true)
     run({ throttle: 0, steer: 1, brake: true, boost: false }, 10)
-    expect(yaw()).toBeGreaterThan(0)
+    expect(yaw()).toBeLessThan(0)
     body.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true)
     body.setLinvel({ x: 0, y: 0, z: -3 }, true)
     run({ throttle: -1, steer: 1, brake: false, boost: false }, 30)
-    expect(yaw()).toBeLessThan(-0.1)
+    expect(yaw()).toBeGreaterThan(0.1)
+  })
+  it.each([-1, 1])('steers toward the driver’s %s side when driving forward', (steer) => {
+    run({ throttle: 1, steer, brake: false, boost: false }, 90)
+    // The car faces +Z: its right is -X, and its left is +X.
+    expect(body.translation().x * steer).toBeLessThan(-1)
+    expect(yaw() * steer).toBeLessThan(-0.1)
   })
 })

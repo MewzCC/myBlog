@@ -10,13 +10,13 @@ async (page) => {
   )
   await page.keyboard.press('Escape')
   await page.keyboard.down('Space')
-  await page.keyboard.down('KeyA')
+  await page.keyboard.down('KeyD')
   await page.waitForFunction(
     () => Number(document.querySelector('canvas').dataset.yaw) < -1.5,
     {},
     { timeout: 15000 },
   )
-  await page.keyboard.up('KeyA')
+  await page.keyboard.up('KeyD')
   await page.keyboard.up('Space')
   await page.keyboard.down('KeyW')
   await page.waitForFunction(
@@ -27,13 +27,13 @@ async (page) => {
   await page.keyboard.up('KeyW')
   await page.keyboard.down('Space')
   await page.waitForFunction(() => Number(document.querySelector('canvas').dataset.speed) < 2)
-  await page.keyboard.down('KeyD')
+  await page.keyboard.down('KeyA')
   await page.waitForFunction(
     () => Number(document.querySelector('canvas').dataset.yaw) > -0.08,
     {},
     { timeout: 15000 },
   )
-  await page.keyboard.up('KeyD')
+  await page.keyboard.up('KeyA')
   await page.keyboard.up('Space')
   await page.keyboard.down('KeyW')
   try {

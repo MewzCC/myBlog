@@ -9,7 +9,7 @@ async (page) => {
     await page.keyboard.down('Space')
     await page.waitForFunction(()=>+document.querySelector('canvas').dataset.speed===0)
     const s=await read(),target=Math.atan2(x-s.x,z-s.z),diff=Math.atan2(Math.sin(target-s.yaw),Math.cos(target-s.yaw))
-    const key=diff>0?'KeyD':'KeyA'
+    const key=diff>0?'KeyA':'KeyD'
     await page.keyboard.down(key)
     await page.waitForFunction(t=>{const y=+document.querySelector('canvas').dataset.yaw;return Math.abs(Math.atan2(Math.sin(t-y),Math.cos(t-y)))<.035},target,{timeout:40000})
     await page.keyboard.up(key)

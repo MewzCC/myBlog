@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Route } from '../../types/route'
 import type { User, ArticleSummary } from '../../types/api'
 import { getBloggerProfile } from '../../api/user'
@@ -14,6 +14,7 @@ import {
 } from './island'
 import type { IslandEngine } from './engine'
 import StationArt from './StationArt'
+import DriveJoystick from './DriveJoystick'
 import './drive-home.css'
 
 export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) => void }) {
@@ -161,6 +162,7 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
       if (settings.current.paused) return
       if (controlled.includes(e.code) && settings.current.driving) {
         e.preventDefault()
+        touch.current.brake = false
         keys.current.add(e.code)
         engineRef.current?.unlockSound()
       }
@@ -231,18 +233,6 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
   const goStation = (id: StationId) => {
     if (engineRef.current) engineRef.current.teleport(id)
     else setPanel(id)
-  }
-  const touchControl =
-    (field: keyof DriveInput, value: number | boolean) =>
-    (event: PointerEvent<HTMLButtonElement>) => {
-      event.preventDefault()
-      event.currentTarget.setPointerCapture(event.pointerId)
-      Object.assign(touch.current, { [field]: value })
-      engineRef.current?.unlockSound()
-    }
-  const release = (field: keyof DriveInput) => (event: PointerEvent<HTMLButtonElement>) => {
-    event.preventDefault()
-    Object.assign(touch.current, { [field]: typeof touch.current[field] === 'boolean' ? false : 0 })
   }
   const station = stations.find((s) => s.id === panel)
   const nearby = visibleStations.find((s) => s.id === telemetry.nearest)
@@ -461,29 +451,13 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
               ✦ 全部灵感已收集，愿你的旅途充满好奇。
             </div>
           )}
-          <div className="drift__touch" aria-label="触屏驾驶控制">
-            {(
-              [
-                ['steer', -1, '向左转', '←'],
-                ['throttle', 1, '前进', '↑'],
-                ['throttle', -1, '倒车', '↓'],
-                ['steer', 1, '向右转', '→'],
-                ['brake', true, '刹车', '■'],
-                ['boost', true, '加速', '↯'],
-              ] as const
-            ).map(([field, value, label, symbol]) => (
-              <button
-                key={label}
-                aria-label={label}
-                onPointerDown={touchControl(field, value)}
-                onPointerUp={release(field)}
-                onPointerCancel={release(field)}
-                onLostPointerCapture={release(field)}
-              >
-                {symbol}
-              </button>
-            ))}
-          </div>
+          <DriveJoystick
+            disabled={paused || !!panel || help}
+            onInput={(input) => {
+              touch.current = input
+              if (input.throttle || input.steer) engineRef.current?.unlockSound()
+            }}
+          />
         </>
       )}
       <footer className="drift__dashboard">
@@ -586,8 +560,8 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
                       <dd>停靠站点 / 回到起点 / 切换镜头</dd>
                     </div>
                     <div>
-                      <dt>触屏按钮</dt>
-                      <dd>按住驾驶，松开停止输入</dd>
+                      <dt>触屏摇杆</dt>
+                      <dd>上推前进，下推减速 / 倒车，左右转向；推满向上加速，松手刹车</dd>
                     </div>
                     <div>
                       <dt>鼠标拖动 / 滚轮</dt>

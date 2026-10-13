@@ -43,11 +43,12 @@ export function applyVehicleInput(body: RAPIER.RigidBody, input: DriveInput, dri
   const slide = side * (input.brake ? 0.985 : 0.79)
   body.setLinvel({ x: sx * next + cz * slide, y: v.y, z: cz * next - sx * slide }, true)
   // A tiny residual reverse velocity after braking is not intentional reversing.
+  // Forward is +Z: the driver's right is -X, so right input needs negative yaw.
   body.setAngvel(
     {
       x: 0,
       y: drive
-        ? clamp(input.steer, -1, 1) *
+        ? -clamp(input.steer, -1, 1) *
           clamp(Math.abs(speed) * 0.18, 0.2, 2.5) *
           (speed < -0.25 ? -1 : 1)
         : 0,

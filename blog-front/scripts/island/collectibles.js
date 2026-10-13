@@ -33,7 +33,7 @@ async (page) => {
       target = Math.atan2(x - s.x, z - s.z),
       diff = Math.atan2(Math.sin(target - s.yaw), Math.cos(target - s.yaw))
     if (Math.abs(diff) > 0.035) {
-      const key = diff > 0 ? 'KeyD' : 'KeyA'
+      const key = diff > 0 ? 'KeyA' : 'KeyD'
       await page.keyboard.down(key)
       try {
         await page.waitForFunction(
