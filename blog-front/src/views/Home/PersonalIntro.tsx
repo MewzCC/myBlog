@@ -1,14 +1,12 @@
-import { useEffect, useRef, useState, type PointerEvent } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { CSSProperties, PointerEvent } from 'react'
 import {
   ArrowDownOutlined,
   ArrowUpOutlined,
   GithubOutlined,
   MailOutlined,
-  PauseOutlined,
-  PlayCircleOutlined,
-  ReloadOutlined,
-  SunOutlined,
   MoonOutlined,
+  SunOutlined,
 } from '@ant-design/icons'
 import { getBloggerProfile } from '../../api/user'
 import { useSettingsStore } from '../../stores/settingsStore'
@@ -16,355 +14,454 @@ import type { User } from '../../types/api'
 import type { Route } from '../../types/route'
 import './personal-intro.css'
 
-const thoughts = [
-  '保持好奇，慢慢生长。',
-  '把灵感写进代码，把日常留在这里。',
-  '偶尔发呆，也是创造的一部分。',
-  '今天也要做一点让自己开心的事。',
+const channels = [
+  { name: '灵感', en: 'IDEAS', message: '有些想法很小，但值得被听见。', frequency: 88.6 },
+  { name: '代码', en: 'CODE', message: '把好奇心，写成可以运行的东西。', frequency: 101.2 },
+  { name: '生活', en: 'LIFE', message: '在忙碌之外，收集一点无用的美好。', frequency: 108.0 },
 ]
+
+function SignalField({ frequency, pulse }: { frequency: number; pulse: number }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const values = useRef({ frequency, pulse })
+  values.current = { frequency, pulse }
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas || /jsdom/i.test(navigator.userAgent)) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    let width = 0,
+      height = 0,
+      frame = 0,
+      lastPulse = values.current.pulse,
+      burstAt = -10000
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const stars = Array.from({ length: 75 }, (_, i) => ({
+      x: ((i * 73 + 19) % 997) / 997,
+      y: ((i * 131 + 97) % 991) / 991,
+      size: i % 9 === 0 ? 1.8 : 0.7,
+      phase: i * 0.6,
+    }))
+    const resize = () => {
+      width = canvas.clientWidth
+      height = canvas.clientHeight
+      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      canvas.width = width * dpr
+      canvas.height = height * dpr
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      if (motion.matches) draw(performance.now())
+    }
+    const draw = (time: number) => {
+      ctx.clearRect(0, 0, width, height)
+      const light = document.documentElement.dataset.theme === 'light'
+      ctx.fillStyle = light ? '#3d5b73' : '#b4fff1'
+      for (const star of stars) {
+        ctx.globalAlpha = 0.15 + (Math.sin(time / 1800 + star.phase) + 1) * 0.22
+        const x = star.x * width,
+          y = (star.y * height - (motion.matches ? 0 : time * 0.003 * star.size)) % height
+        ctx.beginPath()
+        ctx.arc(x, (y + height) % height, star.size, 0, Math.PI * 2)
+        ctx.fill()
+      }
+      if (values.current.pulse !== lastPulse) {
+        lastPulse = values.current.pulse
+        burstAt = time
+      }
+      const elapsed = (time - burstAt) / 1600
+      if (elapsed < 1 && !motion.matches) {
+        ctx.globalAlpha = (1 - elapsed) * 0.7
+        ctx.strokeStyle = light ? '#dd572f' : '#e0ff94'
+        ctx.lineWidth = 2
+        for (let i = 0; i < 3; i++) {
+          ctx.beginPath()
+          ctx.arc(
+            width * 0.73,
+            height * 0.45,
+            Math.max(0, elapsed * width * 0.7 - i * 45),
+            0,
+            Math.PI * 2,
+          )
+          ctx.stroke()
+        }
+      }
+      ctx.globalAlpha = 1
+      if (!document.hidden && !motion.matches) frame = requestAnimationFrame(draw)
+    }
+    const restart = () => {
+      cancelAnimationFrame(frame)
+      if (!document.hidden) draw(performance.now())
+    }
+    const observer = new ResizeObserver(resize)
+    observer.observe(canvas)
+    document.addEventListener('visibilitychange', restart)
+    motion.addEventListener('change', restart)
+    resize()
+    restart()
+    return () => {
+      observer.disconnect()
+      cancelAnimationFrame(frame)
+      document.removeEventListener('visibilitychange', restart)
+      motion.removeEventListener('change', restart)
+    }
+  }, [])
+  return <canvas className="signal__field" ref={canvasRef} aria-hidden="true" />
+}
+
+function SignalCore({ frequency }: { frequency: number }) {
+  const lines = useMemo(() => {
+    const project = (u: number, v: number) => {
+      const radius = 163 + 56 * Math.cos(v)
+      const x = radius * Math.cos(u),
+        y = radius * Math.sin(u),
+        z = 56 * Math.sin(v)
+      const a = 0.97,
+        b = 0.36
+      const yy = y * Math.cos(a) - z * Math.sin(a),
+        zz = y * Math.sin(a) + z * Math.cos(a)
+      const xx = x * Math.cos(b) + zz * Math.sin(b),
+        depth = -x * Math.sin(b) + zz * Math.cos(b)
+      const p = 750 / (750 - depth)
+      return `${(320 + xx * p).toFixed(2)},${(300 + yy * p).toFixed(2)}`
+    }
+    return Array.from({ length: 56 }, (_, i) => {
+      const meridian = i < 40
+      const points = Array.from({ length: 97 }, (_, j) =>
+        project(
+          meridian ? (i / 40) * Math.PI * 2 : (j / 96) * Math.PI * 2,
+          meridian ? (j / 96) * Math.PI * 2 : ((i - 40) / 16) * Math.PI * 2,
+        ),
+      ).join(' ')
+      return (
+        <polyline
+          key={i}
+          points={points}
+          className={i % 5 === 0 ? 'signal__wire signal__wire--bright' : 'signal__wire'}
+        />
+      )
+    })
+  }, [])
+  return (
+    <svg
+      className="signal__core"
+      viewBox="0 0 640 600"
+      aria-hidden="true"
+      style={{ '--frequency-hue': `${(frequency - 88) * 4}deg` } as CSSProperties}
+    >
+      <defs>
+        <radialGradient id="signal-glow">
+          <stop stopColor="var(--signal-lime)" stopOpacity=".25" />
+          <stop offset="1" stopColor="var(--signal-lime)" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <circle cx="320" cy="300" r="260" fill="url(#signal-glow)" />
+      <g className="signal__geometry">{lines}</g>
+      <circle cx="320" cy="300" r="39" className="signal__nucleus" />
+      <circle cx="320" cy="300" r="25" className="signal__nucleus-inner" />
+      <path d="M320 240v22m0 76v22m-60-60h22m76 0h22" className="signal__crosshair" />
+    </svg>
+  )
+}
 
 export default function PersonalIntro({ onNavigate }: { onNavigate: (route: Route) => void }) {
   const [profile, setProfile] = useState<User | null>(null)
   const [now, setNow] = useState(() => new Date())
-  const [seconds, setSeconds] = useState(25 * 60)
-  const [running, setRunning] = useState(false)
-  const [thought, setThought] = useState(0)
-  const [waved, setWaved] = useState(false)
-  const rootRef = useRef<HTMLElement>(null)
-  const [burst, setBurst] = useState(0)
+  const [channel, setChannel] = useState(0)
+  const [frequency, setFrequency] = useState(88.6)
+  const [pulse, setPulse] = useState(0)
   const [systemDark, setSystemDark] = useState(
     () => window.matchMedia('(prefers-color-scheme: dark)').matches,
   )
-  const { enableSocials, enableGuestbook, enableSakura, toggleSakura, theme, setTheme } =
-    useSettingsStore()
+  const { theme, setTheme, enableSocials, enableGuestbook } = useSettingsStore()
   const dark = theme === 'dark' || (theme === 'system' && systemDark)
-
+  const [command, setCommand] = useState('')
+  const [log, setLog] = useState('观测舱已就绪。今天也保持一点好奇。')
+  const [paused, setPaused] = useState(false)
   useEffect(() => {
-    const media = window.matchMedia('(prefers-color-scheme: dark)')
-    const update = (event: MediaQueryListEvent) => setSystemDark(event.matches)
-    media.addEventListener('change', update)
-    return () => media.removeEventListener('change', update)
-  }, [])
-
-  useEffect(() => {
-    let cancelled = false
+    let alive = true
     void getBloggerProfile()
       .then((res) => {
-        if (!cancelled && res.data.code === 200) setProfile(res.data.data)
+        if (alive && res.data.code === 200) setProfile(res.data.data)
       })
       .catch(() => undefined)
     const clock = window.setInterval(() => setNow(new Date()), 1000)
+    const media = window.matchMedia('(prefers-color-scheme: dark)')
+    const update = (event: MediaQueryListEvent) => setSystemDark(event.matches)
+    media.addEventListener('change', update)
     return () => {
-      cancelled = true
+      alive = false
       window.clearInterval(clock)
+      media.removeEventListener('change', update)
     }
   }, [])
-
-  useEffect(() => {
-    if (!running) return
-    const deadline = Date.now() + seconds * 1000
-    const timer = window.setInterval(() => {
-      const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000))
-      setSeconds(remaining)
-      if (remaining === 0) setRunning(false)
-    }, 250)
-    return () => window.clearInterval(timer)
-    // The deadline is captured when starting or resuming, not on each tick.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [running])
-
-  const move = (event: PointerEvent<HTMLDivElement>) => {
+  const selectChannel = (index: number) => {
+    setChannel(index)
+    setFrequency(channels[index].frequency)
+    setLog(`正在收听 ${channels[index].en} / ${channels[index].message}`)
+  }
+  const transmit = () => {
+    setPulse((value) => value + 1)
+    setLog('一束好奇心已发射。愿你的灵感，也被世界听见。')
+  }
+  const onMove = (event: PointerEvent<HTMLDivElement>) => {
     if (
       event.pointerType === 'touch' ||
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
     )
       return
-    const rect = event.currentTarget.getBoundingClientRect()
+    const box = event.currentTarget.getBoundingClientRect()
     event.currentTarget.style.setProperty(
-      '--look-x',
-      `${(event.clientX - rect.left - rect.width / 2) / 24}px`,
+      '--tilt-x',
+      `${(event.clientY - box.top - box.height / 2) / 45}deg`,
     )
     event.currentTarget.style.setProperty(
-      '--look-y',
-      `${(event.clientY - rect.top - rect.height / 2) / 24}px`,
+      '--tilt-y',
+      `${(event.clientX - box.left - box.width / 2) / 45}deg`,
     )
   }
-
-  const time = now.toLocaleTimeString('en-GB', {
-    timeZone: 'Asia/Shanghai',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  })
-  const name = profile?.name || 'Sakura'
-
+  const runCommand = (event: React.FormEvent) => {
+    event.preventDefault()
+    const value = command.trim().toLowerCase()
+    if (value === 'about') onNavigate({ name: 'about' })
+    else if (value === 'blog') onNavigate({ name: 'archive' })
+    else if (value === 'hello' && enableGuestbook) onNavigate({ name: 'guestbook' })
+    else if (value === 'day') setTheme('light')
+    else if (value === 'night') setTheme('dark')
+    else if (value === 'launch') transmit()
+    else setLog(`可用指令：about / blog${enableGuestbook ? ' / hello' : ''} / day / night / launch`)
+    setCommand('')
+  }
+  const scrollToWriting = () =>
+    document.getElementById('home-writing')?.scrollIntoView({
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        ? 'instant'
+        : 'smooth',
+    })
   return (
-    <section
-      className="personal"
-      ref={rootRef}
-      aria-label="个人介绍"
-      onPointerMove={(event) => {
-        const rect = event.currentTarget.getBoundingClientRect()
-        event.currentTarget.style.setProperty('--mouse-x', `${event.clientX - rect.left}px`)
-        event.currentTarget.style.setProperty('--mouse-y', `${event.clientY - rect.top}px`)
-      }}
-    >
-      <div className="personal__aurora" aria-hidden="true" />
-      <div className="personal__stars" aria-hidden="true">
-        {Array.from({ length: 24 }, (_, i) => (
-          <i
-            key={i}
-            style={
-              {
-                '--star-x': `${(i * 37 + 7) % 100}%`,
-                '--star-y': `${(i * 19 + 5) % 80}%`,
-                '--delay': `${i * 0.17}s`,
-              } as React.CSSProperties
-            }
-          />
-        ))}
-      </div>
-      <button
-        className="personal__theme"
-        onClick={() => setTheme(dark ? 'light' : 'dark')}
-        aria-label={dark ? '切换到昼间模式' : '切换到夜间模式'}
-      >
-        <span className="personal__theme-icon">{dark ? <MoonOutlined /> : <SunOutlined />}</span>
-        {dark ? '月光漫游' : '日光花园'}
-        <span className="personal__theme-track">
-          <i />
+    <section className={`signal${paused ? ' signal--paused' : ''}`} aria-label="个人介绍">
+      <SignalField frequency={frequency} pulse={pulse} />
+      <div className="signal__masthead">
+        <span>
+          <i /> SAKURA / PRIVATE SIGNAL STATION
         </span>
-      </button>
-      <div className="personal__eyebrow">
-        <span className="personal__status" /> A LITTLE CORNER OF THE INTERNET{' '}
-        <span className="personal__edition">PERSONAL SPACE / 01</span>
+        <span className="signal__coordinates">CH. 001 / PERSONAL FREQUENCY</span>
+        <button
+          className="signal__theme"
+          onClick={() => setTheme(dark ? 'light' : 'dark')}
+          aria-label={dark ? '切换到昼间模式' : '切换到夜间模式'}
+        >
+          {dark ? <MoonOutlined /> : <SunOutlined />}
+          <span>{dark ? 'NIGHT MODE' : 'DAY MODE'}</span>
+          <b>{dark ? '☾' : '☀'}</b>
+        </button>
       </div>
-      <div className="personal__hero">
-        <div className="personal__copy">
-          <span className="personal__hello">
-            你好，欢迎来到我的小宇宙 <span className="personal__wave">✳</span>
-          </span>
-          <h1>
-            我是{' '}
+      <div className="signal__hero">
+        <div className="signal__intro">
+          <div className="signal__greeting">
+            <span className="signal__avatar">
+              {profile?.avatar ? <img src={profile.avatar} alt="" /> : 'S.'}
+            </span>
             <span>
-              {name}，
-              <svg viewBox="0 0 280 24" preserveAspectRatio="none" aria-hidden="true">
-                <path d="M4 16 Q135 -4 275 11 M22 22 Q148 5 259 19" />
+              你好，我是 {profile?.name || 'Sakura'}
+              <small>一个写代码，也收集生活的人。</small>
+            </span>
+            <span className="signal__hello">✳</span>
+          </div>
+          <h1>
+            把灵感，
+            <br />
+            <span className="signal__headline">
+              发射出去
+              <svg viewBox="0 0 80 80" aria-hidden="true">
+                <path d="M14 65 65 14M14 14h51v51" />
               </svg>
             </span>
-            <br />
-            一个持续<span className="personal__serif">探索</span>的人
-            <span className="personal__period">.</span>
+            <span className="signal__title-dot">.</span>
           </h1>
-          <p>
+          <p className="signal__bio">
             {profile?.bio ||
-              '写代码，记录生活，捕捉一闪而过的灵感。这里是我的数字花园，也是一些有趣想法的生长之地。'}
+              '在代码里创造，在生活里漫游。这里收藏我的想法、作品，以及那些还没被命名的好奇心。'}
           </p>
-          <div className="personal__actions">
-            <button
-              className="personal__primary"
-              onClick={() =>
-                document.getElementById('home-writing')?.scrollIntoView({
-                  behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
-                    ? 'instant'
-                    : 'smooth',
-                })
-              }
-            >
-              逛逛我的世界 <ArrowDownOutlined />
+          <div className="signal__actions">
+            <button className="signal__primary" onClick={scrollToWriting}>
+              进入我的轨道 <ArrowDownOutlined />
             </button>
-            <button className="personal__secondary" onClick={() => onNavigate({ name: 'about' })}>
-              更多关于我 <span>↗</span>
+            <button className="signal__about" onClick={() => onNavigate({ name: 'about' })}>
+              认识站长 <span>↗</span>
             </button>
           </div>
-          <div className="personal__socials">
-            <span>FIND ME ELSEWHERE</span>
-            {enableSocials && profile?.socials?.github && (
-              <a href={profile.socials.github} target="_blank" rel="noreferrer" aria-label="GitHub">
-                <GithubOutlined />
-              </a>
-            )}
-            {enableSocials && profile?.socials?.email && (
-              <a href={`mailto:${profile.socials.email}`} aria-label="邮箱">
-                <MailOutlined />
-              </a>
-            )}
-            <span className="personal__signature">Made of curiosity & coffee.</span>
+          <div className="signal__intro-note">
+            <span>01 / TRANSMIT YOUR CURIOSITY</span>
+            <span>持续探索，偶尔脱轨。</span>
           </div>
         </div>
         <div
-          className="personal__universe"
-          onPointerMove={move}
+          className="signal__visual"
+          onPointerMove={onMove}
           onPointerLeave={(event) => {
-            event.currentTarget.style.setProperty('--look-x', '0px')
-            event.currentTarget.style.setProperty('--look-y', '0px')
+            event.currentTarget.style.setProperty('--tilt-x', '0deg')
+            event.currentTarget.style.setProperty('--tilt-y', '0deg')
           }}
         >
-          <div className="personal__orbit personal__orbit--one" />
-          <div className="personal__orbit personal__orbit--two" />
-          <span className="personal__star personal__star--one">✦</span>
-          <span className="personal__star personal__star--two">✳</span>
-          <span className="personal__star personal__star--three">+</span>
-          <span className="personal__satellite personal__satellite--code">
-            &lt;/&gt;<small>BUILD SOMETHING</small>
+          <span className="signal__visual-label">
+            EXPERIMENT NO. 001<span>LIVE GENERATIVE OBJECT</span>
           </span>
-          <span className="personal__satellite personal__satellite--idea">
-            ✷<small>STAY CURIOUS</small>
+          <div className="signal__orbital-track" />
+          <div className="signal__orbital-track signal__orbital-track--outer" />
+          <div className="signal__core-space">
+            <SignalCore frequency={frequency} />
+          </div>
+          <div className="signal__object-id">
+            <span>悬浮灵感体</span>
+            <small>THE CURIOSITY ENGINE</small>
+          </div>
+          <span className="signal__annotation signal__annotation--left">
+            <i /> 好奇心驱动
           </span>
-          <button
-            className={`personal__planet${waved ? ' personal__planet--waved' : ''}`}
-            aria-label="向小星球打招呼"
-            onClick={() => {
-              setWaved((value) => !value)
-              setBurst((value) => value + 1)
-            }}
-          >
-            {profile?.avatar ? (
-              <img
-                src={profile.avatar}
-                alt={name}
-                onError={(event) => {
-                  event.currentTarget.style.display = 'none'
-                }}
-              />
-            ) : null}
-            <span className="personal__face">
-              <i />
-              <i />
-              <b />
-            </span>
-          </button>
-          {burst > 0 && (
-            <div key={burst} className="personal__burst" aria-hidden="true">
-              {Array.from({ length: 16 }, (_, i) => (
-                <span
-                  key={i}
-                  style={
-                    {
-                      '--angle': `${i * 22.5}deg`,
-                      '--distance': `${130 + (i % 3) * 25}px`,
-                    } as React.CSSProperties
-                  }
-                >
-                  {i % 2 ? '✦' : '♡'}
-                </span>
-              ))}
+          <span className="signal__annotation signal__annotation--right">
+            ∞<small>IDEAS IN ORBIT</small>
+          </span>
+          <button className="signal__launch" onClick={transmit} aria-label="发射灵感信号">
+            <span>↗</span>
+            <div>
+              发射一束灵感<small>CLICK TO TRANSMIT</small>
             </div>
-          )}
-          <span className="personal__planet-caption" aria-live="polite">
-            {waved ? 'HELLO, NEW FRIEND! ♡' : 'A WORK IN PROGRESS, ALWAYS.'}
-          </span>
-          <span className="personal__sticker">
-            用热爱
-            <br />
-            给生活充电 <span>↗</span>
-          </span>
-          <span className="personal__coordinate">EST. NOW · STILL GROWING</span>
+          </button>
+          {pulse > 0 && <div key={pulse} className="signal__pulse" aria-hidden="true" />}
+          <div className="signal__visual-footer">
+            <span>拖动调频 · 移动鼠标 · 点击发射</span>
+            <span>
+              REACTOR ONLINE <i />
+            </span>
+          </div>
         </div>
       </div>
-      <div className="personal__ticker" aria-hidden="true">
+      <div className="signal__console">
+        <div className="signal__tuner">
+          <div className="signal__console-label">
+            <span>01 / 视觉调频</span>
+            <span>FM</span>
+          </div>
+          <div className="signal__frequency">
+            <output htmlFor="signal-frequency">{frequency.toFixed(1)}</output>
+            <span>
+              MHz<b>↗</b>
+            </span>
+          </div>
+          <label className="signal__range-label" htmlFor="signal-frequency">
+            滑动，改变灵感体的光谱
+          </label>
+          <input
+            id="signal-frequency"
+            className="signal__range"
+            type="range"
+            min="88"
+            max="108"
+            step=".1"
+            value={frequency}
+            onChange={(event) => setFrequency(Number(event.target.value))}
+            aria-label="调整视觉频率"
+          />
+          <div className="signal__ticks">
+            <span>88.0</span>
+            <span>98.0</span>
+            <span>108.0</span>
+          </div>
+        </div>
+        <div className="signal__channel">
+          <div className="signal__console-label">
+            <span>02 / 正在收听</span>
+            <span>SELECT A CHANNEL</span>
+          </div>
+          <div className="signal__channel-buttons">
+            {channels.map((item, index) => (
+              <button
+                key={item.en}
+                className={index === channel ? 'signal__channel-active' : ''}
+                aria-pressed={index === channel}
+                onClick={() => selectChannel(index)}
+              >
+                <span>{item.name}</span>
+                <small>{item.en}</small>
+                <b>↗</b>
+              </button>
+            ))}
+          </div>
+          <p key={channel}>{channels[channel].message}</p>
+        </div>
+        <div className="signal__terminal">
+          <div className="signal__console-label">
+            <span>03 / 舱内终端</span>
+            <time>
+              {now.toLocaleTimeString('en-GB', {
+                timeZone: 'Asia/Shanghai',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+              })}{' '}
+              CST
+            </time>
+          </div>
+          <p className="signal__log" role="status" aria-label="观测舱消息">
+            &gt; {log}
+          </p>
+          <form onSubmit={runCommand}>
+            <label htmlFor="signal-command">sakura@station:~$</label>
+            <input
+              id="signal-command"
+              value={command}
+              onChange={(event) => setCommand(event.target.value)}
+              placeholder="试试 about 或 launch"
+              autoComplete="off"
+              spellCheck={false}
+              aria-label="观测舱指令"
+            />
+            <button type="submit" aria-label="执行指令">
+              ↵
+            </button>
+          </form>
+          <div className="signal__terminal-foot">
+            <span>LOCAL TRANSMISSION ONLY</span>
+            <button onClick={() => setPaused((value) => !value)} aria-pressed={paused}>
+              {paused ? '▶ 恢复轨道' : 'Ⅱ 暂停轨道'}
+            </button>
+          </div>
+        </div>
+      </div>
+      <div className="signal__strip" aria-hidden="true">
         <div>
           {Array.from({ length: 4 }, (_, i) => (
             <span key={i}>
-              CODE WITH CURIOSITY <b>✳</b> LIVE WITH INTENTION <b>✳</b> CREATE A LITTLE MAGIC{' '}
-              <b>✳</b>
+              STAY CURIOUS <b>✳</b> MAKE SOMETHING REAL <b>↗</b> OCCASIONALLY OFFLINE <b>✳</b>
             </span>
           ))}
         </div>
       </div>
-      <div className="personal__widgets">
-        <article className="personal__widget personal__widget--clock">
-          <div className="personal__widget-label">
-            此刻 · 北京时间 <span>↗</span>
-          </div>
-          <time className="personal__time">
-            {time}
-            <span className="personal__clock-dot" />
-          </time>
-          <p>
-            {now.toLocaleDateString('zh-CN', {
-              timeZone: 'Asia/Shanghai',
-              month: 'long',
-              day: 'numeric',
-              weekday: 'long',
-            })}{' '}
-            <span>UTC +08:00</span>
-          </p>
-        </article>
-        <article className="personal__widget personal__widget--note">
-          <div className="personal__widget-label">
-            给今天的一句话 <span>✦</span>
-          </div>
-          <p key={thought} className="personal__thought" aria-live="polite">
-            {thoughts[thought]}
-          </p>
-          <button
-            className="personal__text-button"
-            onClick={() => setThought((value) => (value + 1) % thoughts.length)}
-          >
-            换个灵感 <ReloadOutlined />
-          </button>
-        </article>
-        <article className="personal__widget personal__widget--focus">
-          <div className="personal__widget-label">
-            专注一小会儿 <span>◷</span>
-          </div>
-          <div className="personal__focus-row">
-            <span className="personal__timer" role="timer" aria-label="专注剩余时间">
-              {String(Math.floor(seconds / 60)).padStart(2, '0')}:
-              {String(seconds % 60).padStart(2, '0')}
-            </span>
-            <button
-              className="personal__play"
-              aria-label={running ? '暂停专注' : '开始专注'}
-              disabled={seconds === 0}
-              onClick={() => setRunning((value) => !value)}
-            >
-              {running ? <PauseOutlined /> : <PlayCircleOutlined />}
-            </button>
-          </div>
-          <div className="personal__focus-bottom">
-            <span>
-              {seconds === 0
-                ? '完成啦，休息一下 ☕'
-                : running
-                  ? '留一点时间给自己'
-                  : '25 分钟，做一件小事'}
-            </span>
-            <button
-              className="personal__text-button"
-              aria-label="重置专注计时器"
-              onClick={() => {
-                setRunning(false)
-                setSeconds(1500)
-              }}
-            >
-              <ReloadOutlined />
-            </button>
-          </div>
-        </article>
-      </div>
-      <div className="personal__section-head" id="home-writing">
+      <div className="signal__writing-head" id="home-writing">
         <div>
-          <span className="personal__kicker">THE DIGITAL GARDEN</span>
+          <span className="signal__section-label">02 / SIGNAL ARCHIVE</span>
           <h2>
-            最近，写了些什么<span>↙</span>
+            来自我的宇宙，<em>一些回声。</em>
           </h2>
         </div>
-        <button className="personal__secondary" onClick={() => onNavigate({ name: 'archive' })}>
-          所有文章 ↗
+        <button onClick={() => onNavigate({ name: 'archive' })}>
+          全部信号 <span>↗</span>
         </button>
       </div>
-      <div className="personal__dock" aria-label="主页小工具">
-        <span>小宇宙控制台</span>
-        <button onClick={() => toggleSakura(!enableSakura)} aria-pressed={enableSakura}>
-          ✿ 花瓣 {enableSakura ? '开' : '关'}
-        </button>
+      <div className="signal__dock">
+        <span>SAKURA · ONLINE</span>
+        {enableSocials && profile?.socials?.github && (
+          <a href={profile.socials.github} target="_blank" rel="noreferrer" aria-label="GitHub">
+            <GithubOutlined />
+          </a>
+        )}
+        {enableSocials && profile?.socials?.email && (
+          <a href={`mailto:${profile.socials.email}`} aria-label="邮箱">
+            <MailOutlined />
+          </a>
+        )}
         {enableGuestbook && (
-          <button onClick={() => onNavigate({ name: 'guestbook' })}>♡ 留个脚印</button>
+          <button onClick={() => onNavigate({ name: 'guestbook' })}>留下你的回声 ↗</button>
         )}
         <button
-          aria-label="回到顶部"
           onClick={() =>
             window.scrollTo({
               top: 0,
@@ -373,6 +470,7 @@ export default function PersonalIntro({ onNavigate }: { onNavigate: (route: Rout
                 : 'smooth',
             })
           }
+          aria-label="回到顶部"
         >
           <ArrowUpOutlined />
         </button>

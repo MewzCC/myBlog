@@ -89,7 +89,7 @@ export default function NavBar({ onNavigate, onOpenAuth, onOpenRegister, onLogou
     <header className="navRoot" role="navigation" aria-label="主导航">
       <div className="navBrand" onClick={() => handleNav({ name: 'home' })}>
         <div className="navLogo" aria-hidden="true" />
-        <span className="navName">Sakura BLOG</span>
+        <span className="navName">SAKURA / SIGNAL</span>
       </div>
 
       <nav className="navMenu" aria-label="主菜单">

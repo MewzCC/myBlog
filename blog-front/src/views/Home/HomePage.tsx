@@ -127,7 +127,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
                 {articles.length === 0 && (
                   <div className="homeEmpty">
                     <span>✧</span>
-                    <h3>花园正在生长</h3>
+                    <h3>下一束信号，正在酝酿</h3>
                     <p>这里将收藏技术、生活与一闪而过的灵感。</p>
                     <button onClick={() => onNavigate({ name: 'about' })}>先认识一下我 ↗</button>
                   </div>
@@ -146,8 +146,8 @@ export default function HomePage({ onNavigate }: HomePageProps) {
           <HomeSidebar />
         </section>
         <footer className="homeFooter">
-          <span>SAKURA / DIGITAL GARDEN</span>
-          <span>保持好奇 · 下次再见 ✳</span>
+          <span>SAKURA / PRIVATE SIGNAL STATION</span>
+          <span>保持好奇，偶尔脱轨。↗</span>
         </footer>
       </main>
     </div>

@@ -473,7 +473,7 @@ export default function App() {
     >
       <div className={`appViewport${route.name === 'home' ? ' appViewport--home' : ''}`}>
         <CustomCursor />
-        <SakuraEffect />
+        {route.name !== 'home' && <SakuraEffect />}
         <VideoBackground
           videoSrc={DEFAULT_BACKGROUND_VIDEO}
           active={route.name === 'auth'}
