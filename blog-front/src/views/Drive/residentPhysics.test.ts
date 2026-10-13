@@ -49,6 +49,15 @@ it('walks with physical contacts and cannot teleport through a wall', () => {
   expect(rig.standingColliders).toHaveLength(4)
 })
 
+it('probes obstacles ahead without treating its own body or ground as a wall', () => {
+  const rig = createResidentRig(world, parts, 0, 0)
+  world.createCollider(RAPIER.ColliderDesc.cuboid(5, 2, 0.2).setTranslation(0, 2, 1.5))
+  for (let i = 0; i < 30; i++) world.step()
+  expect(rig.pathClear(0)).toBe(false)
+  expect(rig.pathClear(Math.PI)).toBe(true)
+  expect(rig.pathClear(Math.PI / 2)).toBe(true)
+})
+
 it('throws jointed parts, keeps them attached and retains ground collision after falling', () => {
   const rig = createResidentRig(world, parts, 0, 0)
   for (let i = 0; i < 30; i++) world.step()

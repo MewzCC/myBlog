@@ -13,6 +13,9 @@ export type ResidentTelemetry = {
   jointError?: number
   tilt?: number
   physicalParts?: number
+  activity?: 'wandering' | 'resting' | 'ragdoll' | 'getting-up'
+  gaitPhase?: number
+  legAngles?: number[]
 }
 export const stations = [
   {

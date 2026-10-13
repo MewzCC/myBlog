@@ -5,6 +5,7 @@ import type { IslandModels } from './models'
 import type { ResidentTelemetry } from './island'
 import { ResidentLife } from './residentLife'
 import { createResidentRig } from './residentPhysics'
+import { createResidentWander } from './residentWander'
 
 export const residentSpecs = [
   { id: 'momo', name: 'MOMO', kind: '邮差机器人', shape: 'robot', x: 0, z: 16, color: '#81dbc5' },
@@ -83,15 +84,24 @@ export function buildResidents(
     for (const x of [-0.34, 0.34])
       for (const z of quadruped ? [-0.38, 0.38] : [0]) {
         const leg = new T.Group()
-        leg.position.set(x, 0.3, z)
+        leg.position.set(x, robotic ? 0.55 : 0.3, z)
         figure.add(leg)
         legs.push(leg)
         leg.name = `leg-${legs.length}`
         partGroups.push(leg)
-        block(0, -0.08, 0, 0.23, 0.38, 0.3, robotic ? '#21373d' : spec.color, leg)
         block(
           0,
-          -0.23,
+          robotic ? -0.2 : -0.08,
+          0,
+          0.23,
+          robotic ? 0.6 : 0.38,
+          0.3,
+          robotic ? '#21373d' : spec.color,
+          leg,
+        )
+        block(
+          0,
+          robotic ? -0.48 : -0.23,
           0.06,
           0.28,
           0.13,
@@ -263,6 +273,22 @@ export function buildResidents(
       texture,
       rig,
       visualParts,
+      wander: createResidentWander(
+        spec,
+        index * 971,
+        spec.shape === 'capy' ? 0.72 : robotic ? 1.05 : 1.25,
+      ),
+      activity: 'wandering' as 'wandering' | 'resting',
+      gait: {
+        phase: index * 1.7,
+        weight: 0,
+        lastTime: 0,
+        x: spec.x as number,
+        z: spec.z as number,
+        sampleTime: 0,
+        sampleDistance: 0,
+        speed: 0,
+      },
       life: new ResidentLife(),
       paintedHp: -1,
     }
@@ -279,14 +305,13 @@ export function buildResidents(
   const step = (now: number) => {
     actors.forEach((a) => {
       if (a.rig.tryStand(now)) a.life.tick(now)
-      a.rig.walk(
-        new T.Vector3(
-          a.spec.x + Math.sin(now * 0.28 + a.index) * 0.8,
-          0,
-          a.spec.z + Math.sin(now * 0.196 + a.index) * 0.7,
-        ),
-        now,
-      )
+      if (a.rig.motion === 'ragdoll') {
+        a.wander.reset()
+        return
+      }
+      const command = a.wander.update(a.rig.position(), now, a.rig.pathClear)
+      a.activity = command.activity
+      a.rig.walk(new T.Vector3(command.target.x, 0, command.target.z), now, command.speed)
     })
   }
   const collisions = (queue: RAPIER.EventQueue, velocity: RAPIER.Vector, now: number) => {
@@ -324,7 +349,27 @@ export function buildResidents(
         upright ? q.w : 1,
       )
       const poses = upright ? [] : a.rig.poses(now)
-      const speed = Math.hypot(a.rig.standing.linvel().x, a.rig.standing.linvel().z)
+      const dt = Math.max(0.001, Math.min(0.1, now - a.gait.lastTime))
+      const travelled = Math.hypot(p.x - a.gait.x, p.z - a.gait.z)
+      // Rendering can outpace the physics clock. Sample across several ticks
+      // so intervening render frames do not incorrectly stop the footsteps.
+      a.gait.sampleTime += dt
+      if (upright && travelled < 0.35) a.gait.sampleDistance += travelled
+      if (a.gait.sampleTime >= 0.1) {
+        a.gait.speed = a.gait.sampleDistance / a.gait.sampleTime
+        a.gait.sampleDistance = 0
+        a.gait.sampleTime = 0
+      }
+      a.gait.x = p.x
+      a.gait.z = p.z
+      a.gait.lastTime = now
+      a.gait.weight = T.MathUtils.lerp(
+        a.gait.weight,
+        upright ? Math.min(a.gait.speed / 0.45, 1) : 0,
+        Math.min(1, dt * 10),
+      )
+      if (upright && travelled < 0.35)
+        a.gait.phase += (travelled * Math.PI * 2) / (a.spec.shape === 'robot' ? 1 : 0.8)
       a.visualParts.forEach((part, i) => {
         if (upright) {
           part.group.position.copy(part.pivot)
@@ -337,7 +382,9 @@ export function buildResidents(
                   ? 0
                   : Math.PI
                 : legIndex * Math.PI
-            part.group.rotation.x = Math.sin(now * 8 + phase) * 0.24 * Math.min(speed / 0.4, 1)
+            const swing = Math.sin(a.gait.phase + phase)
+            part.group.rotation.x = swing * (a.spec.shape === 'robot' ? 0.6 : 0.48) * a.gait.weight
+            part.group.position.y += Math.max(0, swing) * 0.14 * a.gait.weight
             const turn = part.group.quaternion
             const relative = part.center.clone().sub(part.pivot).applyQuaternion(turn)
             const axis = new T.Vector3(0, 1, 0).applyQuaternion(turn.clone().invert())
@@ -347,6 +394,14 @@ export function buildResidents(
               Math.abs(axis.z) * part.half.z
             part.group.position.y += Math.max(0, extent - (part.pivot.y + relative.y) + 0.012)
           }
+          if (!reduced && part.name.startsWith('arm')) {
+            part.group.rotation.x =
+              Math.sin(a.gait.phase + (part.pivot.x < 0 ? Math.PI : 0)) * 0.5 * a.gait.weight
+          }
+          if (!reduced && part.name === 'torso')
+            part.group.rotation.z = Math.sin(a.gait.phase) * 0.035 * a.gait.weight
+          if (!reduced && part.name === 'head')
+            part.group.rotation.x = Math.sin(a.gait.phase * 2) * 0.04 * a.gait.weight
         } else {
           const pose = poses[i]!
           const offset = part.center.clone().sub(part.pivot).applyQuaternion(pose.rotation)
@@ -392,6 +447,9 @@ export function buildResidents(
       hp: a.life.hp,
       recovering: a.life.hp === 0,
       motion: a.rig.motion,
+      activity: a.rig.motion === 'walking' ? a.activity : a.rig.motion,
+      gaitPhase: a.gait.phase,
+      legAngles: a.legs.map((leg) => leg.rotation.x),
       bodyParts: a.rig.parts.length,
       jointError: a.rig.jointError(),
       tilt:

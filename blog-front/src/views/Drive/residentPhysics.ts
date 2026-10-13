@@ -187,7 +187,33 @@ export function createResidentRig(
     }
     return false
   }
-  const walk = (target: Vector3, now: number) => {
+  const pathClear = (angle: number) => {
+    const p = standing.translation(),
+      q = standing.rotation()
+    return definitions
+      .filter((part) => !part.hinge)
+      .every((part) => {
+        const center = part.center
+          .clone()
+          .applyQuaternion(new Quaternion(q.x, q.y, q.z, q.w))
+          .add(new Vector3(p.x, p.y, p.z))
+        return !world.castShape(
+          center,
+          q,
+          { x: Math.sin(angle), y: 0, z: Math.cos(angle) },
+          new RAPIER.Cuboid(part.half.x, part.half.y, part.half.z),
+          0.06,
+          1.35,
+          false,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          external,
+        )
+      })
+  }
+  const walk = (target: Vector3, now: number, maxSpeed = 0.48) => {
     if (motion === 'getting-up' && now - gettingUpAt >= 0.65) motion = 'walking'
     if (motion !== 'walking') return
     const p = standing.translation(),
@@ -195,7 +221,7 @@ export function createResidentRig(
     const dx = target.x - p.x,
       dz = target.z - p.z,
       distance = Math.hypot(dx, dz)
-    const speed = Math.min(0.48, distance * 1.5)
+    const speed = Math.min(maxSpeed, distance * 1.5)
     const vx = distance > 0.03 ? (dx / distance) * speed : 0
     const vz = distance > 0.03 ? (dz / distance) * speed : 0
     // Velocity control leaves contact resolution to Rapier; never teleport a walker.
@@ -259,6 +285,7 @@ export function createResidentRig(
     hit,
     tryStand,
     walk,
+    pathClear,
     position,
     poses,
     jointError,
