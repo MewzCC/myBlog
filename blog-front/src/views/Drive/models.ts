@@ -1,7 +1,7 @@
 import * as T from 'three'
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js'
-import { stations, tokens } from './island'
+import { islandSize, stations, tokens } from './island'
 
 export type Solid = {
   x: number
@@ -146,11 +146,11 @@ export function buildIsland(scene: T.Scene) {
   }
 
   // A complete, locally generated diorama: no runtime model downloads.
-  const ground = box(0, -2.2, 0, 64, 4.3, 60, palette.sand, scene, 3)
-  const grass = box(0, -0.04, 0, 48, 0.14, 44, palette.grass, scene, 2)
+  const ground = box(0, -2.2, 0, islandSize.width, 4.3, islandSize.depth, palette.sand, scene, 4)
+  const grass = box(0, -0.04, 0, 90, 0.14, 82, palette.grass, scene, 3)
   ground.receiveShadow = true
   grass.receiveShadow = true
-  solids.push({ x: 0, y: -1, z: 0, w: 62, h: 2, d: 58 })
+  solids.push({ x: 0, y: -1, z: 0, w: islandSize.width - 2, h: 2, d: islandSize.depth - 2 })
   // Closed loop, central cross street, inlaid curbs and dashed markings.
   for (const z of [-18, 18]) {
     box(0, 0.06, z, 42, 0.1, 5.4, palette.road)
@@ -477,19 +477,19 @@ export function buildIsland(scene: T.Scene) {
       sphere(x + Math.cos(a) * 0.3, 1.3, z + Math.sin(a) * 0.3, 0.18, palette.gold)
     }
   }
-  for (const x of [-30, 30])
-    for (let z = -17; z < 18; z += 3) {
+  for (const x of [-50, 50])
+    for (let z = -37; z < 38; z += 3) {
       box(x, 0.7, z, 0.12, 1.4, 0.12, palette.cream)
       box(x, 0.8, z + 1.5, 0.12, 0.16, 3, palette.cream)
     }
-  for (const z of [-28, 28])
-    for (let x = -15; x <= 15; x += 3) {
+  for (const z of [-46, 46])
+    for (let x = -35; x <= 35; x += 3) {
       box(x, 0.7, z, 0.12, 1.4, 0.12, palette.cream)
       box(x + 1.5, 0.8, z, 3, 0.16, 0.12, palette.cream)
     }
   // Physics boundaries are low beach edges; cars cannot quietly leave the island.
-  for (const x of [-31, 31]) solids.push({ x, y: 0.5, z: 0, w: 0.5, h: 2, d: 59 })
-  for (const z of [-29, 29]) solids.push({ x: 0, y: 0.5, z, w: 63, h: 2, d: 0.5 })
+  for (const x of [-51, 51]) solids.push({ x, y: 0.5, z: 0, w: 0.5, h: 2, d: 95 })
+  for (const z of [-47, 47]) solids.push({ x: 0, y: 0.5, z, w: 103, h: 2, d: 0.5 })
   const windmill = new T.Group()
   windmill.position.set(-9, 0, -24)
   scene.add(windmill)
@@ -549,12 +549,12 @@ export function buildIsland(scene: T.Scene) {
     lampLights.push(light)
   }
   // Wooden pier, moored sailboat and a bobbing buoy beyond the coastline.
-  box(-24, -0.1, 34, 4, 0.35, 10, palette.wood)
-  for (let z = 30; z < 39; z++) box(-24, 0.1, z, 4, 0.02, 0.05, palette.cream)
+  box(-24, -0.1, 52, 4, 0.35, 10, palette.wood)
+  for (let z = 48; z < 57; z++) box(-24, 0.1, z, 4, 0.02, 0.05, palette.cream)
   for (const x of [-25.6, -22.4])
-    for (const z of [30, 35, 38]) cylinder(x, -1, z, 0.15, 3, palette.wood)
+    for (const z of [48, 53, 56]) cylinder(x, -1, z, 0.15, 3, palette.wood)
   const boat = new T.Group()
-  boat.position.set(-22, -0.7, 42)
+  boat.position.set(-22, -0.7, 60)
   scene.add(boat)
   const hull = mesh(new T.SphereGeometry(1, 12, 8), mat(palette.cream), [0, 0, 0], boat)
   hull.scale.set(1.25, 0.55, 3)
@@ -571,10 +571,184 @@ export function buildIsland(scene: T.Scene) {
     [0, 0, 0],
     boat,
   )
+  // Outer scenic loop: four districts surround the original little town.
+  for (const z of [-36, 36]) {
+    box(0, 0.06, z, 85, 0.1, 5.4, palette.road)
+    for (const dz of [-2.9, 2.9]) box(0, 0.1, z + dz, 86, 0.15, 0.3, palette.cream)
+    for (let x = -39; x < 40; x += 4) box(x, 0.12, z, 1.8, 0.015, 0.12, palette.cream)
+  }
+  for (const x of [-40, 40]) {
+    box(x, 0.06, 0, 5.4, 0.1, 77, palette.road)
+    for (const dx of [-2.9, 2.9]) box(x + dx, 0.1, 0, 0.3, 0.15, 78, palette.cream)
+    for (let z = -33; z < 34; z += 4) box(x, 0.12, z, 0.12, 0.015, 1.8, palette.cream)
+  }
+  for (const z of [-27, 27]) box(0, 0.06, z, 5.4, 0.1, 18, palette.road)
+  for (const x of [-30, 30]) box(x, 0.06, 0, 24, 0.1, 5.4, palette.road)
+  for (const [x, z, label] of [
+    [0, -30, 'NATURE LOOP'],
+    [30, 0, 'HARBOR →'],
+    [-30, 0, '← FOREST'],
+    [0, 30, 'CAMP / 36'],
+  ] as const) {
+    cylinder(x + 3, 1.3, z, 0.07, 2.6, palette.ink)
+    text(label, x + 3, 2.6, z, 4)
+  }
+  // Mossy west woodland and a turquoise duck pond with stepping stones.
+  const pond = cylinder(-30, 0.08, -28, 5.7, 0.12, '#63b9b5', scene, 5.7, 40)
+  pond.scale.z = 0.7
+  const pondRim = mesh(new T.TorusGeometry(5.8, 0.16, 6, 48), mat(palette.cream), [-30, 0.16, -28])
+  pondRim.rotation.x = Math.PI / 2
+  pondRim.scale.y = 0.7
+  for (let i = 0; i < 8; i++) {
+    const a = i * 0.78
+    sphere(-30 + Math.cos(a) * 6.8, 0.22, -28 + Math.sin(a) * 4.8, 0.45, palette.cream)
+    const pad = cylinder(
+      -30 + Math.cos(a) * 3,
+      0.2,
+      -28 + Math.sin(a) * 2,
+      0.48,
+      0.04,
+      palette.grass,
+    )
+    if (i % 3 === 0) sphere(pad.position.x, 0.4, pad.position.z, 0.18, '#ef9eb2')
+  }
+  for (const [x, z] of [
+    [-46, -20],
+    [-46, -28],
+    [-34, -12],
+    [-30, -16],
+    [-46, 14],
+    [-45, 22],
+    [-32, 28],
+    [-29, 30],
+    [-34, 22],
+  ] as const)
+    tree(x, z, 1.25, false)
+  // Three cabin campsites: pitched canvas, sleeping rolls, lanterns and a fire circle.
+  const campfires: T.Group[] = []
+  for (const [x, z, color] of [
+    [-12, 40, palette.coral],
+    [13, 41, palette.gold],
+    [29, 29, palette.mint],
+  ] as const) {
+    const tent = new T.Group()
+    tent.position.set(x, 0, z)
+    scene.add(tent)
+    const canvas = new T.BufferGeometry()
+    canvas.setAttribute(
+      'position',
+      new T.Float32BufferAttribute(
+        [
+          -2, 0, -2, 0, 3, -2, 0, 3, 2, -2, 0, -2, 0, 3, 2, -2, 0, 2, 0, 3, -2, 2, 0, -2, 2, 0, 2,
+          0, 3, -2, 2, 0, 2, 0, 3, 2,
+        ],
+        3,
+      ),
+    )
+    canvas.computeVertexNormals()
+    const tentMaterial = mat(color).clone()
+    tentMaterial.side = T.DoubleSide
+    mesh(canvas, tentMaterial, [0, 0, 0], tent)
+    box(0, 0.1, 0, 4, 0.18, 4, palette.cream, tent)
+    box(0, 1.5, -2.1, 0.1, 3, 0.1, palette.wood, tent)
+    cylinder(2.6, 0.3, 0, 0.32, 1.3, palette.blue, tent).rotation.z = Math.PI / 2
+    solids.push({ x, y: 1, z, w: 4, h: 2, d: 4 })
+    const fire = new T.Group()
+    fire.position.set(x + 5, 0.15, z)
+    scene.add(fire)
+    campfires.push(fire)
+    for (let i = 0; i < 9; i++) {
+      const a = i * 0.7
+      sphere(Math.cos(a) * 1.1, 0.15, Math.sin(a) * 1.1, 0.25, palette.cream, fire)
+    }
+    for (const angle of [-0.7, 0.7]) {
+      const log = cylinder(0, 0.25, 0, 0.18, 1.6, palette.wood, fire)
+      log.rotation.z = Math.PI / 2
+      log.rotation.y = angle
+    }
+    mesh(new T.ConeGeometry(0.45, 1.1, 7), glow(palette.gold), [0, 0.65, 0], fire)
+    mesh(new T.ConeGeometry(0.25, 0.8, 7), glow(palette.coral), [0.18, 0.7, 0], fire)
+    cylinder(x - 3, 1.1, z, 0.08, 2.2, palette.wood)
+    mesh(new T.SphereGeometry(0.25, 8, 6), glow(palette.gold), [x - 3, 2.2, z])
+  }
+  // East harbor market: striped kiosks, produce baskets, crates and a little arcade.
+  for (const [x, z, color, label] of [
+    [32, -27, palette.gold, 'LEMONADE'],
+    [46, 13, palette.coral, 'ISLAND MART'],
+    [29, 10, palette.mint, 'ARCADE'],
+  ] as const) {
+    solidBox(x, 1.2, z, 3.8, 2.4, 3.2, palette.cream)
+    box(x, 2.8, z, 4.5, 0.24, 3.8, color)
+    box(x, 1.45, z + 1.65, 2.8, 1.5, 0.06, palette.ink)
+    box(x, 1, z + 2, 3.6, 0.16, 1, color)
+    for (let i = 0; i < 5; i++)
+      box(
+        x - 1.8 + i * 0.8,
+        2.6,
+        z + 2.1,
+        0.4,
+        0.3,
+        1,
+        color === palette.coral ? palette.cream : color,
+      )
+    for (let i = 0; i < 7; i++)
+      sphere(
+        x - 1.4 + (i % 4) * 0.8,
+        1.4,
+        z + 2 + (i > 3 ? 0.35 : 0),
+        0.25,
+        i % 2 ? palette.gold : palette.coral,
+      )
+    text(label, x, 3.3, z, 3.8)
+  }
+  // North lookout, telescopes, extra palms, boardwalk, flower patches and beach umbrellas.
+  box(18, 0.18, -28, 9, 0.3, 7, palette.wood)
+  for (let x = 14; x < 23; x += 0.8) box(x, 0.35, -28, 0.03, 0.02, 7, palette.cream)
+  cylinder(18, 1.1, -28, 0.08, 1.8, palette.ink)
+  const telescope = cylinder(18, 2, -28, 0.28, 1.8, palette.blue)
+  telescope.rotation.x = Math.PI / 2 + 0.3
+  text('LOOK / WONDER', 18, 2.8, -31, 5)
+  for (const [x, z] of [
+    [-44, 40],
+    [-36, 42],
+    [43, 41],
+    [46, -35],
+    [46, -25],
+    [-23, -43],
+    [5, -43],
+    [30, -42],
+  ] as const)
+    tree(x, z, 0.9, true)
+  for (let i = 0; i < 10; i++) {
+    const x = -25 + i * 5.5,
+      z = -43
+    for (let j = 0; j < 4; j++) {
+      cylinder(x + j * 0.35, 0.4, z, 0.03, 0.7, palette.grass)
+      sphere(x + j * 0.35, 0.8, z, 0.15, i % 2 ? palette.coral : palette.gold)
+    }
+  }
+  for (const [x, z, color] of [
+    [-43, 33, palette.coral],
+    [42, 30, palette.gold],
+    [-44, -36, palette.mint],
+  ] as const) {
+    cylinder(x, 1.8, z, 0.06, 3.6, palette.wood)
+    cylinder(x, 3.6, z, 0.1, 0.8, color, scene, 2.5, 12)
+    box(x + 0.8, 0.2, z + 1, 1.3, 0.25, 3, palette.cream, scene, 0.1)
+  }
+  const fireflies = new T.Group()
+  scene.add(fireflies)
+  for (let i = 0; i < 24; i++)
+    mesh(
+      new T.SphereGeometry(0.045, 5, 4),
+      glow(palette.gold),
+      [-30 + Math.sin(i * 2) * 7, 1.2 + (i % 4) * 0.4, -27 + Math.cos(i * 2) * 6],
+      fireflies,
+    )
   const cloudGroups: T.Group[] = []
   for (let i = 0; i < 8; i++) {
     const cloud = new T.Group()
-    cloud.position.set(Math.sin(i * 2) * 47, 14 + (i % 3) * 3, Math.cos(i * 2) * 43)
+    cloud.position.set(Math.sin(i * 2) * 67, 20 + (i % 3) * 3, Math.cos(i * 2) * 63)
     scene.add(cloud)
     for (let j = 0; j < 4; j++) {
       const puff = sphere(j * 1.7, Math.sin(j) * 0.5, 0, 1.7 + (j % 2), palette.cream, cloud)
@@ -600,7 +774,17 @@ export function buildIsland(scene: T.Scene) {
   water.receiveShadow = false
   water.castShadow = false
   // Foam lines outline the shoreline without expensive transparency effects.
-  const foam = box(0, -0.82, 0, 66, 0.07, 62, '#b5e0d1', scene, 3)
+  const foam = box(
+    0,
+    -0.82,
+    0,
+    islandSize.width + 2,
+    0.07,
+    islandSize.depth + 2,
+    '#b5e0d1',
+    scene,
+    4,
+  )
   foam.castShadow = false
   const birds = new T.Group()
   birds.position.y = 13
@@ -623,6 +807,8 @@ export function buildIsland(scene: T.Scene) {
     boat,
     birds,
     water,
+    fireflies,
+    ...campfires,
     ...cloudGroups,
     ...tokenMeshes,
     ...markers.map((m) => m.pin),
@@ -682,14 +868,22 @@ export function buildIsland(scene: T.Scene) {
       l.intensity = dark ? 14 : 0
     })
     beam.visible = dark
+    fireflies.visible = dark
     if (reduced) return
     sculpture.rotation.y = time * 0.25
+    campfires.forEach((g, i) => {
+      g.children.slice(-2).forEach((flame) => {
+        flame.scale.y = 1 + Math.sin(time * 8 + i) * 0.12
+        flame.rotation.y = time * 0.7
+      })
+    })
+    fireflies.position.y = Math.sin(time * 0.7) * 0.3
     turbine.rotation.z = time * 0.65
     beacon.rotation.y = time * 0.3
     boat.position.y = -0.65 + Math.sin(time * 0.8) * 0.16
     boat.rotation.z = Math.sin(time * 0.6) * 0.045
-    birds.position.x = Math.cos(time * 0.09) * 24
-    birds.position.z = Math.sin(time * 0.09) * 24
+    birds.position.x = Math.cos(time * 0.09) * 40
+    birds.position.z = Math.sin(time * 0.09) * 40
     birds.rotation.y = -time * 0.09
     markers.forEach((m, i) => {
       m.pin.position.y = 5 + Math.sin(time * 1.6 + i) * 0.35
@@ -709,7 +903,7 @@ export function buildIsland(scene: T.Scene) {
       )
     vertices.needsUpdate = true
     cloudGroups.forEach((g, i) => {
-      g.position.x = Math.sin(time * 0.015 + i * 2) * 47
+      g.position.x = Math.sin(time * 0.015 + i * 2) * 67
     })
   }
   return {

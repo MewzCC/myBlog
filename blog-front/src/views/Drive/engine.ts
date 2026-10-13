@@ -3,8 +3,10 @@ import RAPIER from '@dimforge/rapier3d-compat'
 import { buildCar, buildIsland } from './models'
 import { createVehicleBody, applyVehicleInput } from './physics'
 import { StationArrival } from './arrival'
+import { buildResidents } from './residents'
 import {
   initialTelemetry,
+  islandSize,
   spawn,
   stations,
   tokens,
@@ -49,15 +51,15 @@ export async function createIslandEngine(
   const hemi = new T.HemisphereLight('#c9e9ff', '#89724d', 2.4)
   scene.add(hemi)
   const sun = new T.DirectionalLight('#ffe1ab', 3)
-  sun.position.set(-30, 45, 20)
+  sun.position.set(-45, 68, 32)
   sun.castShadow = true
   sun.shadow.mapSize.set(2048, 2048)
-  sun.shadow.camera.left = -46
-  sun.shadow.camera.right = 46
-  sun.shadow.camera.top = 46
-  sun.shadow.camera.bottom = -46
+  sun.shadow.camera.left = -68
+  sun.shadow.camera.right = 68
+  sun.shadow.camera.top = 68
+  sun.shadow.camera.bottom = -68
   sun.shadow.camera.near = 1
-  sun.shadow.camera.far = 110
+  sun.shadow.camera.far = 165
   sun.shadow.normalBias = 0.04
   sun.shadow.bias = -0.0001
   scene.add(sun)
@@ -84,6 +86,8 @@ export async function createIslandEngine(
     if (s.dynamic && s.mesh) dynamics.push({ body, mesh: s.mesh, x: s.x, z: s.z })
   }
   const body = createVehicleBody(world)
+  const residents = buildResidents(scene, models, world, body)
+  const collisionQueue = new RAPIER.EventQueue(true)
   const dustGeometry = new T.BufferGeometry(),
     dustArray = new Float32Array(60 * 3),
     dustAge = new Float32Array(60).fill(2)
@@ -168,6 +172,7 @@ export async function createIslandEngine(
     body.setAngvel({ x: 0, y: 0, z: 0 }, true)
     options.onTelemetry({
       ...initialTelemetry,
+      ...residents.telemetry(time),
       collected: collected.size,
       visited: [...visited],
       fps,
@@ -189,6 +194,15 @@ export async function createIslandEngine(
       visited.add(nearest)
       options.onStation(nearest)
     }
+  }
+  const visitResident = (id: string) => {
+    const target = residents.telemetry(time).residents.find((r) => r.id === id)
+    if (!target) return
+    body.setTranslation({ x: target.x, y: 1.1, z: target.z - 6 }, true)
+    body.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true)
+    body.setLinvel({ x: 0, y: 0, z: 0 }, true)
+    body.setAngvel({ x: 0, y: 0, z: 0 }, true)
+    arrival.suppress(null)
   }
   const onDown = (event: PointerEvent) => {
     unlockSound()
@@ -257,8 +271,12 @@ export async function createIslandEngine(
   canvas.addEventListener('webglcontextlost', contextLost)
   document.addEventListener('visibilitychange', onVisibility)
   const updatePhysics = (input: DriveInput, drive: boolean) => {
+    residents.step(time)
     applyVehicleInput(body, input, drive)
-    world.step()
+    const velocity = body.linvel()
+    const impactSpeed = Math.hypot(velocity.x, velocity.z)
+    world.step(collisionQueue)
+    residents.collisions(collisionQueue, impactSpeed, time)
   }
   const render = (now: number) => {
     if (disposed) return
@@ -296,7 +314,12 @@ export async function createIslandEngine(
       v = body.linvel(),
       speed = Math.hypot(v.x, v.z),
       yaw = 2 * Math.atan2(q.y, q.w)
-    if (p.y < -5 || Math.abs(p.x) > 35 || Math.abs(p.z) > 33) reset()
+    if (
+      p.y < -5 ||
+      Math.abs(p.x) > islandSize.width / 2 + 3 ||
+      Math.abs(p.z) > islandSize.depth / 2 + 3
+    )
+      reset()
     vehicle.car.position.set(p.x, p.y - 0.5, p.z)
     vehicle.car.quaternion.set(q.x, q.y, q.z, q.w)
     if (!settings.paused) {
@@ -382,14 +405,14 @@ export async function createIslandEngine(
     vehicle.headlight.intensity = settings.dark ? 30 : 0
     const overview = settings.overview || !settings.driving
     targetFocus.set(
-      overview && camera.aspect > 1.2 ? -7 : overview ? 0 : p.x,
+      overview && camera.aspect > 1.2 ? -12 : overview ? 0 : p.x,
       overview ? 0 : 1,
-      overview && camera.aspect > 1.2 ? 7 : overview ? 0 : p.z,
+      overview && camera.aspect > 1.2 ? 12 : overview ? 0 : p.z,
     )
     focus.lerp(targetFocus, 1 - Math.exp(-dt * 4))
     const narrow = camera.aspect < 0.85
     if (overview) {
-      const radius = 96 * Math.max(1, 1.05 / camera.aspect) * zoom
+      const radius = 145 * Math.max(1, 1.05 / camera.aspect) * zoom
       offset.set(Math.sin(orbit) * radius, radius * 0.85, Math.cos(orbit) * radius)
     } else {
       const radius = (narrow ? 26 : 20) * zoom
@@ -399,6 +422,7 @@ export async function createIslandEngine(
     cameraTarget.copy(focus).add(offset)
     camera.position.lerp(cameraTarget, 1 - Math.exp(-dt * 3))
     camera.lookAt(focus)
+    residents.animate(time, camera, overview, reduced.matches || settings.paused)
     const distanceToFocus = camera.position.distanceTo(focus)
     const far = Math.max(900, distanceToFocus + 350)
     if (Math.abs(camera.far - far) > 10) {
@@ -426,9 +450,13 @@ export async function createIslandEngine(
         collected: collected.size,
         visited: [...visited],
         fps,
+        ...residents.telemetry(time),
       })
       lastPublish = now
       canvas.dataset.audioState = audio?.state || 'off'
+      canvas.dataset.residents = JSON.stringify(residents.telemetry(time).residents)
+      canvas.dataset.islandSize = `${islandSize.width}x${islandSize.depth}`
+      canvas.dataset.hits = String(residents.telemetry(time).hits)
       canvas.dataset.propsMoved = String(
         dynamics.filter((d) => {
           const p = d.body.translation()
@@ -439,7 +467,7 @@ export async function createIslandEngine(
     renderer.render(scene, camera)
     canvas.dataset.drawCalls = String(renderer.info.render.calls)
   }
-  camera.position.set(65, 65, 65)
+  camera.position.set(105, 100, 105)
   camera.lookAt(0, 0, 0)
   frame = requestAnimationFrame(render)
   options.onReady()
@@ -460,17 +488,21 @@ export async function createIslandEngine(
     scene.traverse((o) => {
       if (o instanceof T.Mesh || o instanceof T.Points) {
         geometries.add(o.geometry)
+      }
+      if (o instanceof T.Mesh || o instanceof T.Points || o instanceof T.Sprite) {
         ;(Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => materials.add(m))
       }
     })
     geometries.forEach((g) => g.dispose())
     materials.forEach((m) => m.dispose())
     models.textures.forEach((t) => t.dispose())
+    residents.dispose()
     world.free()
+    collisionQueue.free()
     renderer.dispose()
     renderer.forceContextLoss()
     oscillator?.stop()
     void audio?.close()
   }
-  return { reset, teleport, interact, unlockSound, dispose }
+  return { reset, teleport, visitResident, interact, unlockSound, dispose }
 }

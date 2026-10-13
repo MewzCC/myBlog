@@ -46,18 +46,19 @@ async (page) => {
     await page.keyboard.up('KeyW')
   }
   const props = await page.locator('canvas').getAttribute('data-props-moved')
-  await page.getByRole('button', { name: '回到出发点' }).click()
-  await page.keyboard.down('KeyW')
-  await page.keyboard.down('ShiftLeft')
+  await page.getByRole('button', { name: /岛民图鉴/ }).click()
+  await page.getByRole('button', { name: '寻找慢慢' }).click()
+  // Reverse along the new western road to the northern beach boundary.
+  await page.keyboard.down('KeyS')
   await page.waitForFunction(
-    () => Number(document.querySelector('canvas').dataset.z) > 27.3,
+    () => Number(document.querySelector('canvas').dataset.z) < -45,
     {},
     { timeout: 15000 },
   )
   await page.waitForTimeout(900)
-  await page.keyboard.up('KeyW')
-  await page.keyboard.up('ShiftLeft')
+  await page.keyboard.up('KeyS')
   const boundary = await page.locator('canvas').getAttribute('data-z')
+  if (+boundary < -46 || +boundary > -45) throw Error('Expanded beach boundary failed')
   await page.getByRole('button', { name: '开启声音' }).click()
   await page.waitForFunction(
     () => document.querySelector('canvas').dataset.audioState === 'running',

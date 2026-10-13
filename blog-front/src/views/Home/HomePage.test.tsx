@@ -11,6 +11,7 @@ const engine = vi.hoisted(() => ({
   interact: vi.fn(),
   unlockSound: vi.fn(),
   teleport: vi.fn(),
+  visitResident: vi.fn(),
 }))
 const createEngine = vi.hoisted(() => vi.fn())
 vi.mock('../Drive/engine', () => ({ createIslandEngine: createEngine }))
@@ -48,6 +49,37 @@ beforeEach(() => {
 })
 
 describe('3D island homepage', () => {
+  it('shows live resident health and navigates to a resident through the field guide', async () => {
+    render(<HomePage onNavigate={vi.fn()} onOpenAuth={vi.fn()} />)
+    const start = await screen.findByRole('button', { name: /出发，环岛兜风/ })
+    await waitFor(() => expect(start.hasAttribute('disabled')).toBe(false))
+    const options = createEngine.mock.calls.at(-1)![1]
+    act(() =>
+      options.onTelemetry({
+        ...initialTelemetry,
+        residents: [
+          { id: 'capy', name: '慢慢', kind: '水豚', x: -40, z: -15, hp: 60, recovering: false },
+        ],
+        hits: 1,
+      }),
+    )
+    fireEvent.click(screen.getByRole('button', { name: /岛民图鉴/ }))
+    expect(screen.getByText('60 / 100 HP')).toBeTruthy()
+    act(() =>
+      options.onTelemetry({
+        ...initialTelemetry,
+        residents: [
+          { id: 'capy', name: '慢慢', kind: '水豚', x: -40, z: -15, hp: 0, recovering: true },
+        ],
+        hits: 2,
+      }),
+    )
+    expect(screen.getByText('正在休息，稍后回来')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: '寻找慢慢' }))
+    expect(engine.visitResident).toHaveBeenCalledWith('capy')
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.getByRole('button', { name: '暂停驾驶' })).toBeTruthy()
+  })
   it('shows a passing ticket, then a decorated arrival preview with navigation', async () => {
     const navigate = vi.fn()
     render(<HomePage onNavigate={navigate} onOpenAuth={vi.fn()} />)

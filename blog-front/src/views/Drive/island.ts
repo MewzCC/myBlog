@@ -1,4 +1,14 @@
 export type StationId = 'about' | 'work' | 'notes' | 'guestbook'
+export const islandSize = { width: 104, depth: 96 }
+export type ResidentTelemetry = {
+  id: string
+  name: string
+  kind: string
+  x: number
+  z: number
+  hp: number
+  recovering: boolean
+}
 export const stations = [
   {
     id: 'about',
@@ -63,6 +73,9 @@ export type IslandTelemetry = {
   collected: number
   visited: StationId[]
   fps: number
+  residents: ResidentTelemetry[]
+  hits: number
+  lastHit: { name: string; damage: number; hp: number } | null
 }
 export type IslandSettings = {
   dark: boolean
@@ -82,4 +95,7 @@ export const initialTelemetry: IslandTelemetry = {
   collected: 0,
   visited: [],
   fps: 0,
+  residents: [],
+  hits: 0,
+  lastHit: null,
 }

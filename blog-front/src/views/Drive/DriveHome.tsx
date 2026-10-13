@@ -15,6 +15,7 @@ import {
 import type { IslandEngine } from './engine'
 import StationArt from './StationArt'
 import DriveJoystick from './DriveJoystick'
+import IslandMap from './IslandMap'
 import './drive-home.css'
 
 export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) => void }) {
@@ -31,7 +32,7 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
     [attempt, setAttempt] = useState(0)
   const [quality, setQuality] = useState<IslandSettings['quality']>('auto'),
     [sound, setSound] = useState(false)
-  const [panel, setPanel] = useState<StationId | 'map' | null>(null),
+  const [panel, setPanel] = useState<StationId | 'map' | 'wildlife' | null>(null),
     [help, setHelp] = useState(false)
   const [profile, setProfile] = useState<User | null>(null),
     [articles, setArticles] = useState<ArticleSummary[]>([]),
@@ -257,8 +258,6 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
     setPanel(null)
     setHelp(false)
   }
-  const miniX = 50 + (telemetry.x / 64) * 88,
-    miniY = 50 + (telemetry.z / 60) * 88
   return (
     <main
       className={`drift${driving ? ' drift--driving' : ''}${nearby ? ' drift--nearby' : ''}${dark ? ' drift--night' : ' drift--day'}`}
@@ -271,6 +270,7 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
         data-yaw={telemetry.yaw.toFixed(3)}
         data-speed={telemetry.speed}
         data-fps={telemetry.fps}
+        data-hits={telemetry.hits}
         className="drift__canvas"
         ref={canvasRef}
         tabIndex={0}
@@ -414,29 +414,32 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
             ↗
           </button>
         </div>
-        <svg viewBox="0 0 100 100" role="img" aria-label="岛屿小地图与车辆实时位置">
-          <rect x="4" y="6" width="92" height="88" rx="15" className="drift__map-island" />
-          <path d="M25 24H75V76H25Z M50 24V76 M25 50H75" className="drift__map-road" />
-          {visibleStations.map((s) => (
-            <circle
-              key={s.id}
-              cx={50 + (s.x / 64) * 88}
-              cy={50 + (s.z / 60) * 88}
-              r="3"
-              fill={s.color}
-            />
-          ))}
-          <g transform={`translate(${miniX} ${miniY}) rotate(${(-telemetry.yaw * 180) / Math.PI})`}>
-            <path d="M0 5L-3 -4L0 -2L3 -4Z" className="drift__map-car" />
-          </g>
-        </svg>
+        <IslandMap telemetry={telemetry} stations={visibleStations} />
         <span className="drift__map-caption">
           找到金色灵感碎片{' '}
           <b>
             {telemetry.collected}/{tokens.length}
           </b>
         </span>
+        <button className="drift__wildlife-link" onClick={() => setPanel('wildlife')}>
+          ✦ 岛民图鉴 <span>{telemetry.residents.length || 7} ↗</span>
+        </button>
       </div>
+      {driving && telemetry.lastHit && !panel && !help && (
+        <div className="drift__hit-toast" role="status" key={`${telemetry.hits}`}>
+          <span>✧</span>
+          <div>
+            <strong>
+              {telemetry.lastHit.name}{' '}
+              {telemetry.lastHit.hp === 0 ? '暂时休息啦' : '被撞得晃了一下'}
+            </strong>
+            <small>
+              −{telemetry.lastHit.damage} HP · 当前 {telemetry.lastHit.hp}/100
+            </small>
+          </div>
+          <b>POW!</b>
+        </div>
+      )}
       {driving && (
         <>
           <div className="drift__speed">
@@ -535,10 +538,18 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
                 </div>
               )}
               <div className="drift__eyebrow">
-                {help ? 'DRIVING MANUAL' : station?.en || 'YOUR ISLAND GUIDE'}
+                {help
+                  ? 'DRIVING MANUAL'
+                  : panel === 'wildlife'
+                    ? 'MEET THE LOCALS'
+                    : station?.en || 'YOUR ISLAND GUIDE'}
               </div>
               <h2 id="drift-panel-title">
-                {help ? '开车，也别忘了看风景。' : station?.name || '四个站点，一座小岛。'}
+                {help
+                  ? '开车，也别忘了看风景。'
+                  : panel === 'wildlife'
+                    ? '小岛的新邻居们。'
+                    : station?.name || '四个站点，一座小岛。'}
               </h2>
               {help ? (
                 <>
@@ -583,9 +594,60 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
                     声音默认关闭。小岛和车辆均为原创程序建模，所有资源随网站加载。
                   </p>
                 </>
+              ) : panel === 'wildlife' ? (
+                <>
+                  <p>
+                    七位原创岛民正在森林、道路和海港里散步。碰撞会扣除血量，并出现踉跄、闪光和星星；零血量时休息
+                    12 秒后恢复。静止贴近不会持续扣血。
+                  </p>
+                  <div className="drift__resident-list">
+                    {telemetry.residents.map((r, i) => (
+                      <button
+                        key={r.id}
+                        onClick={() => {
+                          engineRef.current?.visitResident(r.id)
+                          close()
+                          start()
+                        }}
+                        aria-label={`寻找${r.name}`}
+                      >
+                        <span className="drift__resident-avatar">
+                          {['⚙', '◈', '♧', '●', '♧', '⚙', '◈'][i]}
+                        </span>
+                        <div>
+                          <strong>
+                            {r.name} <small>{r.kind}</small>
+                          </strong>
+                          <span className="drift__resident-health">
+                            <i style={{ width: `${r.hp}%` }} />
+                          </span>
+                          <small>{r.recovering ? '正在休息，稍后回来' : `${r.hp} / 100 HP`}</small>
+                        </div>
+                        <b>↗</b>
+                      </button>
+                    ))}
+                  </div>
+                  {telemetry.residents.length === 0 && (
+                    <p role="status">
+                      {error
+                        ? '岛民暂时无法出场，仍可通过目录查看个人介绍与文章。'
+                        : '岛民正从各处出发，稍等一下…'}
+                    </p>
+                  )}
+                  <p className="drift__fine-print">
+                    森林池塘 · 露营地 · 港口集市 · 北侧观景台。岛屿面积比初版扩大约 2.6 倍。
+                  </p>
+                </>
               ) : panel === 'map' ? (
                 <>
                   <p>喜欢开车就上路，想看内容也可以直接停靠。</p>
+                  <div className="drift__atlas">
+                    <IslandMap telemetry={telemetry} stations={visibleStations} detailed />
+                    <span>104 × 96 · 双环线 / 七位岛民 / 四个个人站点</span>
+                  </div>
+                  <button className="drift__wildlife-link" onClick={() => setPanel('wildlife')}>
+                    ✦ 去认识 7 位新邻居 ↗
+                  </button>
                   <div className="drift__directory">
                     {visibleStations.map((s) => (
                       <button key={s.id} onClick={() => goStation(s.id)}>
