@@ -1,0 +1,3 @@
+# CLI data files: Prettier's leading ASI guard breaks the function wrapper.
+scripts/island/*.js
+output/

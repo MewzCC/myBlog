@@ -56,7 +56,8 @@ const getPasswordStrength = (password: string): PasswordStrength => {
   ]
   const score = rules.reduce((acc, ok) => acc + (ok ? 1 : 0), 0)
   const percent = Math.round((score / rules.length) * 100)
-  const label = score <= 1 ? '弱' : score === 2 ? '一般' : score === 3 ? '良好' : score === 4 ? '强' : '很强'
+  const label =
+    score <= 1 ? '弱' : score === 2 ? '一般' : score === 3 ? '良好' : score === 4 ? '强' : '很强'
   return { percent, label }
 }
 
@@ -79,7 +80,10 @@ const urlToRoute = (): Route => {
     case 'article':
       return { name: 'article', params: { id: params.get('id') || '' } }
     case 'category':
-      return { name: 'category', params: { id: params.get('id') || '', name: params.get('name') || '' } }
+      return {
+        name: 'category',
+        params: { id: params.get('id') || '', name: params.get('name') || '' },
+      }
     case 'tag':
       return { name: 'tag', params: { id: params.get('id') || '', name: params.get('name') || '' } }
     case 'search':
@@ -136,8 +140,14 @@ export default function App() {
   const [forgotCodeSecondsLeft, setForgotCodeSecondsLeft] = useState(0)
   const [forgotCodeSending, setForgotCodeSending] = useState(false)
 
-  const registerStrength = useMemo(() => getPasswordStrength(registerValue.password), [registerValue.password])
-  const forgotStrength = useMemo(() => getPasswordStrength(forgotValue.password), [forgotValue.password])
+  const registerStrength = useMemo(
+    () => getPasswordStrength(registerValue.password),
+    [registerValue.password],
+  )
+  const forgotStrength = useMemo(
+    () => getPasswordStrength(forgotValue.password),
+    [forgotValue.password],
+  )
 
   useEffect(() => {
     const checkSystem = () => window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -264,7 +274,8 @@ export default function App() {
       email: next.email !== registerValue.email ? undefined : prev.email,
       code: next.code !== registerValue.code ? undefined : prev.code,
       password: next.password !== registerValue.password ? undefined : prev.password,
-      confirmPassword: next.confirmPassword !== registerValue.confirmPassword ? undefined : prev.confirmPassword,
+      confirmPassword:
+        next.confirmPassword !== registerValue.confirmPassword ? undefined : prev.confirmPassword,
     }))
   }
 
@@ -275,7 +286,8 @@ export default function App() {
       email: next.email !== forgotValue.email ? undefined : prev.email,
       code: next.code !== forgotValue.code ? undefined : prev.code,
       password: next.password !== forgotValue.password ? undefined : prev.password,
-      confirmPassword: next.confirmPassword !== forgotValue.confirmPassword ? undefined : prev.confirmPassword,
+      confirmPassword:
+        next.confirmPassword !== forgotValue.confirmPassword ? undefined : prev.confirmPassword,
     }))
   }
 
@@ -290,7 +302,10 @@ export default function App() {
 
     setLoginSubmitting(true)
     try {
-      const res = await login({ username: loginValue.account.trim(), password: loginValue.password })
+      const res = await login({
+        username: loginValue.account.trim(),
+        password: loginValue.password,
+      })
       if (res.data.code === 200) {
         useUserStore.getState().login(res.data.data.token, res.data.data.user)
         message.success('登录成功')
@@ -351,7 +366,9 @@ export default function App() {
         if (res.data.code === 200) {
           setRegisterErrors((prev) => ({ ...prev, email: undefined }))
           const debugCode = res.data.data?.debugCode
-          message.success(debugCode ? `开发环境验证码：${debugCode}` : res.data.message || '验证码已发送')
+          message.success(
+            debugCode ? `开发环境验证码：${debugCode}` : res.data.message || '验证码已发送',
+          )
         } else {
           setRegisterCodeSecondsLeft(0)
           message.error(res.data.message || '验证码发送失败')
@@ -380,7 +397,9 @@ export default function App() {
         if (res.data.code === 200) {
           setForgotErrors((prev) => ({ ...prev, email: undefined }))
           const debugCode = res.data.data?.debugCode
-          message.success(debugCode ? `开发环境验证码：${debugCode}` : res.data.message || '验证码已发送')
+          message.success(
+            debugCode ? `开发环境验证码：${debugCode}` : res.data.message || '验证码已发送',
+          )
         } else {
           setForgotCodeSecondsLeft(0)
           message.error(res.data.message || '验证码发送失败')
@@ -401,7 +420,8 @@ export default function App() {
     if (!isLikelyEmail(registerValue.email)) nextErrors.email = '请输入正确的邮箱地址'
     if (registerValue.code.trim().length < 4) nextErrors.code = '请输入验证码'
     if (!registerValue.password.trim()) nextErrors.password = '请输入密码'
-    if (registerValue.password !== registerValue.confirmPassword) nextErrors.confirmPassword = '两次输入的密码不一致'
+    if (registerValue.password !== registerValue.confirmPassword)
+      nextErrors.confirmPassword = '两次输入的密码不一致'
     setRegisterErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) return
 
@@ -433,7 +453,8 @@ export default function App() {
     if (!isLikelyEmail(forgotValue.email)) nextErrors.email = '请输入正确的邮箱地址'
     if (forgotValue.code.trim().length < 4) nextErrors.code = '请输入验证码'
     if (!forgotValue.password.trim()) nextErrors.password = '请输入新密码'
-    if (forgotValue.password !== forgotValue.confirmPassword) nextErrors.confirmPassword = '两次输入的密码不一致'
+    if (forgotValue.password !== forgotValue.confirmPassword)
+      nextErrors.confirmPassword = '两次输入的密码不一致'
     setForgotErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) return
 
@@ -472,19 +493,28 @@ export default function App() {
       }}
     >
       <div className={`appViewport${route.name === 'home' ? ' appViewport--home' : ''}`}>
-        <CustomCursor />
+        {route.name !== 'home' && <CustomCursor />}
         {route.name !== 'home' && <SakuraEffect />}
-        <VideoBackground
-          videoSrc={DEFAULT_BACKGROUND_VIDEO}
-          active={route.name === 'auth'}
-          backgroundBlurPx={5}
-          zoomScale={1.28}
-          zoomBlurPx={0}
-        />
+        {route.name !== 'home' && (
+          <VideoBackground
+            videoSrc={DEFAULT_BACKGROUND_VIDEO}
+            active={route.name === 'auth'}
+            backgroundBlurPx={5}
+            zoomScale={1.28}
+            zoomBlurPx={0}
+          />
+        )}
 
         <Suspense
           fallback={
-            <div style={{ display: 'grid', placeItems: 'center', minHeight: '100vh', color: 'var(--text-secondary)' }}>
+            <div
+              style={{
+                display: 'grid',
+                placeItems: 'center',
+                minHeight: '100vh',
+                color: 'var(--text-secondary)',
+              }}
+            >
               正在加载...
             </div>
           }
@@ -518,7 +548,12 @@ export default function App() {
                 onForgotRequestCode={onForgotRequestCode}
                 onModeChange={onModeChange}
               />
-              <button className="appBackHome" type="button" onClick={() => handleNavigate({ name: 'home' })} aria-label="返回首页">
+              <button
+                className="appBackHome"
+                type="button"
+                onClick={() => handleNavigate({ name: 'home' })}
+                aria-label="返回首页"
+              >
                 返回首页
               </button>
             </>
@@ -533,7 +568,9 @@ export default function App() {
                 onLogout={onLogout}
               />
               <div key={route.name} className="appView">
-                {route.name === 'home' && <HomePage onNavigate={handleNavigate} onOpenAuth={onOpenAuth} />}
+                {route.name === 'home' && (
+                  <HomePage onNavigate={handleNavigate} onOpenAuth={onOpenAuth} />
+                )}
                 {route.name === 'article' && <ArticlePage id={route.params.id} />}
                 {route.name === 'category' && (
                   <CategoryPage
@@ -558,7 +595,9 @@ export default function App() {
                   />
                 )}
                 {route.name === 'archive' && (
-                  <ArchivePage onArticleClick={(id) => handleNavigate({ name: 'article', params: { id } })} />
+                  <ArchivePage
+                    onArticleClick={(id) => handleNavigate({ name: 'article', params: { id } })}
+                  />
                 )}
                 {route.name === 'guestbook' && <GuestbookPage />}
                 {route.name === 'about' && <AboutPage />}

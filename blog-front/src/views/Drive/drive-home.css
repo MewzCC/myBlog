@@ -1,0 +1,1364 @@
+.appViewport--home {
+  --drift-paper: #fff4da;
+  --drift-ink: #21373d;
+  --drift-muted: #66756c;
+  --drift-accent: #ffbb69;
+  --drift-line: #21373d25;
+  --text-primary: var(--drift-ink);
+  --text-secondary: var(--drift-muted);
+  --border-color: var(--drift-line);
+  --glass-bg: var(--drift-paper);
+  --glass-border: #faecca;
+  --input-bg: var(--drift-paper);
+  --accent: #c66248;
+  --accent-soft: #ffbb6929;
+  background: #d3e4dc;
+  color: var(--drift-ink);
+}
+.appViewport--home .appView {
+  animation: none;
+}
+.appViewport--home .videoBackground {
+  display: none;
+}
+.appViewport--home .navRoot {
+  position: relative;
+  z-index: 15;
+  min-height: 64px;
+  padding: 11px clamp(14px, 3vw, 44px);
+  background: var(--drift-paper);
+  border-bottom: 1px solid var(--drift-line);
+  box-shadow: none;
+  gap: 20px;
+}
+.appViewport--home .navName {
+  font:
+    700 12px 'Space Grotesk',
+    sans-serif;
+  color: var(--drift-ink);
+  letter-spacing: 0.08em;
+}
+.appViewport--home .navBrand {
+  min-height: 40px;
+}
+.appViewport--home .navLogo {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--drift-ink);
+  box-shadow: none;
+  width: 32px;
+  height: 32px;
+}
+.appViewport--home .navLogo::after {
+  content: '✳';
+  color: var(--drift-accent);
+  font-size: 28px;
+}
+.appViewport--home .navMenuItem,
+.appViewport--home .navThemeBtn,
+.appViewport--home .navAuthBtn {
+  color: var(--drift-ink);
+}
+.appViewport--home .navAuthBtnRegister {
+  color: var(--drift-ink);
+  background: var(--drift-accent);
+  border: 1px solid var(--drift-ink);
+}
+.appViewport--home .navSearchInput {
+  color: var(--drift-ink);
+  background: transparent;
+  border-color: var(--drift-line);
+  width: 140px;
+}
+.appViewport--home .navSearchInput::placeholder {
+  color: var(--drift-muted);
+}
+.appViewport--home .navHamburger {
+  color: var(--drift-ink);
+}
+.drift {
+  position: relative;
+  height: calc(100svh - 65px);
+  min-height: 640px;
+  overflow: clip;
+  isolation: isolate;
+  font-family: 'Manrope', 'Zen Maru Gothic', sans-serif;
+}
+.drift__canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  outline-offset: -4px;
+  cursor: grab;
+}
+.drift__canvas:active {
+  cursor: grabbing;
+}
+.drift--driving .drift__canvas {
+  cursor: default;
+}
+.drift__vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, #d3e4dcdd, transparent 44%),
+    linear-gradient(0deg, #173b4326, transparent 25%);
+  z-index: 1;
+  transition: opacity 0.5s;
+}
+.drift--night .drift__vignette {
+  background:
+    linear-gradient(90deg, #102537ee, transparent 46%),
+    linear-gradient(0deg, #10253799, transparent 25%);
+}
+.drift--driving .drift__vignette {
+  opacity: 0.2;
+}
+.drift__brand {
+  max-width: min(400px, calc(100% - 220px));
+  position: absolute;
+  top: 30px;
+  left: clamp(18px, 3vw, 48px);
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  z-index: 2;
+  pointer-events: none;
+  color: var(--drift-ink);
+}
+.drift--night .drift__brand {
+  color: var(--drift-paper);
+}
+.drift__stamp {
+  display: grid;
+  place-items: center;
+  font-size: 34px;
+  width: 48px;
+  height: 48px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+}
+.drift__brand strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  font:
+    700 12px 'Space Grotesk',
+    sans-serif;
+  letter-spacing: 0.11em;
+}
+.drift__brand > div {
+  min-width: 0;
+}
+.drift__brand div > span {
+  display: block;
+  font:
+    8px 'Space Grotesk',
+    sans-serif;
+  letter-spacing: 0.08em;
+  margin-top: 5px;
+  opacity: 0.7;
+}
+.drift__tools {
+  position: absolute;
+  top: 30px;
+  right: clamp(18px, 3vw, 48px);
+  display: flex;
+  gap: 8px;
+  z-index: 3;
+}
+.drift button,
+.drift select {
+  font: inherit;
+  color: var(--drift-ink);
+  cursor: pointer;
+}
+.drift button:focus-visible,
+.drift a:focus-visible,
+.drift select:focus-visible,
+.drift__panel:focus-visible {
+  outline: 3px solid var(--drift-accent);
+  outline-offset: 4px;
+}
+.drift button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+.drift__tools button {
+  border: 1px solid var(--drift-ink);
+  background: var(--drift-paper);
+  height: 40px;
+  min-width: 40px;
+  border-radius: 50px;
+  padding: 0 14px;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 0 #21373d18;
+  transition: translate 0.2s;
+}
+.drift__tools button:hover {
+  translate: 0 -3px;
+}
+.drift__tools button span {
+  font-size: 11px;
+}
+.drift__welcome {
+  position: absolute;
+  z-index: 2;
+  left: clamp(18px, 4vw, 64px);
+  top: 21%;
+  width: min(380px, 31%);
+}
+.drift__eyebrow {
+  font:
+    9px 'Space Grotesk',
+    sans-serif;
+  letter-spacing: 0.13em;
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+.drift__eyebrow > span {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--drift-ink);
+}
+.drift__welcome h1 {
+  font:
+    600 clamp(30px, 3.4vw, 55px)/1.3 'Zen Maru Gothic',
+    sans-serif;
+  letter-spacing: -0.06em;
+  margin: 22px 0 20px;
+}
+.drift__welcome h1 em {
+  font-style: normal;
+  position: relative;
+  white-space: nowrap;
+}
+.drift__welcome h1 em::after {
+  content: '';
+  position: absolute;
+  bottom: 1px;
+  left: 0;
+  right: 0;
+  height: 7px;
+  background: var(--drift-accent);
+  z-index: -1;
+  rotate: -3deg;
+}
+.drift__welcome > p {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+  max-width: 300px;
+  font-size: 12px;
+  line-height: 2.1;
+  opacity: 0.85;
+  overflow-wrap: anywhere;
+}
+.drift--night .drift__welcome,
+.drift--night .drift__journey {
+  color: var(--drift-paper);
+}
+.drift--night .drift__eyebrow > span {
+  background: var(--drift-accent);
+}
+.drift__welcome-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 14px;
+  margin: 28px 0;
+}
+.drift .drift__primary {
+  border: 1px solid var(--drift-ink);
+  background: var(--drift-accent);
+  padding: 15px 20px;
+  font-weight: 700;
+  font-size: 13px;
+  border-radius: 7px;
+  box-shadow: 3px 3px 0 var(--drift-ink);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  transition:
+    translate 0.2s,
+    box-shadow 0.2s;
+}
+.drift .drift__primary:hover:not(:disabled) {
+  translate: 2px 2px;
+  box-shadow: 1px 1px 0 var(--drift-ink);
+}
+.drift__primary > span {
+  font-size: 25px;
+  line-height: 1;
+}
+.drift .drift__text-button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 6px 0;
+  font-size: 11px;
+}
+.drift__ticket {
+  position: relative;
+  border: 1px dashed currentColor;
+  width: 220px;
+  padding: 12px 17px;
+  opacity: 0.7;
+  border-radius: 5px;
+  rotate: -3deg;
+  margin-top: 30px;
+}
+.drift__ticket > span {
+  font:
+    7px 'Space Grotesk',
+    sans-serif;
+  letter-spacing: 0.13em;
+  display: block;
+}
+.drift__ticket b {
+  display: block;
+  font-size: 10px;
+  margin-top: 7px;
+  font-weight: 400;
+}
+.drift__ticket i {
+  position: absolute;
+  right: 13px;
+  top: 18px;
+  font-size: 22px;
+  font-style: normal;
+}
+.drift__destinations {
+  position: absolute;
+  left: 50%;
+  translate: -50% 0;
+  bottom: 96px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: min(600px, 50%);
+  gap: 8px;
+  z-index: 2;
+}
+.drift__destinations > button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid var(--drift-ink);
+  border-radius: 9px;
+  background: var(--drift-paper);
+  padding: 12px 10px;
+  box-shadow: 2px 3px 0 #21373d26;
+  text-align: left;
+  transition: translate 0.2s;
+}
+.drift__destinations > button:hover {
+  translate: 0 -6px;
+}
+.drift__station-icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: var(--station-color);
+  font-size: 16px;
+}
+.drift__destinations small {
+  font:
+    6px 'Space Grotesk',
+    sans-serif;
+  white-space: nowrap;
+  display: block;
+  opacity: 0.7;
+}
+.drift__destinations strong {
+  display: block;
+  font-size: 11px;
+  margin-top: 3px;
+}
+.drift__destinations > button > span:last-child {
+  margin-left: auto;
+  font-size: 10px;
+}
+.drift__map {
+  position: absolute;
+  bottom: 104px;
+  right: clamp(18px, 3vw, 48px);
+  width: 150px;
+  z-index: 2;
+  background: var(--drift-paper);
+  border: 1px solid var(--drift-ink);
+  border-radius: 10px;
+  padding: 11px;
+  box-shadow: 3px 3px 0 #21373d22;
+}
+.drift__map-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font:
+    7px 'Space Grotesk',
+    sans-serif;
+  letter-spacing: 0.08em;
+}
+.drift__map-title button {
+  border: 0;
+  background: transparent;
+  font-size: 16px;
+  padding: 0 4px;
+}
+.drift__map svg {
+  width: 100%;
+  display: block;
+  margin: 7px 0;
+}
+.drift__map-island {
+  fill: #8faa8b;
+  stroke: #e5cd91;
+  stroke-width: 4;
+}
+.drift__map-road {
+  fill: none;
+  stroke: #576768;
+  stroke-width: 5;
+  stroke-linejoin: round;
+}
+.drift__map-car {
+  fill: #ffecae;
+  stroke: #263a43;
+  stroke-width: 0.7;
+}
+.drift__map-caption {
+  display: flex;
+  justify-content: space-between;
+  font-size: 8px;
+  gap: 4px;
+}
+.drift__dashboard {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  padding: 18px clamp(18px, 3vw, 48px) calc(18px + env(safe-area-inset-bottom));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: var(--drift-paper);
+  border-top: 1px solid var(--drift-ink);
+}
+.drift__controls-note {
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.drift kbd {
+  font:
+    8px 'Space Grotesk',
+    sans-serif;
+  border: 1px solid var(--drift-line);
+  padding: 4px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.drift__dashboard-actions {
+  display: flex;
+  gap: 8px;
+}
+.drift__dashboard-actions button {
+  font-size: 10px;
+  background: transparent;
+  border: 1px solid var(--drift-line);
+  border-radius: 5px;
+  padding: 7px 11px;
+  white-space: nowrap;
+}
+.drift__dashboard-actions button:hover {
+  background: var(--drift-accent);
+}
+.drift__dashboard-actions button span {
+  margin-left: 10px;
+}
+.drift__journey {
+  position: absolute;
+  top: 115px;
+  left: clamp(18px, 3vw, 48px);
+  z-index: 2;
+  pointer-events: none;
+}
+.drift__journey strong {
+  display: block;
+  font-size: 23px;
+  margin: 10px 0;
+}
+.drift__journey > span:last-child {
+  font-size: 10px;
+}
+.drift--driving .drift__destinations {
+  width: min(550px, 50%);
+}
+.drift--driving .drift__destinations > button {
+  padding: 9px 10px;
+}
+.drift__speed {
+  position: absolute;
+  left: clamp(18px, 3vw, 48px);
+  bottom: 112px;
+  z-index: 2;
+  color: var(--drift-paper);
+  text-shadow: 0 2px 10px #21373d;
+}
+.drift__speed strong {
+  font:
+    600 56px/0.95 'Space Grotesk',
+    sans-serif;
+}
+.drift__speed > span {
+  display: block;
+  font:
+    8px 'Space Grotesk',
+    sans-serif;
+  letter-spacing: 0.2em;
+  margin: 6px 0 10px;
+}
+.drift__speed > div {
+  width: 90px;
+  height: 3px;
+  background: #fff4da4a;
+}
+.drift__speed i {
+  display: block;
+  height: 3px;
+  background: var(--drift-accent);
+}
+.drift__nearby {
+  position: absolute;
+  bottom: 185px;
+  left: 50%;
+  translate: -50% 0;
+  border: 1px solid var(--drift-ink);
+  background: var(--drift-accent);
+  padding: 12px 20px;
+  border-radius: 7px;
+  font-size: 12px;
+  z-index: 3;
+  box-shadow: 3px 3px 0 var(--drift-ink);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.drift__achievement {
+  position: absolute;
+  top: 100px;
+  left: 50%;
+  translate: -50% 0;
+  background: var(--drift-paper);
+  border: 1px solid var(--drift-ink);
+  padding: 12px 20px;
+  border-radius: 7px;
+  font-size: 11px;
+  z-index: 2;
+}
+.drift__touch {
+  display: none;
+}
+.drift__loading {
+  position: absolute;
+  top: 50%;
+  left: 55%;
+  translate: -50% -50%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--drift-paper);
+  background: var(--drift-ink);
+  border-radius: 40px;
+  padding: 16px 24px;
+  font-size: 11px;
+  z-index: 3;
+}
+.drift__spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid #fff4da44;
+  border-top-color: var(--drift-accent);
+  border-radius: 50%;
+  animation: drift-spin 1s linear infinite;
+}
+.drift__error {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  translate: -50% -50%;
+  width: min(350px, 85%);
+  padding: 24px;
+  z-index: 4;
+  background: var(--drift-paper);
+  border: 1px solid var(--drift-ink);
+  border-radius: 9px;
+}
+.drift__error p {
+  font-size: 11px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.drift__error button {
+  border: 1px solid var(--drift-ink);
+  background: var(--drift-accent);
+  border-radius: 5px;
+  padding: 8px;
+  margin-right: 6px;
+  font-size: 11px;
+}
+.drift__pause {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  translate: -50% -50%;
+  z-index: 4;
+  background: var(--drift-paper);
+  border: 1px solid var(--drift-ink);
+  border-radius: 10px;
+  padding: 25px;
+  box-shadow: 5px 5px 0 var(--drift-ink);
+}
+.drift__pause strong {
+  display: block;
+  font:
+    500 24px 'Zen Maru Gothic',
+    sans-serif;
+  margin-bottom: 22px;
+}
+.drift__modal-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: #1025376b;
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 24px;
+}
+.drift__panel {
+  overflow-wrap: anywhere;
+  position: relative;
+  width: min(470px, 100%);
+  max-height: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: var(--drift-paper);
+  border: 1px solid var(--drift-ink);
+  border-radius: 12px;
+  box-shadow: 8px 8px 0 #10253755;
+  padding: 38px 30px;
+  color: var(--drift-ink);
+}
+.drift__panel h2 {
+  font:
+    500 28px/1.4 'Zen Maru Gothic',
+    sans-serif;
+  margin: 22px 0 16px;
+  overflow-wrap: anywhere;
+}
+.drift__panel > p {
+  font-size: 12px;
+  line-height: 1.9;
+  color: var(--drift-muted);
+}
+.drift__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--drift-line);
+  background: transparent;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 22px !important;
+}
+.drift__directory,
+.drift__article-list {
+  margin: 24px 0;
+}
+.drift__directory button,
+.drift__article-list button {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  text-align: left;
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--drift-line);
+  background: transparent;
+  padding: 17px 0;
+}
+.drift__directory button:hover,
+.drift__article-list button:hover {
+  background: #ffbb6922;
+}
+.drift__directory button > span {
+  font-size: 25px;
+  width: 30px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.drift__directory button strong,
+.drift__article-list button strong {
+  display: block;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.drift__directory button small,
+.drift__article-list button small {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 10px;
+  line-height: 1.7;
+  color: var(--drift-muted);
+  margin-top: 5px;
+}
+.drift__directory button b,
+.drift__article-list button b {
+  margin-left: auto;
+  font-size: 20px;
+  font-weight: 400;
+}
+.drift__article-list > p {
+  font-size: 12px;
+  line-height: 1.9;
+  border: 1px dashed var(--drift-line);
+  border-radius: 5px;
+  padding: 18px;
+}
+.drift__article-list button > span {
+  font:
+    10px 'Space Grotesk',
+    sans-serif;
+  color: var(--drift-muted);
+}
+.drift__article-list button div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.drift__profile {
+  display: flex;
+  gap: 18px;
+  align-items: start;
+  margin: 25px 0;
+}
+.drift__profile > span {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border: 1px solid var(--drift-ink);
+  background: #a6bafa;
+  border-radius: 50%;
+  font:
+    28px 'Space Grotesk',
+    sans-serif;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.drift__profile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.drift__profile strong {
+  font-size: 16px;
+}
+.drift__profile p {
+  font-size: 11px;
+  line-height: 1.9;
+  margin-top: 10px;
+}
+.drift__postcard {
+  position: relative;
+  border: 1px dashed var(--drift-ink);
+  padding: 25px;
+  margin: 26px 0;
+  rotate: -2deg;
+  background: #f2dfb6;
+}
+.drift__postcard span {
+  font:
+    8px 'Space Grotesk',
+    sans-serif;
+  letter-spacing: 0.08em;
+}
+.drift__postcard p {
+  font:
+    26px/1.6 'Zen Maru Gothic',
+    sans-serif;
+}
+.drift__postcard i {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  font-size: 40px;
+  font-style: normal;
+}
+.drift__socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 25px;
+}
+.drift__socials a {
+  color: var(--drift-ink);
+  font-size: 11px;
+  border-bottom: 1px solid var(--drift-ink);
+  padding: 3px 0;
+}
+.drift__manual {
+  margin: 25px 0;
+}
+.drift__manual > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  border-top: 1px solid var(--drift-line);
+  padding: 14px 0;
+  font-size: 11px;
+}
+.drift__manual dt {
+  font-weight: 700;
+}
+.drift__manual dd {
+  margin: 0;
+  color: var(--drift-muted);
+  line-height: 1.7;
+}
+.drift__quality {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  font-size: 12px;
+  margin: 20px 0;
+}
+.drift__quality select {
+  max-width: 65%;
+  background: var(--drift-paper);
+  border: 1px solid var(--drift-ink);
+  border-radius: 5px;
+  padding: 9px;
+  font-size: 11px;
+}
+.drift__panel .drift__fine-print {
+  font-size: 10px;
+}
+@keyframes drift-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+@media (min-width: 1800px) {
+  .drift__welcome {
+    left: 7%;
+    width: 400px;
+  }
+  .drift__welcome h1 {
+    font-size: 60px;
+  }
+  .drift__welcome > p {
+    font-size: 14px;
+  }
+  .drift__destinations {
+    width: 660px;
+    bottom: 110px;
+  }
+  .drift__map {
+    width: 175px;
+    bottom: 110px;
+  }
+}
+@media (max-width: 1099px) {
+  .appViewport--home .navSearch {
+    display: none;
+  }
+  .drift__welcome {
+    top: 21%;
+    width: 32%;
+  }
+  .drift__welcome h1 {
+    font-size: 34px;
+  }
+  .drift__ticket {
+    width: 180px;
+  }
+  .drift__destinations {
+    left: 18px;
+    translate: 0 0;
+    width: calc(100% - 205px);
+    bottom: 100px;
+  }
+  .drift--driving .drift__destinations {
+    width: calc(100% - 330px);
+    left: 140px;
+  }
+  .drift__destinations small {
+    display: none;
+  }
+  .drift__map {
+    width: 135px;
+    right: 24px;
+    bottom: 96px;
+  }
+  .drift__dashboard {
+    padding-inline: 20px;
+  }
+  .drift__controls-note {
+    font-size: 9px;
+  }
+}
+@media (max-width: 759px) {
+  .drift {
+    height: calc(100svh - 65px);
+    min-height: 720px;
+  }
+  .drift__brand {
+    max-width: calc(100% - 145px);
+    top: 20px;
+    left: 18px;
+    gap: 9px;
+  }
+  .drift__stamp {
+    width: 34px;
+    height: 34px;
+    font-size: 26px;
+  }
+  .drift__brand strong {
+    font-size: 9px;
+    letter-spacing: 0.05em;
+  }
+  .drift__brand div > span {
+    font-size: 6px;
+  }
+  .drift__tools {
+    top: 18px;
+    right: 14px;
+    gap: 5px;
+  }
+  .drift__tools button {
+    height: 34px;
+    min-width: 34px;
+    padding: 0 9px;
+    font-size: 18px;
+  }
+  .drift__tools button span {
+    display: none;
+  }
+  .drift__welcome {
+    top: 90px;
+    left: 22px;
+    width: calc(100% - 44px);
+    max-width: 400px;
+  }
+  .drift__welcome h1 {
+    font-size: 37px;
+    margin: 15px 0 10px;
+    line-height: 1.25;
+  }
+  .drift__welcome h1 br {
+    display: none;
+  }
+  .drift__welcome > p {
+    font-size: 11px;
+    max-width: 320px;
+    line-height: 1.8;
+  }
+  .drift__welcome-actions {
+    flex-direction: row;
+    align-items: center;
+    gap: 18px;
+    margin: 18px 0;
+  }
+  .drift .drift__primary {
+    font-size: 11px;
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  .drift .drift__text-button {
+    font-size: 10px;
+  }
+  .drift__ticket {
+    display: none;
+  }
+  .drift__vignette {
+    background: linear-gradient(180deg, #d3e4dcee, transparent 50%);
+  }
+  .drift--night .drift__vignette {
+    background: linear-gradient(180deg, #102537ee, transparent 50%);
+  }
+  .drift__destinations,
+  .drift--driving .drift__destinations {
+    left: 18px;
+    bottom: 115px;
+    width: calc(100% - 160px);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .drift__destinations > button,
+  .drift--driving .drift__destinations > button {
+    padding: 9px 7px;
+    gap: 7px;
+  }
+  .drift__destinations strong {
+    font-size: 10px;
+  }
+  .drift__destinations > button > span:last-child {
+    display: none;
+  }
+  .drift__station-icon {
+    width: 23px;
+    height: 23px;
+    font-size: 14px;
+  }
+  .drift__map {
+    width: 116px;
+    bottom: 115px;
+    right: 18px;
+    padding: 8px;
+  }
+  .drift__map-title {
+    font-size: 5px;
+  }
+  .drift__map-caption {
+    font-size: 7px;
+    flex-wrap: wrap;
+  }
+  .drift__dashboard {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 14px 18px calc(14px + env(safe-area-inset-bottom));
+  }
+  .drift__dashboard-actions {
+    justify-content: space-between;
+    gap: 5px;
+  }
+  .drift__dashboard-actions button {
+    flex: 1;
+    padding: 6px;
+    font-size: 9px;
+  }
+  .drift__controls-note {
+    justify-content: center;
+    font-size: 8px;
+    gap: 5px;
+  }
+  .drift__controls-note kbd {
+    font-size: 7px;
+    padding: 3px;
+  }
+  .drift__dashboard-actions button span {
+    margin-left: 4px;
+  }
+  .drift__journey {
+    top: 85px;
+    left: 18px;
+  }
+  .drift__journey strong {
+    font-size: 20px;
+    margin: 7px 0;
+  }
+  .drift__journey > span:last-child {
+    font-size: 9px;
+  }
+  .drift__journey .drift__eyebrow {
+    font-size: 7px;
+  }
+  .drift__speed {
+    left: 20px;
+    bottom: 250px;
+  }
+  .drift__speed strong {
+    font-size: 38px;
+  }
+  .drift__speed > div {
+    width: 65px;
+  }
+  .drift--driving .drift__destinations {
+    display: none;
+  }
+  .drift--driving .drift__map {
+    top: 85px;
+    bottom: auto;
+    width: 95px;
+    right: 18px;
+  }
+  .drift__nearby {
+    bottom: 205px;
+    max-width: 90%;
+    white-space: nowrap;
+    font-size: 11px;
+    padding: 10px 14px;
+  }
+  .drift__touch {
+    position: absolute;
+    bottom: 122px;
+    left: 18px;
+    right: 18px;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 7px;
+    z-index: 3;
+  }
+  .drift__touch button {
+    height: 48px;
+    border: 1px solid var(--drift-ink);
+    background: var(--drift-paper);
+    border-radius: 10px;
+    box-shadow: 0 3px 0 var(--drift-ink);
+    font-size: 22px;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .drift__touch button:active {
+    background: var(--drift-accent);
+    translate: 0 2px;
+    box-shadow: 0 1px 0 var(--drift-ink);
+  }
+  .drift__modal-shade {
+    padding: 14px;
+    align-items: center;
+  }
+  .drift__panel {
+    padding: 32px 22px;
+    border-radius: 9px;
+  }
+  .drift__panel h2 {
+    font-size: 23px;
+  }
+  .drift__loading {
+    left: 50%;
+    top: 58%;
+    font-size: 10px;
+    white-space: nowrap;
+    padding: 14px 18px;
+  }
+  .drift__achievement {
+    top: 180px;
+    width: 80%;
+    font-size: 10px;
+    line-height: 1.7;
+    text-align: center;
+  }
+  .drift__error {
+    top: 58%;
+  }
+}
+@media (max-width: 359px) {
+  .drift__brand div > span {
+    display: none;
+  }
+  .drift__brand strong {
+    font-size: 7px;
+  }
+  .drift__tools button {
+    padding: 0 7px;
+    min-width: 30px;
+    height: 30px;
+  }
+  .drift__brand {
+    gap: 6px;
+    left: 12px;
+  }
+  .drift__tools {
+    right: 12px;
+    gap: 4px;
+  }
+  .drift__welcome {
+    left: 16px;
+    width: calc(100% - 32px);
+  }
+  .drift__welcome h1 {
+    font-size: 32px;
+  }
+  .drift__welcome-actions {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .drift__destinations {
+    left: 12px;
+    width: calc(100% - 143px);
+  }
+  .drift__map {
+    width: 106px;
+    right: 12px;
+  }
+  .drift__destinations > button {
+    gap: 4px;
+    padding: 9px 5px;
+  }
+  .drift__touch {
+    left: 12px;
+    right: 12px;
+    gap: 5px;
+  }
+  .drift__touch button {
+    height: 43px;
+    font-size: 19px;
+  }
+}
+@media (max-height: 650px) and (min-width: 760px) {
+  .drift {
+    min-height: 700px;
+  }
+  .drift__welcome {
+    top: 110px;
+  }
+  .drift__welcome h1 {
+    font-size: 35px;
+    margin-top: 14px;
+  }
+  .drift__ticket {
+    display: none;
+  }
+  .drift__welcome-actions {
+    margin: 18px 0;
+  }
+  .drift__destinations {
+    bottom: 87px;
+  }
+  .drift__map {
+    bottom: 85px;
+    width: 115px;
+  }
+  .drift__journey {
+    top: 100px;
+  }
+}
+@media (max-height: 820px) and (min-width: 760px) {
+  .drift__ticket {
+    display: none;
+  }
+  .drift__welcome-actions {
+    margin-block: 20px;
+  }
+}
+@media (max-height: 500px) and (max-width: 759px) and (min-width: 480px) {
+  .drift {
+    min-height: 295px;
+  }
+  .drift__brand,
+  .drift__tools {
+    top: 12px;
+  }
+  .drift__brand div > span {
+    display: none;
+  }
+  .drift__welcome {
+    top: 64px;
+    width: 280px;
+  }
+  .drift__welcome h1 {
+    font-size: 26px;
+    margin: 12px 0 8px;
+  }
+  .drift__welcome > p,
+  .drift__destinations,
+  .drift__controls-note {
+    display: none;
+  }
+  .drift__welcome-actions {
+    margin: 15px 0;
+    gap: 12px;
+  }
+  .drift__dashboard {
+    padding: 10px 18px;
+  }
+  .drift__map,
+  .drift--driving .drift__map {
+    width: 86px;
+    top: 65px;
+    bottom: auto;
+  }
+  .drift__journey {
+    top: 66px;
+  }
+  .drift__journey strong {
+    font-size: 18px;
+  }
+  .drift__touch {
+    left: 120px;
+    right: 125px;
+    bottom: 65px;
+    gap: 5px;
+  }
+  .drift__touch button {
+    height: 38px;
+    font-size: 19px;
+  }
+  .drift__speed {
+    bottom: 65px;
+  }
+  .drift__speed strong {
+    font-size: 30px;
+  }
+  .drift__speed > div {
+    display: none;
+  }
+  .drift__nearby {
+    bottom: 115px;
+  }
+  .drift__modal-shade {
+    padding: 10px;
+  }
+  .drift__panel {
+    padding: 25px 20px;
+  }
+}
+@media (hover: none) and (min-width: 760px) {
+  .drift__touch {
+    position: absolute;
+    bottom: 170px;
+    left: 50%;
+    translate: -50% 0;
+    display: flex;
+    gap: 8px;
+    z-index: 3;
+  }
+  .drift__touch button {
+    width: 48px;
+    height: 48px;
+    background: var(--drift-paper);
+    border: 1px solid var(--drift-ink);
+    border-radius: 8px;
+    font-size: 22px;
+    touch-action: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .drift * {
+    transition: none;
+    animation: none;
+  }
+  .drift__spinner {
+    border-top-color: var(--drift-accent);
+  }
+}

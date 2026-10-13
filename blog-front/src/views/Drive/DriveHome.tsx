@@ -1,0 +1,689 @@
+import { useEffect, useRef, useState, type PointerEvent } from 'react'
+import type { Route } from '../../types/route'
+import type { User, ArticleSummary } from '../../types/api'
+import { getBloggerProfile } from '../../api/user'
+import { getArticles } from '../../api/article'
+import { useSettingsStore } from '../../stores/settingsStore'
+import {
+  initialTelemetry,
+  stations,
+  tokens,
+  type DriveInput,
+  type IslandSettings,
+  type StationId,
+} from './island'
+import type { IslandEngine } from './engine'
+import './drive-home.css'
+
+export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) => void }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null),
+    engineRef = useRef<IslandEngine | null>(null)
+  const keys = useRef(new Set<string>()),
+    touch = useRef<DriveInput>({ throttle: 0, steer: 0, brake: false, boost: false })
+  const [telemetry, setTelemetry] = useState(initialTelemetry)
+  const [driving, setDriving] = useState(false),
+    [overview, setOverview] = useState(true),
+    [paused, setPaused] = useState(false)
+  const [ready, setReady] = useState(false),
+    [error, setError] = useState(''),
+    [attempt, setAttempt] = useState(0)
+  const [quality, setQuality] = useState<IslandSettings['quality']>('auto'),
+    [sound, setSound] = useState(false)
+  const [panel, setPanel] = useState<StationId | 'map' | null>(null),
+    [help, setHelp] = useState(false)
+  const [profile, setProfile] = useState<User | null>(null),
+    [articles, setArticles] = useState<ArticleSummary[]>([]),
+    [articleState, setArticleState] = useState<'loading' | 'ready' | 'error'>('loading')
+  const { theme, setTheme, enableGuestbook, enableSocials } = useSettingsStore()
+  const [systemDark, setSystemDark] = useState(
+    () => window.matchMedia('(prefers-color-scheme: dark)').matches,
+  )
+  const dark = theme === 'dark' || (theme === 'system' && systemDark)
+  const settings = useRef<IslandSettings>({ dark, driving, overview, paused, quality, sound })
+  settings.current = { dark, driving, overview, paused: paused || !!panel || help, quality, sound }
+  const actions = useRef({ setPanel, enableGuestbook })
+  actions.current = { setPanel, enableGuestbook }
+  const panelRef = useRef<HTMLElement>(null),
+    returnFocus = useRef<HTMLElement | null>(null)
+  const modalOpen = useRef(false)
+  const visibleStations = stations.filter((s) => s.id !== 'guestbook' || enableGuestbook)
+
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-color-scheme: dark)'),
+      listener = (e: MediaQueryListEvent) => setSystemDark(e.matches)
+    media.addEventListener('change', listener)
+    let alive = true
+    void getBloggerProfile()
+      .then((r) => {
+        if (alive && r.data.code === 200) setProfile(r.data.data)
+      })
+      .catch(() => undefined)
+    void getArticles({ page: 1, pageSize: 20 })
+      .then((r) => {
+        if (!alive) return
+        if (r.data.code === 200) {
+          setArticles(r.data.data.list)
+          setArticleState('ready')
+        } else setArticleState('error')
+      })
+      .catch(() => {
+        if (alive) setArticleState('error')
+      })
+    return () => {
+      alive = false
+      media.removeEventListener('change', listener)
+    }
+  }, [])
+  useEffect(() => {
+    const controller = new AbortController()
+    const canvas = canvasRef.current!
+    let local: IslandEngine | null = null
+    const onError = (event: Event) => setError((event as CustomEvent<string>).detail)
+    canvas.addEventListener('island-error', onError)
+    void import('./engine')
+      .then(({ createIslandEngine }) =>
+        createIslandEngine(
+          canvas,
+          {
+            getSettings: () => settings.current,
+            getInput: () => {
+              const k = keys.current
+              return {
+                throttle:
+                  touch.current.throttle +
+                  (k.has('KeyW') || k.has('ArrowUp') ? 1 : 0) -
+                  (k.has('KeyS') || k.has('ArrowDown') ? 1 : 0),
+                steer:
+                  touch.current.steer +
+                  (k.has('KeyD') || k.has('ArrowRight') ? 1 : 0) -
+                  (k.has('KeyA') || k.has('ArrowLeft') ? 1 : 0),
+                brake: touch.current.brake || k.has('Space'),
+                boost: touch.current.boost || k.has('ShiftLeft') || k.has('ShiftRight'),
+              }
+            },
+            onTelemetry: setTelemetry,
+            onStation: (id) => {
+              if (id !== 'guestbook' || actions.current.enableGuestbook)
+                actions.current.setPanel(id)
+            },
+            onReady: () => setReady(true),
+          },
+          controller.signal,
+        ),
+      )
+      .then((engine) => {
+        if (controller.signal.aborted) {
+          engine.dispose()
+          return
+        }
+        local = engine
+        engineRef.current = engine
+      })
+      .catch((e) => {
+        if (!controller.signal.aborted)
+          setError(
+            e instanceof Error
+              ? `岛屿暂时无法启动：${e.message}`
+              : '岛屿暂时无法启动，请使用文字导航。',
+          )
+      })
+    return () => {
+      controller.abort()
+      local?.dispose()
+      engineRef.current = null
+      canvas.removeEventListener('island-error', onError)
+    }
+  }, [attempt])
+  useEffect(() => {
+    const controlled = [
+      'KeyW',
+      'KeyA',
+      'KeyS',
+      'KeyD',
+      'ArrowUp',
+      'ArrowDown',
+      'ArrowLeft',
+      'ArrowRight',
+      'Space',
+      'ShiftLeft',
+      'ShiftRight',
+    ]
+    const down = (e: KeyboardEvent) => {
+      if ((e.target as HTMLElement).closest('input,textarea,select,[contenteditable="true"]'))
+        return
+      if (e.code === 'Escape') {
+        setPanel(null)
+        setHelp(false)
+        setPaused(false)
+        return
+      }
+      if (settings.current.paused) return
+      if (controlled.includes(e.code) && settings.current.driving) {
+        e.preventDefault()
+        keys.current.add(e.code)
+        engineRef.current?.unlockSound()
+      }
+      if (e.repeat) return
+      if (e.code === 'KeyE' && settings.current.driving) engineRef.current?.interact()
+      if (e.code === 'KeyR') engineRef.current?.reset()
+      if (e.code === 'KeyC') setOverview((value) => !value)
+    }
+    const up = (e: KeyboardEvent) => keys.current.delete(e.code)
+    const clear = () => {
+      keys.current.clear()
+      touch.current = { throttle: 0, steer: 0, brake: false, boost: false }
+    }
+    window.addEventListener('keydown', down)
+    window.addEventListener('keyup', up)
+    window.addEventListener('blur', clear)
+    document.addEventListener('visibilitychange', clear)
+    return () => {
+      window.removeEventListener('keydown', down)
+      window.removeEventListener('keyup', up)
+      window.removeEventListener('blur', clear)
+      document.removeEventListener('visibilitychange', clear)
+    }
+  }, [])
+  useEffect(() => {
+    if (panel || paused || help) {
+      keys.current.clear()
+      touch.current = { throttle: 0, steer: 0, brake: false, boost: false }
+    }
+  }, [panel, paused, help])
+  useEffect(() => {
+    if (!panel && !help) {
+      returnFocus.current?.focus()
+      modalOpen.current = false
+      return
+    }
+    if (!modalOpen.current) returnFocus.current = document.activeElement as HTMLElement
+    modalOpen.current = true
+    panelRef.current?.focus()
+    const trap = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab' || !panelRef.current) return
+      const nodes = [
+        ...panelRef.current.querySelectorAll<HTMLElement>('button,a,input,select,[tabindex="0"]'),
+      ].filter((e) => !e.hasAttribute('disabled'))
+      const first = nodes[0],
+        last = nodes[nodes.length - 1]
+      if (
+        e.shiftKey &&
+        (document.activeElement === first || document.activeElement === panelRef.current)
+      ) {
+        e.preventDefault()
+        last?.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first?.focus()
+      }
+    }
+    document.addEventListener('keydown', trap)
+    return () => document.removeEventListener('keydown', trap)
+  }, [panel, help])
+  const start = () => {
+    setDriving(true)
+    setOverview(false)
+    setPaused(false)
+    engineRef.current?.unlockSound()
+    canvasRef.current?.focus()
+  }
+  const goStation = (id: StationId) => {
+    if (engineRef.current) engineRef.current.teleport(id)
+    else setPanel(id)
+  }
+  const touchControl =
+    (field: keyof DriveInput, value: number | boolean) =>
+    (event: PointerEvent<HTMLButtonElement>) => {
+      event.preventDefault()
+      event.currentTarget.setPointerCapture(event.pointerId)
+      Object.assign(touch.current, { [field]: value })
+      engineRef.current?.unlockSound()
+    }
+  const release = (field: keyof DriveInput) => (event: PointerEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    Object.assign(touch.current, { [field]: typeof touch.current[field] === 'boolean' ? false : 0 })
+  }
+  const station = stations.find((s) => s.id === panel)
+  const name = profile?.name || 'Sakura'
+  const close = () => {
+    setPanel(null)
+    setHelp(false)
+  }
+  const miniX = 50 + (telemetry.x / 64) * 88,
+    miniY = 50 + (telemetry.z / 60) * 88
+  return (
+    <main
+      className={`drift${driving ? ' drift--driving' : ''}${dark ? ' drift--night' : ' drift--day'}`}
+    >
+      <canvas
+        key={attempt}
+        data-x={telemetry.x.toFixed(3)}
+        data-y={telemetry.y.toFixed(3)}
+        data-z={telemetry.z.toFixed(3)}
+        data-yaw={telemetry.yaw.toFixed(3)}
+        data-speed={telemetry.speed}
+        data-fps={telemetry.fps}
+        className="drift__canvas"
+        ref={canvasRef}
+        tabIndex={0}
+        aria-label="可驾驶的漂流岛 3D 场景，WASD 或方向键驾驶，E 进入站点，R 重置，C 切换镜头"
+      />
+      <div className="drift__vignette" aria-hidden="true" />
+      <header className="drift__brand">
+        <span className="drift__stamp">✳</span>
+        <div>
+          <strong>{name.toUpperCase()} / DRIFT ISLAND</strong>
+          <span>A LITTLE WORLD, A LOT OF CURIOSITY.</span>
+        </div>
+      </header>
+      <div className="drift__tools">
+        <button
+          onClick={() => setTheme(dark ? 'light' : 'dark')}
+          aria-label={dark ? '切换到白天' : '切换到夜晚'}
+        >
+          {dark ? '☀' : '☾'}
+          <span>{dark ? '日出' : '入夜'}</span>
+        </button>
+        <button
+          aria-label={sound ? '关闭声音' : '开启声音'}
+          aria-pressed={sound}
+          onClick={() => {
+            setSound((v) => !v)
+            if (!sound) setTimeout(() => engineRef.current?.unlockSound(), 0)
+          }}
+        >
+          {sound ? '♫' : '♩'}
+          <span>声音</span>
+        </button>
+        <button aria-label="打开操作说明" onClick={() => setHelp(true)}>
+          ？
+        </button>
+      </div>
+      {!driving && (
+        <section className="drift__welcome">
+          <div className="drift__eyebrow">
+            <span /> PERSONAL PLAYGROUND · VOL. 01
+          </div>
+          <h1>
+            欢迎绕个路，
+            <br />
+            来我的<em>小岛。</em>
+          </h1>
+          <p>
+            {profile?.bio || '我是 Sakura。写代码，也收集生活里的小小惊喜。开一辆车，认识一个人。'}
+          </p>
+          <div className="drift__welcome-actions">
+            <button className="drift__primary" onClick={start} disabled={!ready || !!error}>
+              {ready && !error ? '出发，环岛兜风' : '正在准备小岛'}
+              <span>↗</span>
+            </button>
+            <button className="drift__text-button" onClick={() => setPanel('map')}>
+              先看看岛屿地图 ↗
+            </button>
+          </div>
+          <div className="drift__ticket">
+            <span>ONE WAY TO CURIOSITY</span>
+            <b>不限里程 / 随时停靠</b>
+            <i>✂</i>
+          </div>
+        </section>
+      )}
+      {driving && (
+        <div className="drift__journey">
+          <span className="drift__eyebrow">ON THE ROAD</span>
+          <strong>今天，去哪里？</strong>
+          <span>
+            {telemetry.visited.filter((id) => id !== 'guestbook' || enableGuestbook).length} /{' '}
+            {visibleStations.length} 个站点已发现
+          </span>
+        </div>
+      )}
+      {!ready && !error && (
+        <div className="drift__loading" role="status">
+          <span className="drift__spinner" />
+          正在搭建岛屿 · 准备物理引擎
+        </div>
+      )}
+      {error && (
+        <div className="drift__error" role="alert">
+          <strong>换一种方式逛逛小岛</strong>
+          <p>{error}</p>
+          <button
+            onClick={() => {
+              setError('')
+              setReady(false)
+              setAttempt((a) => a + 1)
+            }}
+          >
+            重新加载 3D
+          </button>
+          <button onClick={() => setPanel('map')}>打开文字导航</button>
+        </div>
+      )}
+      <nav className="drift__destinations" aria-label="岛屿站点">
+        {visibleStations.map((s, i) => (
+          <button
+            key={s.id}
+            onClick={() => goStation(s.id)}
+            aria-label={`前往${s.name}`}
+            style={{ '--station-color': s.color } as React.CSSProperties}
+          >
+            <span className="drift__station-icon">{s.icon}</span>
+            <div>
+              <small>
+                0{i + 1} / {s.en}
+              </small>
+              <strong>{s.name.split(' / ')[1]}</strong>
+            </div>
+            <span>{telemetry.visited.includes(s.id) ? '✓' : '↗'}</span>
+          </button>
+        ))}
+      </nav>
+      <div className="drift__map">
+        <div className="drift__map-title">
+          <span>ISLAND NAVIGATOR</span>
+          <button aria-label="打开岛屿地图" onClick={() => setPanel('map')}>
+            ↗
+          </button>
+        </div>
+        <svg viewBox="0 0 100 100" role="img" aria-label="岛屿小地图与车辆实时位置">
+          <rect x="4" y="6" width="92" height="88" rx="15" className="drift__map-island" />
+          <path d="M25 24H75V76H25Z M50 24V76 M25 50H75" className="drift__map-road" />
+          {visibleStations.map((s) => (
+            <circle
+              key={s.id}
+              cx={50 + (s.x / 64) * 88}
+              cy={50 + (s.z / 60) * 88}
+              r="3"
+              fill={s.color}
+            />
+          ))}
+          <g transform={`translate(${miniX} ${miniY}) rotate(${(-telemetry.yaw * 180) / Math.PI})`}>
+            <path d="M0 5L-3 -4L0 -2L3 -4Z" className="drift__map-car" />
+          </g>
+        </svg>
+        <span className="drift__map-caption">
+          找到金色灵感碎片{' '}
+          <b>
+            {telemetry.collected}/{tokens.length}
+          </b>
+        </span>
+      </div>
+      {driving && (
+        <>
+          <div className="drift__speed">
+            <strong>{telemetry.speed.toString().padStart(2, '0')}</strong>
+            <span>KM / H</span>
+            <div>
+              <i style={{ width: `${Math.min(100, (telemetry.speed / 61) * 100)}%` }} />
+            </div>
+          </div>
+          {telemetry.nearest && (telemetry.nearest !== 'guestbook' || enableGuestbook) && (
+            <button className="drift__nearby" onClick={() => engineRef.current?.interact()}>
+              <kbd>E</kbd> 停靠
+              {stations.find((s) => s.id === telemetry.nearest)?.name.split(' / ')[0]}{' '}
+              <span>↗</span>
+            </button>
+          )}
+          {telemetry.collected === tokens.length && (
+            <div className="drift__achievement" role="status">
+              ✦ 全部灵感已收集，愿你的旅途充满好奇。
+            </div>
+          )}
+          <div className="drift__touch" aria-label="触屏驾驶控制">
+            {(
+              [
+                ['steer', -1, '向左转', '←'],
+                ['throttle', 1, '前进', '↑'],
+                ['throttle', -1, '倒车', '↓'],
+                ['steer', 1, '向右转', '→'],
+                ['brake', true, '刹车', '■'],
+                ['boost', true, '加速', '↯'],
+              ] as const
+            ).map(([field, value, label, symbol]) => (
+              <button
+                key={label}
+                aria-label={label}
+                onPointerDown={touchControl(field, value)}
+                onPointerUp={release(field)}
+                onPointerCancel={release(field)}
+                onLostPointerCapture={release(field)}
+              >
+                {symbol}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+      <footer className="drift__dashboard">
+        <div className="drift__controls-note">
+          {driving ? (
+            <>
+              <kbd>W A S D</kbd> 驾驶 <kbd>SPACE</kbd> 刹车 <kbd>SHIFT</kbd> 加速
+            </>
+          ) : (
+            <>拖动旋转小岛 · 滚轮缩放 · 点击站点探索</>
+          )}
+        </div>
+        <div className="drift__dashboard-actions">
+          {driving && (
+            <button
+              onClick={() => setPaused((v) => !v)}
+              aria-label={paused ? '继续驾驶' : '暂停驾驶'}
+            >
+              {paused ? '▶' : 'Ⅱ'}
+            </button>
+          )}
+          <button
+            aria-label={overview ? '切换到跟车镜头' : '切换到全岛镜头'}
+            onClick={() => {
+              if (!driving) start()
+              else setOverview((v) => !v)
+            }}
+          >
+            {overview ? '跟车' : '全岛'} <span>◎</span>
+          </button>
+          <button onClick={() => engineRef.current?.reset()} aria-label="回到出发点">
+            复位 ↺
+          </button>
+          <button onClick={() => setPanel('map')}>目录 ☰</button>
+        </div>
+      </footer>
+      {paused && !panel && !help && (
+        <div className="drift__pause">
+          <strong>停一下，也很好。</strong>
+          <button className="drift__primary" onClick={() => setPaused(false)}>
+            继续旅程 ▶
+          </button>
+        </div>
+      )}
+      {(panel || help) && (
+        <div className="drift__modal-shade" onClick={close}>
+          <section
+            className="drift__panel"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="drift-panel-title"
+            ref={panelRef}
+            tabIndex={-1}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button className="drift__close" onClick={close} aria-label="关闭面板">
+              ×
+            </button>
+            <div className="drift__eyebrow">
+              {help ? 'DRIVING MANUAL' : station?.en || 'YOUR ISLAND GUIDE'}
+            </div>
+            <h2 id="drift-panel-title">
+              {help ? '开车，也别忘了看风景。' : station?.name || '四个站点，一座小岛。'}
+            </h2>
+            {help ? (
+              <>
+                <p>无需闯关，随便逛逛。开近站点会出现停靠提示，也可以直接点击地图和目录。</p>
+                <dl className="drift__manual">
+                  <div>
+                    <dt>WASD / 方向键</dt>
+                    <dd>前进、倒车、转向</dd>
+                  </div>
+                  <div>
+                    <dt>SPACE / SHIFT</dt>
+                    <dd>刹车漂移 / 加速</dd>
+                  </div>
+                  <div>
+                    <dt>E / R / C</dt>
+                    <dd>停靠站点 / 回到起点 / 切换镜头</dd>
+                  </div>
+                  <div>
+                    <dt>触屏按钮</dt>
+                    <dd>按住驾驶，松开停止输入</dd>
+                  </div>
+                  <div>
+                    <dt>鼠标拖动 / 滚轮</dt>
+                    <dd>全岛镜头旋转 / 缩放</dd>
+                  </div>
+                </dl>
+                <label className="drift__quality">
+                  画面质量
+                  <select
+                    value={quality}
+                    onChange={(e) => setQuality(e.target.value as IslandSettings['quality'])}
+                  >
+                    <option value="auto">自动适应设备</option>
+                    <option value="high">高画质</option>
+                    <option value="low">节能模式</option>
+                  </select>
+                </label>
+                <p className="drift__fine-print">
+                  声音默认关闭。小岛和车辆均为原创程序建模，所有资源随网站加载。
+                </p>
+              </>
+            ) : panel === 'map' ? (
+              <>
+                <p>喜欢开车就上路，想看内容也可以直接停靠。</p>
+                <div className="drift__directory">
+                  {visibleStations.map((s) => (
+                    <button key={s.id} onClick={() => goStation(s.id)}>
+                      <span>{s.icon}</span>
+                      <div>
+                        <strong>{s.name}</strong>
+                        <small>{s.description}</small>
+                      </div>
+                      <b>↗</b>
+                    </button>
+                  ))}
+                </div>
+                {!driving && (
+                  <button
+                    className="drift__primary"
+                    onClick={() => {
+                      close()
+                      start()
+                    }}
+                    disabled={!ready || !!error}
+                  >
+                    开始驾驶 ↗
+                  </button>
+                )}
+              </>
+            ) : (
+              <>
+                <p>{station?.description}</p>
+                {panel === 'about' && (
+                  <>
+                    <div className="drift__profile">
+                      <span>
+                        {profile?.avatar ? (
+                          <img src={profile.avatar} alt={`${name}的头像`} />
+                        ) : (
+                          name.slice(0, 1)
+                        )}
+                      </span>
+                      <div>
+                        <strong>你好，我是 {name}。</strong>
+                        <p>
+                          {profile?.bio || '喜欢创造，喜欢探索。把这座小岛，当成我们认识的起点。'}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      className="drift__primary"
+                      onClick={() => onNavigate({ name: 'about' })}
+                    >
+                      认识完整的我 ↗
+                    </button>
+                  </>
+                )}
+                {(panel === 'notes' || panel === 'work') && (
+                  <>
+                    <div className="drift__article-list">
+                      {articleState === 'loading' ? (
+                        <p role="status">正在取回岛上的笔记…</p>
+                      ) : articleState === 'error' ? (
+                        <p>文章暂时无法连接。你仍可继续探索小岛，或进入归档查看。</p>
+                      ) : articles.length === 0 ? (
+                        <p>书架正在整理，下一篇故事很快到来。</p>
+                      ) : (
+                        articles.slice(0, 6).map((a, i) => (
+                          <button
+                            key={a.id}
+                            onClick={() => onNavigate({ name: 'article', params: { id: a.id } })}
+                          >
+                            <span>0{i + 1}</span>
+                            <div>
+                              <strong>{a.title}</strong>
+                              <small>{a.summary || a.publishDate}</small>
+                            </div>
+                            <b>↗</b>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                    <button
+                      className="drift__primary"
+                      onClick={() => onNavigate({ name: 'archive' })}
+                    >
+                      查看全部文章 ↗
+                    </button>
+                  </>
+                )}
+                {panel === 'guestbook' && enableGuestbook && (
+                  <>
+                    <div className="drift__postcard">
+                      <span>HELLO FROM DRIFT ISLAND</span>
+                      <p>
+                        路过，停留，
+                        <br />
+                        留下一点回声。
+                      </p>
+                      <i>✉</i>
+                    </div>
+                    <button
+                      className="drift__primary"
+                      onClick={() => onNavigate({ name: 'guestbook' })}
+                    >
+                      写一张明信片 ↗
+                    </button>
+                  </>
+                )}
+                {panel === 'about' && enableSocials && profile?.socials && (
+                  <div className="drift__socials">
+                    {Object.entries(profile.socials)
+                      .filter(([, url]) => url)
+                      .map(([key, url]) => {
+                        const href = key === 'email' ? `mailto:${url}` : url
+                        return /^(https?:\/\/|mailto:)/i.test(href) ? (
+                          <a key={key} href={href} target="_blank" rel="noreferrer">
+                            {key} ↗
+                          </a>
+                        ) : null
+                      })}
+                  </div>
+                )}
+              </>
+            )}
+          </section>
+        </div>
+      )}
+    </main>
+  )
+}
