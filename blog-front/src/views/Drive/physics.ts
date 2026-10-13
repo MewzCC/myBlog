@@ -15,7 +15,7 @@ export function createVehicleBody(world: RAPIER.World) {
   body.setEnabledRotations(false, true, false, true)
   // Grip is handled below; contact friction must not cancel steering at rest.
   world.createCollider(
-    RAPIER.ColliderDesc.cuboid(0.77, 0.38, 1.4)
+    RAPIER.ColliderDesc.cuboid(1, 0.38, 1.54)
       .setTranslation(0, -0.18, 0)
       .setFriction(0)
       .setFrictionCombineRule(RAPIER.CoefficientCombineRule.Min)
@@ -23,6 +23,21 @@ export function createVehicleBody(world: RAPIER.World) {
       .setDensity(2),
     body,
   )
+  // Cabin and luggage are solid too, including when hitting a fallen resident.
+  for (const [x, y, z, hx, hy, hz] of [
+    [0, 0.56, -0.3, 0.76, 0.5, 0.76],
+    [0, 1.36, -0.3, 0.5, 0.2, 0.44],
+  ]) {
+    world.createCollider(
+      RAPIER.ColliderDesc.cuboid(hx!, hy!, hz!)
+        .setTranslation(x!, y!, z!)
+        .setFriction(0)
+        .setFrictionCombineRule(RAPIER.CoefficientCombineRule.Min)
+        .setRestitution(0.08)
+        .setDensity(0.3),
+      body,
+    )
+  }
   return body
 }
 

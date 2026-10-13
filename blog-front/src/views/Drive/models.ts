@@ -11,6 +11,7 @@ export type Solid = {
   h: number
   d: number
   rotation?: number
+  shape?: 'cylinder' | 'cone' | 'road' | 'ball'
   dynamic?: boolean
   mesh?: T.Object3D
 }
@@ -62,13 +63,16 @@ export function buildIsland(scene: T.Scene) {
     color: string,
     parent: T.Object3D = scene,
     round = 0,
-  ) =>
-    mesh(
+  ) => {
+    const item = mesh(
       round ? new RoundedBoxGeometry(w, h, d, 2, round) : new T.BoxGeometry(w, h, d),
       mat(color),
       [x, y, z],
       parent,
     )
+    if (parent === scene && color === palette.road) solids.push({ x, y, z, w, h, d, shape: 'road' })
+    return item
+  }
   const cylinder = (
     x: number,
     y: number,
@@ -87,7 +91,12 @@ export function buildIsland(scene: T.Scene) {
     radius: number,
     color: string,
     parent: T.Object3D = scene,
-  ) => mesh(new T.IcosahedronGeometry(radius, 1), mat(color), [x, y, z], parent)
+  ) => {
+    const item = mesh(new T.IcosahedronGeometry(radius, 1), mat(color), [x, y, z], parent)
+    if (parent === scene && y <= 0.5 && radius >= 0.3)
+      solids.push({ x, y, z, w: radius * 2, h: radius * 2, d: radius * 2, shape: 'ball' })
+    return item
+  }
   const solidBox = (
     x: number,
     y: number,
@@ -102,6 +111,9 @@ export function buildIsland(scene: T.Scene) {
     const item = box(x, y, z, w, h, d, color, parent, 0.08)
     solids.push({ x, y, z, w, h, d, dynamic, mesh: item })
     return item
+  }
+  const obstacle = (x: number, y: number, z: number, radius: number, height: number) => {
+    solids.push({ x, y, z, w: radius * 2, h: height, d: radius * 2, shape: 'cylinder' })
   }
   const text = (
     value: string,
@@ -151,6 +163,7 @@ export function buildIsland(scene: T.Scene) {
   ground.receiveShadow = true
   grass.receiveShadow = true
   solids.push({ x: 0, y: -1, z: 0, w: islandSize.width - 2, h: 2, d: islandSize.depth - 2 })
+  solids.push({ x: 0, y: -0.04, z: 0, w: 88, h: 0.14, d: 80 })
   // Closed loop, central cross street, inlaid curbs and dashed markings.
   for (const z of [-18, 18]) {
     box(0, 0.06, z, 42, 0.1, 5.4, palette.road)
@@ -194,13 +207,16 @@ export function buildIsland(scene: T.Scene) {
   )
   innerRing.rotation.y = 0.9
   mesh(new T.IcosahedronGeometry(0.55, 1), glow(palette.gold), [0, 0, 0], sculpture)
-  solids.push({ x: 0, y: 0.5, z: 0, w: 5, h: 1, d: 5 })
+  obstacle(0, 0.2, 0, 3.25, 0.3)
+  obstacle(0, 0.45, 0, 2.9, 0.3)
+  obstacle(0, 1.3, 0, 0.7, 1.5)
 
   // Lighthouse, with balcony rails, lantern glass and an animated beacon.
   const lighthouse = new T.Group()
   lighthouse.position.set(-25, 0, -23)
   scene.add(lighthouse)
   cylinder(0, 0.35, 0, 3.9, 0.65, palette.cream, lighthouse)
+  obstacle(-25, 0.35, -23, 3.9, 0.65)
   cylinder(0, 4.7, 0, 1.55, 8.6, palette.cream, lighthouse, 2)
   for (const y of [2.4, 5, 7.6])
     cylinder(0, y, 0, 2.03 - y * 0.052, 1, palette.coral, lighthouse, 2.08 - y * 0.052)
@@ -391,6 +407,7 @@ export function buildIsland(scene: T.Scene) {
     [-11, 12, '← POST'],
   ] as const) {
     cylinder(x, 1.25, z, 0.08, 2.5, palette.ink)
+    obstacle(x, 1.25, z, 0.09, 2.5)
     text(label, x, 2.5, z, 3.5)
   }
   const tree = (x: number, z: number, s = 1, palm = false) => {
@@ -423,7 +440,18 @@ export function buildIsland(scene: T.Scene) {
           6,
         )
     }
-    solids.push({ x, y: 1.5 * s, z, w: 0.4 * s, h: 3 * s, d: 0.4 * s })
+    obstacle(x, 1.5 * s, z, 0.25 * s, 3 * s)
+    if (!palm)
+      for (let i = 0; i < 3; i++)
+        solids.push({
+          x,
+          y: (2 + i * 0.85) * s,
+          z,
+          w: (3 - i * 0.6) * s,
+          h: 1.9 * s,
+          d: (3 - i * 0.6) * s,
+          shape: 'cone',
+        })
   }
   const treePositions = [
     [-10, -8],
@@ -471,6 +499,7 @@ export function buildIsland(scene: T.Scene) {
     [12, 5],
   ] as const) {
     cylinder(x, 0.4, z, 0.7, 0.7, palette.coral)
+    obstacle(x, 0.4, z, 0.7, 0.7)
     for (let i = 0; i < 5; i++) {
       const a = i * 1.25
       cylinder(x + Math.cos(a) * 0.3, 0.9, z + Math.sin(a) * 0.3, 0.03, 0.7, palette.grass)
@@ -487,6 +516,8 @@ export function buildIsland(scene: T.Scene) {
       box(x, 0.7, z, 0.12, 1.4, 0.12, palette.cream)
       box(x + 1.5, 0.8, z, 3, 0.16, 0.12, palette.cream)
     }
+  for (const x of [-50, 50]) solids.push({ x, y: 0.7, z: 0, w: 0.18, h: 1.4, d: 77 })
+  for (const z of [-46, 46]) solids.push({ x: 1, y: 0.7, z, w: 75, h: 1.4, d: 0.18 })
   // Physics boundaries are low beach edges; cars cannot quietly leave the island.
   for (const x of [-51, 51]) solids.push({ x, y: 0.5, z: 0, w: 0.5, h: 2, d: 95 })
   for (const z of [-47, 47]) solids.push({ x: 0, y: 0.5, z, w: 103, h: 2, d: 0.5 })
@@ -494,6 +525,7 @@ export function buildIsland(scene: T.Scene) {
   windmill.position.set(-9, 0, -24)
   scene.add(windmill)
   cylinder(0, 3.5, 0, 0.12, 7, palette.cream, windmill, 0.22)
+  obstacle(-9, 3.5, -24, 0.22, 7)
   const turbine = new T.Group()
   turbine.position.set(0, 7, 0)
   windmill.add(turbine)
@@ -527,6 +559,7 @@ export function buildIsland(scene: T.Scene) {
     [-17, -6],
   ] as const) {
     cylinder(x, 0.3, z, 0.45, 0.12, palette.ink)
+    solids.push({ x, y: 0.55, z, w: 0.75, h: 1.1, d: 0.75, shape: 'cone' })
     cylinder(x, 0.65, z, 0, 1.1, palette.coral, scene, 0.35)
     cylinder(x, 0.6, z, 0.18, 0.18, palette.cream)
   }
@@ -541,6 +574,7 @@ export function buildIsland(scene: T.Scene) {
     [-4, -5],
   ] as const) {
     cylinder(x, 2, z, 0.075, 4, palette.ink)
+    obstacle(x, 2, z, 0.09, 4)
     box(x + 0.4, 3.9, z, 0.8, 0.12, 0.15, palette.ink)
     mesh(new T.SphereGeometry(0.24, 8, 6), glow(palette.gold), [x + 0.8, 3.8, z])
     const light = new T.PointLight(palette.gold, 5, 10, 2)
@@ -591,6 +625,7 @@ export function buildIsland(scene: T.Scene) {
     [0, 30, 'CAMP / 36'],
   ] as const) {
     cylinder(x + 3, 1.3, z, 0.07, 2.6, palette.ink)
+    obstacle(x + 3, 1.3, z, 0.09, 2.6)
     text(label, x + 3, 2.6, z, 4)
   }
   // Mossy west woodland and a turquoise duck pond with stepping stones.
@@ -669,6 +704,8 @@ export function buildIsland(scene: T.Scene) {
     mesh(new T.ConeGeometry(0.45, 1.1, 7), glow(palette.gold), [0, 0.65, 0], fire)
     mesh(new T.ConeGeometry(0.25, 0.8, 7), glow(palette.coral), [0.18, 0.7, 0], fire)
     cylinder(x - 3, 1.1, z, 0.08, 2.2, palette.wood)
+    obstacle(x - 3, 1.1, z, 0.1, 2.2)
+    solids.push({ x: x + 5, y: 0.4, z, w: 2.5, h: 0.8, d: 2.5, shape: 'cylinder' })
     mesh(new T.SphereGeometry(0.25, 8, 6), glow(palette.gold), [x - 3, 2.2, z])
   }
   // East harbor market: striped kiosks, produce baskets, crates and a little arcade.
@@ -681,6 +718,7 @@ export function buildIsland(scene: T.Scene) {
     box(x, 2.8, z, 4.5, 0.24, 3.8, color)
     box(x, 1.45, z + 1.65, 2.8, 1.5, 0.06, palette.ink)
     box(x, 1, z + 2, 3.6, 0.16, 1, color)
+    solids.push({ x, y: 1, z: z + 2, w: 3.6, h: 0.16, d: 1 })
     for (let i = 0; i < 5; i++)
       box(
         x - 1.8 + i * 0.8,
@@ -703,10 +741,13 @@ export function buildIsland(scene: T.Scene) {
   }
   // North lookout, telescopes, extra palms, boardwalk, flower patches and beach umbrellas.
   box(18, 0.18, -28, 9, 0.3, 7, palette.wood)
+  solids.push({ x: 18, y: 0.18, z: -28, w: 9, h: 0.3, d: 7 })
   for (let x = 14; x < 23; x += 0.8) box(x, 0.35, -28, 0.03, 0.02, 7, palette.cream)
   cylinder(18, 1.1, -28, 0.08, 1.8, palette.ink)
+  obstacle(18, 1.1, -28, 0.1, 1.8)
   const telescope = cylinder(18, 2, -28, 0.28, 1.8, palette.blue)
   telescope.rotation.x = Math.PI / 2 + 0.3
+  solids.push({ x: 18, y: 2, z: -28, w: 0.56, h: 1.1, d: 1.8 })
   text('LOOK / WONDER', 18, 2.8, -31, 5)
   for (const [x, z] of [
     [-44, 40],
@@ -733,8 +774,10 @@ export function buildIsland(scene: T.Scene) {
     [-44, -36, palette.mint],
   ] as const) {
     cylinder(x, 1.8, z, 0.06, 3.6, palette.wood)
+    obstacle(x, 1.8, z, 0.08, 3.6)
     cylinder(x, 3.6, z, 0.1, 0.8, color, scene, 2.5, 12)
     box(x + 0.8, 0.2, z + 1, 1.3, 0.25, 3, palette.cream, scene, 0.1)
+    solids.push({ x: x + 0.8, y: 0.2, z: z + 1, w: 1.3, h: 0.25, d: 3 })
   }
   const fireflies = new T.Group()
   scene.add(fireflies)

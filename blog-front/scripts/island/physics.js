@@ -1,6 +1,7 @@
 // A function expression consumed by playwright-cli; a leading semicolon is invalid here.
 // prettier-ignore
 async (page) => {
+  await page.setViewportSize({width:1440,height:1000})
   await page.goto('http://127.0.0.1:4173/')
   await page.getByRole('button', { name: /出发，环岛兜风/ }).click()
   await page.getByRole('button', { name: '回到出发点' }).click()

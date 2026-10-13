@@ -76,8 +76,22 @@ export async function createIslandEngine(
     if (s.rotation)
       desc.setRotation({ x: Math.sin(s.rotation / 2), y: 0, z: 0, w: Math.cos(s.rotation / 2) })
     const body = world.createRigidBody(desc)
+    let collider = RAPIER.ColliderDesc.cuboid(s.w / 2, s.h / 2, s.d / 2)
+    if (s.shape === 'cylinder') collider = RAPIER.ColliderDesc.cylinder(s.h / 2, s.w / 2)
+    if (s.shape === 'cone') collider = RAPIER.ColliderDesc.cone(s.h / 2, s.w / 2)
+    if (s.shape === 'ball') collider = RAPIER.ColliderDesc.ball(s.w / 2)
+    if (s.shape === 'road') {
+      const vertices: number[] = []
+      for (const level of [-1, 1])
+        for (const x of [-1, 1])
+          for (const z of [-1, 1]) {
+            const inset = level > 0 ? -0.05 : 0.2
+            vertices.push(x * (s.w / 2 + inset), (level * s.h) / 2, z * (s.d / 2 + inset))
+          }
+      collider = RAPIER.ColliderDesc.convexHull(new Float32Array(vertices))!
+    }
     world.createCollider(
-      RAPIER.ColliderDesc.cuboid(s.w / 2, s.h / 2, s.d / 2)
+      collider
         .setFriction(0.65)
         .setRestitution(0.15)
         .setDensity(s.dynamic ? 0.4 : 1),
@@ -198,8 +212,47 @@ export async function createIslandEngine(
   const visitResident = (id: string) => {
     const target = residents.telemetry(time).residents.find((r) => r.id === id)
     if (!target) return
-    body.setTranslation({ x: target.x, y: 1.1, z: target.z - 6 }, true)
-    body.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true)
+    let approach: { x: number; y: number; z: number; yaw: number } | null = null
+    for (const yaw of [0, Math.PI / 2, -Math.PI / 2, Math.PI, 0.75, -0.75, 2.4, -2.4]) {
+      const x = target.x - Math.sin(yaw) * 6,
+        z = target.z - Math.cos(yaw) * 6
+      if (Math.abs(x) > 48 || Math.abs(z) > 44) continue
+      const floor = world.castRay(
+        new RAPIER.Ray({ x, y: 8, z }, { x: 0, y: -1, z: 0 }),
+        12,
+        true,
+        undefined,
+        undefined,
+        undefined,
+        body,
+        (c) => c.parent()?.isFixed() ?? true,
+      )
+      if (!floor || 8 - floor.timeOfImpact > 0.4) continue
+      const groundY = 8 - floor.timeOfImpact
+      const rotation = { x: 0, y: Math.sin(yaw / 2), z: 0, w: Math.cos(yaw / 2) }
+      const blocked = world.castShape(
+        { x, y: groundY + 1.15, z },
+        rotation,
+        { x: Math.sin(yaw), y: 0, z: Math.cos(yaw) },
+        new RAPIER.Cuboid(1.02, 1.12, 1.56),
+        0.01,
+        2.4,
+        true,
+        undefined,
+        undefined,
+        undefined,
+        body,
+      )
+      if (blocked) continue
+      approach = { x, y: groundY + 0.8, z, yaw }
+      break
+    }
+    if (!approach) return
+    body.setTranslation(approach, true)
+    body.setRotation(
+      { x: 0, y: Math.sin(approach.yaw / 2), z: 0, w: Math.cos(approach.yaw / 2) },
+      true,
+    )
     body.setLinvel({ x: 0, y: 0, z: 0 }, true)
     body.setAngvel({ x: 0, y: 0, z: 0 }, true)
     arrival.suppress(null)
@@ -274,9 +327,8 @@ export async function createIslandEngine(
     residents.step(time)
     applyVehicleInput(body, input, drive)
     const velocity = body.linvel()
-    const impactSpeed = Math.hypot(velocity.x, velocity.z)
     world.step(collisionQueue)
-    residents.collisions(collisionQueue, impactSpeed, time)
+    residents.collisions(collisionQueue, velocity, time)
   }
   const render = (now: number) => {
     if (disposed) return

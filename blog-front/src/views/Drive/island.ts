@@ -8,6 +8,11 @@ export type ResidentTelemetry = {
   z: number
   hp: number
   recovering: boolean
+  motion?: 'walking' | 'ragdoll' | 'getting-up'
+  bodyParts?: number
+  jointError?: number
+  tilt?: number
+  physicalParts?: number
 }
 export const stations = [
   {
