@@ -638,6 +638,5 @@ export async function createIslandEngine(
     skipIntro: () => {
       journey.skip()
     },
-    startIntro: () => journey.start(),
   }
 }

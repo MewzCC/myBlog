@@ -1,4 +1,4 @@
-// Assert first visible scene stays on the planet until an explicit landing.
+// Verify distant planet framing and an uninterrupted automatic camera approach.
 // prettier-ignore
 async(page)=>{
   const reports=[]
@@ -9,15 +9,24 @@ async(page)=>{
     await page.waitForFunction(()=>document.querySelector('canvas')?.dataset.introPhase)
     const read=()=>page.locator('canvas').evaluate(c=>({phase:c.dataset.introPhase,intro:+c.dataset.intro,island:c.dataset.islandVisible,camera:JSON.parse(c.dataset.camera).position}))
     const first=await read()
-    if(first.phase!=='orbit'||first.intro!==0||first.island!=='false')throw Error('Island exposed before landing: '+JSON.stringify(first))
-    await page.waitForTimeout(width===1440&&!reduced?9000:1000)
-    const held=await read()
-    if(held.phase!=='orbit'||held.intro!==0||held.island!=='false'||Math.hypot(...held.camera.map((n,i)=>n-first.camera[i]))>.001)throw Error('Opening auto-advanced')
-    await page.getByRole('button',{name:'降落小岛 ↘'}).click()
-    await page.waitForFunction(()=>document.querySelector('canvas').dataset.introPhase==='landed',{},{timeout:12000})
-    const landed=await read()
-    if(landed.intro!==1||landed.island!=='true'||Math.hypot(...landed.camera.map((n,i)=>n-first.camera[i]))<200)throw Error('Landing failed')
-    reports.push({width,height,reduced,first,held,landed})
+    const distance=Math.hypot(first.camera[0],first.camera[1]+140,first.camera[2])
+    if(first.phase!=='orbit'||first.intro!==0||first.island!=='false'||distance<1000)throw Error('Opening not distant planet: '+JSON.stringify(first))
+    if(!reduced)await page.screenshot({path:`output/playwright/planet-distant-${width}.png`})
+    let previous=first,largestStep=0,samples=0
+    while(previous.phase!=='landed'&&samples<70){
+      await page.waitForTimeout(200)
+      const next=await read()
+      if(next.intro<previous.intro)throw Error('Approach reversed')
+      const step=Math.hypot(...next.camera.map((v,i)=>v-previous.camera[i]))
+      largestStep=Math.max(largestStep,step)
+      if(!reduced&&step>90*Math.max(1,height/width))throw Error('Camera jumped: '+step)
+      previous=next;samples++
+    }
+    if(previous.phase!=='landed'||previous.intro!==1||previous.island!=='true')throw Error('Automatic landing failed')
+    await page.waitForTimeout(200)
+    const settled=await read()
+    if(Math.hypot(...settled.camera.map((v,i)=>v-previous.camera[i]))>2)throw Error('Overview handoff jumped')
+    reports.push({width,height,reduced,distance,largestStep,samples,first,landed:previous})
   }
   await page.emulateMedia({reducedMotion:'no-preference'})
   await page.evaluate(r=>window.__planetFirstChecks=r,reports)

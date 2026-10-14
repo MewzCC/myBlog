@@ -8,9 +8,8 @@ async(page)=>{
   const first=await read()
   await page.screenshot({path:'output/playwright/planet-opening.png'})
   if(first.intro>.4)throw Error('Globe opening missing')
-  await page.getByRole('button',{name:'降落小岛 ↘'}).click()
   let previous=first.camera.position,largestStep=0
-  for(let i=0;i<45;i++){
+  for(let i=0;i<65;i++){
     await page.waitForTimeout(200)
     const state=await read(),p=state.camera.position
     largestStep=Math.max(largestStep,Math.hypot(...p.map((v,j)=>v-previous[j])))
@@ -43,7 +42,6 @@ async(page)=>{
   await page.goto('http://127.0.0.1:4173/')
   await page.waitForFunction(()=>document.querySelector('canvas')?.dataset.environment)
   if((await read()).intro!==0)throw Error('Reduced motion skipped the initial planet')
-  await page.getByRole('button',{name:'降落小岛 ↘'}).click()
   await page.waitForFunction(()=>+document.querySelector('canvas').dataset.intro===1)
   await page.emulateMedia({reducedMotion:'no-preference'})
 }

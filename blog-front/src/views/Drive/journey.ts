@@ -1,18 +1,22 @@
 import * as T from 'three'
 
-export const arrivalDuration = 7
+export const arrivalDuration = 9
+export const orbitDuration = 1.2
 export function createArrivalJourney() {
   let phase: 'orbit' | 'approach' | 'landed' = 'orbit'
   let seconds = 0
   return {
-    start() {
-      if (phase === 'orbit') phase = 'approach'
-    },
     skip() {
       phase = 'landed'
       seconds = arrivalDuration
     },
     step(dt: number, reduced: boolean) {
+      if (phase === 'orbit') {
+        seconds += dt
+        if (seconds < orbitDuration) return
+        phase = 'approach'
+        seconds -= orbitDuration
+      }
       if (phase !== 'approach') return
       seconds = reduced ? arrivalDuration : Math.min(arrivalDuration, seconds + dt)
       if (seconds >= arrivalDuration) phase = 'landed'
@@ -34,8 +38,9 @@ export function arrivalPose(
   focus: T.Vector3,
   aspect: number,
 ) {
-  const t = progress * progress * (3 - 2 * progress)
-  const start = new T.Vector3(340 / Math.min(1, aspect), 260, 390 / Math.min(1, aspect))
+  // Zero velocity and acceleration at both ends keep the orbit and overview continuous.
+  const t = progress * progress * progress * (progress * (progress * 6 - 15) + 10)
+  const start = new T.Vector3(560 / Math.min(1, aspect), 520, 645 / Math.min(1, aspect))
   const point = start.lerp(destination, t)
   point.y += Math.sin(t * Math.PI) * 40
   return { position: point, focus: new T.Vector3(0, -140, 0).lerp(focus, t) }
@@ -80,7 +85,7 @@ export function buildPlanet(scene: T.Scene) {
   for (let i = 0; i < 500; i++) {
     const a = i * 2.399963,
       b = Math.acos(1 - (2 * (i + 0.5)) / 500),
-      r = 650
+      r = 1800
     starPositions.push(
       Math.sin(b) * Math.cos(a) * r,
       Math.cos(b) * r,

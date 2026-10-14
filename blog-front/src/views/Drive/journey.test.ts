@@ -1,16 +1,22 @@
 import { expect, it } from 'vitest'
 import { Vector3 } from 'three'
-import { arrivalPose, arrivalProgress, arrivalDuration, createArrivalJourney } from './journey'
+import {
+  arrivalPose,
+  arrivalProgress,
+  arrivalDuration,
+  orbitDuration,
+  createArrivalJourney,
+} from './journey'
 
 it.each([false, true])(
-  'holds the planet until the visitor lands even with reducedMotion=%s',
+  'shows the planet first then automatically approaches with reducedMotion=%s',
   (reduced) => {
     const journey = createArrivalJourney()
-    for (let i = 0; i < 1200; i++) journey.step(1 / 60, reduced)
+    journey.step(orbitDuration / 2, reduced)
     expect(journey.phase).toBe('orbit')
     expect(journey.progress).toBe(0)
-    journey.start()
-    for (let i = 0; i < 421; i++) journey.step(1 / 60, reduced)
+    for (let i = 0; i < Math.ceil((arrivalDuration + orbitDuration) * 60); i++)
+      journey.step(1 / 60, reduced)
     expect(journey.phase).toBe('landed')
     expect(journey.progress).toBe(1)
   },
@@ -25,11 +31,24 @@ it('starts above a globe and reaches the actual destination continuously', () =>
   expect(landed.position.distanceTo(end)).toBeLessThan(0.001)
   expect(landed.focus.distanceTo(focus)).toBeLessThan(0.001)
   let previous = start.position
-  for (let i = 1; i <= 420; i++) {
+  for (let i = 1; i <= arrivalDuration * 60; i++) {
     const current = arrivalPose(arrivalProgress(i / 60), end, focus, 1).position
-    expect(current.distanceTo(previous)).toBeLessThan(3)
+    expect(current.distanceTo(previous)).toBeLessThan(4)
     previous = current
   }
   expect(arrivalProgress(arrivalDuration)).toBe(1)
   expect(arrivalProgress(0, true)).toBe(1)
+})
+
+it('frames the planet from a distance and eases gently into the overview', () => {
+  const destination = new Vector3(105, 100, 105),
+    focus = new Vector3()
+  for (const aspect of [0.46, 1, 1.44, 2.4]) {
+    const start = arrivalPose(0, destination, focus, aspect)
+    expect(start.position.distanceTo(start.focus)).toBeGreaterThan(1000)
+    const next = arrivalPose(1 / (arrivalDuration * 60), destination, focus, aspect)
+    const beforeEnd = arrivalPose(1 - 1 / (arrivalDuration * 60), destination, focus, aspect)
+    expect(next.position.distanceTo(start.position)).toBeLessThan(0.001)
+    expect(beforeEnd.position.distanceTo(destination)).toBeLessThan(0.001)
+  }
 })
