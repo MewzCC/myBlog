@@ -32,13 +32,26 @@ it('starts above a globe and reaches the actual destination continuously', () =>
   expect(landed.position.distanceTo(end)).toBeLessThan(0.001)
   expect(landed.focus.distanceTo(focus)).toBeLessThan(0.001)
   let previous = start.position
+  let previousStep = 0
   for (let i = 1; i <= arrivalDuration * 60; i++) {
     const current = arrivalPose(arrivalProgress(i / 60), end, focus, 1).position
-    expect(current.distanceTo(previous)).toBeLessThan(4)
+    const step = current.distanceTo(previous)
+    expect(step).toBeLessThan(5)
+    expect(Math.abs(step - previousStep)).toBeLessThan(0.1)
+    previousStep = step
     previous = current
   }
   expect(arrivalProgress(arrivalDuration)).toBe(1)
   expect(arrivalProgress(0, true)).toBe(1)
+})
+
+it('reaches clouds sooner while retaining their original timing and entry speed', () => {
+  expect(arrivalProgress(7)).toBeCloseTo(0.43)
+  expect(arrivalProgress(12.8)).toBeCloseTo(0.72)
+  expect(arrivalProgress(arrivalDuration) - arrivalProgress(12.8)).toBeCloseTo(0.28)
+  const before = (arrivalProgress(7) - arrivalProgress(6.999)) / 0.001
+  const after = (arrivalProgress(7.001) - arrivalProgress(7)) / 0.001
+  expect(before).toBeCloseTo(after, 4)
 })
 
 it('straightens over the landing site before cloud rendering begins', () => {

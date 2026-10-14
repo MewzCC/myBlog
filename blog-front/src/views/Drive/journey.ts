@@ -1,6 +1,9 @@
 import * as T from 'three'
 
-export const arrivalDuration = 20
+const cloudStart = 0.43
+const approachSeconds = 7
+const cloudPaceSeconds = 20
+export const arrivalDuration = approachSeconds + (1 - cloudStart) * cloudPaceSeconds
 export const landingAlignment = 0.4
 export const orbitDuration = 1.2
 export function createArrivalJourney() {
@@ -31,7 +34,15 @@ export function createArrivalJourney() {
   }
 }
 export function arrivalProgress(seconds: number, reduced = false) {
-  return reduced ? 1 : Math.min(1, Math.max(0, seconds / arrivalDuration))
+  if (reduced) return 1
+  const elapsed = Math.max(0, seconds)
+  if (elapsed < approachSeconds) {
+    const t = elapsed / approachSeconds
+    const endSlope = approachSeconds / (cloudStart * cloudPaceSeconds)
+    // Accelerate the approach, matching the original cloud speed at the boundary.
+    return cloudStart * ((2 - endSlope) * t + (endSlope - 1) * t * t)
+  }
+  return Math.min(1, cloudStart + (elapsed - approachSeconds) / cloudPaceSeconds)
 }
 export function arrivalPose(
   progress: number,
