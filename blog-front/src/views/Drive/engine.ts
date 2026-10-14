@@ -502,7 +502,7 @@ export async function createIslandEngine(
       camera.lookAt(pose.focus)
       ;(scene.background as T.Color)
         .copy(spaceSky)
-        .lerp(skyTarget, T.MathUtils.smoothstep(intro, 0.5, 1))
+        .lerp(skyTarget, T.MathUtils.smoothstep(intro, 0.6, 0.8))
     } else {
       if (previousIntroPhase !== 'landed') camera.position.copy(cameraTarget)
       else camera.position.lerp(cameraTarget, 1 - Math.exp(-dt * 3))
@@ -552,6 +552,7 @@ export async function createIslandEngine(
       canvas.dataset.islandVisible = String(islandScene.visible)
       canvas.dataset.cloudCover = String(atmosphere.cover)
       canvas.dataset.cloudClearing = String(atmosphere.clearing)
+      canvas.dataset.cloudRendering = String(atmosphere.cover > 0)
       canvas.dataset.camera = JSON.stringify({
         position: camera.position.toArray(),
         target: cameraTarget.toArray(),

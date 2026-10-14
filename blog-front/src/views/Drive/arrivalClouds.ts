@@ -1,9 +1,9 @@
 import * as T from 'three'
 
 export function arrivalAtmosphere(progress: number) {
-  const entering = T.MathUtils.smoothstep(progress, 0.2, 0.42)
-  const clearing = T.MathUtils.smoothstep(progress, 0.58, 0.96)
-  return { cover: entering * (1 - clearing), clearing, islandVisible: progress >= 0.5 }
+  const entering = T.MathUtils.smoothstep(progress, 0.43, 0.6)
+  const clearing = T.MathUtils.smoothstep(progress, 0.72, 1)
+  return { cover: entering * (1 - clearing), clearing, islandVisible: progress >= 0.64 }
 }
 
 // Camera-space cloud bank: billows expand past the lens, then open unevenly from the centre.
@@ -72,7 +72,7 @@ export function buildArrivalClouds(camera: T.PerspectiveCamera) {
       bank.scale.set(height * camera.aspect * 1.02, height * 1.02, 1)
       material.uniforms.cover.value = atmosphere.cover
       material.uniforms.clearing.value = atmosphere.clearing
-      material.uniforms.travel.value = T.MathUtils.smoothstep(progress, 0.2, 0.96)
+      material.uniforms.travel.value = T.MathUtils.smoothstep(progress, 0.43, 1)
       material.uniforms.aspect.value = camera.aspect
       material.uniforms.tint.value.set('#e9f2eb').lerp(new T.Color('#7e97b0'), night * 0.65)
       return atmosphere

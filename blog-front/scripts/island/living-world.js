@@ -9,7 +9,7 @@ async(page)=>{
   await page.screenshot({path:'output/playwright/planet-opening.png'})
   if(first.intro>.4)throw Error('Globe opening missing')
   let previous=first.camera.position,largestStep=0
-  for(let i=0;i<65;i++){
+  for(let i=0;i<120;i++){
     await page.waitForTimeout(200)
     const state=await read(),p=state.camera.position
     largestStep=Math.max(largestStep,Math.hypot(...p.map((v,j)=>v-previous[j])))

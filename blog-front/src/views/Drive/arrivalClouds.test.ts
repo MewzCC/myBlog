@@ -3,14 +3,15 @@ import { arrivalAtmosphere } from './arrivalClouds'
 
 it('conceals the scene switch inside an opaque cloud bank then gradually clears', () => {
   expect(arrivalAtmosphere(0)).toEqual({ cover: 0, clearing: 0, islandVisible: false })
-  expect(arrivalAtmosphere(0.499).islandVisible).toBe(false)
-  for (const progress of [0.49, 0.5, 0.51]) expect(arrivalAtmosphere(progress).cover).toBe(1)
-  expect(arrivalAtmosphere(0.5).islandVisible).toBe(true)
+  expect(arrivalAtmosphere(0.639).islandVisible).toBe(false)
+  for (const progress of [0.63, 0.64, 0.65]) expect(arrivalAtmosphere(progress).cover).toBe(1)
+  expect(arrivalAtmosphere(0.64).islandVisible).toBe(true)
+  for (const progress of [0.2, 0.3, 0.4, 0.43]) expect(arrivalAtmosphere(progress).cover).toBe(0)
   let previous = 1
-  for (let i = 58; i <= 100; i++) {
+  for (let i = 72; i <= 100; i++) {
     const state = arrivalAtmosphere(i / 100)
     expect(state.cover).toBeLessThanOrEqual(previous)
-    expect(previous - state.cover).toBeLessThan(0.05)
+    expect(previous - state.cover).toBeLessThan(0.08)
     previous = state.cover
   }
   expect(arrivalAtmosphere(1)).toEqual({ cover: 0, clearing: 1, islandVisible: true })

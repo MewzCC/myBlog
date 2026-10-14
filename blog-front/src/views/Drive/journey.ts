@@ -1,6 +1,7 @@
 import * as T from 'three'
 
-export const arrivalDuration = 9
+export const arrivalDuration = 20
+export const landingAlignment = 0.4
 export const orbitDuration = 1.2
 export function createArrivalJourney() {
   let phase: 'orbit' | 'approach' | 'landed' = 'orbit'
@@ -38,12 +39,16 @@ export function arrivalPose(
   focus: T.Vector3,
   aspect: number,
 ) {
-  // Zero velocity and acceleration at both ends keep the orbit and overview continuous.
-  const t = progress * progress * progress * (progress * (progress * 6 - 15) + 10)
+  const ease = (p: number) => p * p * p * (p * (p * 6 - 15) + 10)
   const start = new T.Vector3(560 / Math.min(1, aspect), 520, 645 / Math.min(1, aspect))
-  const point = start.lerp(destination, t)
-  point.y += Math.sin(t * Math.PI) * 40
-  return { position: point, focus: new T.Vector3(0, -140, 0).lerp(focus, t) }
+  // Approach the planet and straighten above the landing site before crossing clouds.
+  const aligned = new T.Vector3(focus.x, 240 * Math.max(1, 0.8 / aspect), focus.z + 12)
+  if (progress <= landingAlignment) {
+    const t = ease(progress / landingAlignment)
+    return { position: start.lerp(aligned, t), focus: new T.Vector3(0, -140, 0).lerp(focus, t) }
+  }
+  const t = ease((progress - landingAlignment) / (1 - landingAlignment))
+  return { position: aligned.lerp(destination, t), focus: focus.clone() }
 }
 export function buildPlanet(scene: T.Scene) {
   const group = new T.Group()
@@ -101,7 +106,7 @@ export function buildPlanet(scene: T.Scene) {
     animate: (progress: number, time = 0) => {
       planet.rotation.y = time * 0.025
       group.visible = progress < 1
-      material.opacity = 1 - T.MathUtils.smoothstep(progress, 0.42, 0.5)
+      material.opacity = 1 - T.MathUtils.smoothstep(progress, 0.6, 0.64)
       halo.material.opacity = 0.12 * (1 - progress)
       stars.material.opacity = 1 - progress
     },

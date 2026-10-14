@@ -6,6 +6,7 @@ import {
   arrivalDuration,
   orbitDuration,
   createArrivalJourney,
+  landingAlignment,
 } from './journey'
 
 it.each([false, true])(
@@ -38,6 +39,18 @@ it('starts above a globe and reaches the actual destination continuously', () =>
   }
   expect(arrivalProgress(arrivalDuration)).toBe(1)
   expect(arrivalProgress(0, true)).toBe(1)
+})
+
+it('straightens over the landing site before cloud rendering begins', () => {
+  const focus = new Vector3(-12, 0, 12),
+    destination = new Vector3(105, 123, 105)
+  const aligned = arrivalPose(landingAlignment, destination, focus, 1.44)
+  expect(aligned.focus.distanceTo(focus)).toBe(0)
+  expect(aligned.position.x).toBe(focus.x)
+  expect(aligned.position.y).toBe(240)
+  expect(Math.atan2(aligned.position.z - focus.z, aligned.position.y)).toBeLessThan(0.06)
+  const entering = arrivalPose(0.43, destination, focus, 1.44)
+  expect(entering.position.distanceTo(aligned.position)).toBeLessThan(1)
 })
 
 it('frames the planet from a distance and eases gently into the overview', () => {

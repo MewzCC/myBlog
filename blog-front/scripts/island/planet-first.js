@@ -13,7 +13,7 @@ async(page)=>{
     if(first.phase!=='orbit'||first.intro!==0||first.island!=='false'||distance<1000)throw Error('Opening not distant planet: '+JSON.stringify(first))
     if(!reduced)await page.screenshot({path:`output/playwright/planet-distant-${width}.png`})
     let previous=first,largestStep=0,samples=0
-    while(previous.phase!=='landed'&&samples<70){
+    while(previous.phase!=='landed'&&samples<120){
       await page.waitForTimeout(200)
       const next=await read()
       if(next.intro<previous.intro)throw Error('Approach reversed')
