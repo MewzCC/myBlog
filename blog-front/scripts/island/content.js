@@ -52,6 +52,7 @@ async (page) => {
   await page.waitForURL('**/?page=guestbook')
   const guestbookUrl = page.url()
   await page.getByRole('button', { name: '首页', exact: true }).click()
+  await page.getByRole('button',{name:/跳过开场/}).click()
   await page.getByRole('button', { name: /出发，环岛兜风/ }).click()
   await page.getByRole('button', { name: '暂停驾驶' }).click()
   const before = await page.locator('canvas').getAttribute('data-z')

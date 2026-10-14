@@ -3,6 +3,7 @@
 async(page)=>{
   await page.setViewportSize({width:1440,height:1000})
   await page.goto('http://127.0.0.1:4173/')
+  await page.getByRole('button',{name:/跳过开场/}).click()
   await page.getByRole('button',{name:/出发，环岛兜风/}).click()
   const read=()=>page.locator('canvas').evaluate(c=>({hour:+c.dataset.hour,daylight:+c.dataset.daylight,lighting:JSON.parse(c.dataset.lighting)}))
   const auto=page.getByRole('button',{name:'自动昼夜循环'})

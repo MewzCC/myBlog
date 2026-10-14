@@ -297,6 +297,14 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
           <div className="drift__arrival-track">
             <i style={{ width: `${(telemetry.intro ?? 0) * 100}%` }} />
           </div>
+          {telemetry.introPhase === 'orbit' && (
+            <button
+              className="drift__arrival-begin"
+              onClick={() => engineRef.current?.startIntro()}
+            >
+              降落小岛 ↘
+            </button>
+          )}
           <button onClick={() => engineRef.current?.skipIntro()}>跳过开场 ↗</button>
         </section>
       )}

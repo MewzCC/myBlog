@@ -3,6 +3,7 @@
 async (page) => {
   await page.setViewportSize({width:1440,height:1000})
   await page.goto('http://127.0.0.1:4173/')
+  await page.getByRole('button',{name:/跳过开场/}).click()
   await page.getByRole('button',{name:/出发，环岛兜风/}).click()
   const read = () => page.evaluate(() => { const c=document.querySelector('canvas');return {x:+c.dataset.x,z:+c.dataset.z,yaw:+c.dataset.yaw,speed:+c.dataset.speed} })
   async function steerTo(x,z) {

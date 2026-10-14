@@ -3,6 +3,7 @@
 async (page) => {
   await page.setViewportSize({width:1440,height:1000})
   await page.goto('http://127.0.0.1:4173/')
+  await page.getByRole('button',{name:/跳过开场/}).click()
   await page.getByRole('button', { name: /出发，环岛兜风/ }).click()
   await page.getByRole('button', { name: '回到出发点' }).click()
   await page.getByRole('button', { name: '前往书店 / 文章' }).click()

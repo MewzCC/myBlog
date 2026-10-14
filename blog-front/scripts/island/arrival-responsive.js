@@ -3,6 +3,7 @@
 async (page) => {
   const results=[]
   await page.goto('http://127.0.0.1:4173/')
+  await page.getByRole('button',{name:/跳过开场/}).click()
   await page.getByRole('button',{name:/出发，环岛兜风/}).click()
   for(const dark of [false,true]) {
     const toggle=page.getByRole('button',{name:dark?'切换到夜晚':'切换到白天'})

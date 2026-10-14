@@ -73,6 +73,7 @@ export const tokens = [
 export type DriveInput = { throttle: number; steer: number; brake: boolean; boost: boolean }
 export type IslandTelemetry = {
   intro?: number
+  introPhase?: 'orbit' | 'approach' | 'landed'
   hour?: number
   daylight?: number
   y: number

@@ -7,7 +7,7 @@ import { buildResidents } from './residents'
 import { createSceneBody } from './scenePhysics'
 import { advanceHour, solarState } from './dayCycle'
 import { buildEnvironment } from './environment'
-import { buildPlanet, arrivalProgress, arrivalPose, arrivalDuration } from './journey'
+import { buildPlanet, arrivalPose, createArrivalJourney } from './journey'
 import {
   initialTelemetry,
   islandSize,
@@ -79,10 +79,15 @@ export async function createIslandEngine(
   moon.shadow = sun.shadow.clone()
   moon.shadow.mapSize.set(1024, 1024)
   scene.add(moon)
-  const models = buildIsland(scene),
-    vehicle = buildCar(scene, models)
+  const islandScene = new T.Scene()
+  islandScene.visible = false
+  scene.add(islandScene)
+  const models = buildIsland(islandScene),
+    vehicle = buildCar(islandScene, models)
   const planet = buildPlanet(scene)
-  let introSeconds = 0
+  const journey = createArrivalJourney()
+  let orbitTime = 0
+  let previousIntroPhase: 'orbit' | 'approach' | 'landed' = 'orbit'
   const world = new RAPIER.World({ x: 0, y: -18, z: 0 })
   world.timestep = 1 / 60
   let islandHour = new Date().getHours() + new Date().getMinutes() / 60
@@ -92,7 +97,7 @@ export async function createIslandEngine(
     if (s.dynamic && s.mesh) dynamics.push({ body, mesh: s.mesh, x: s.x, z: s.z })
   }
   const body = createVehicleBody(world)
-  const residents = buildResidents(scene, models, world, body)
+  const residents = buildResidents(islandScene, models, world, body)
   const collisionQueue = new RAPIER.EventQueue(true)
   const dustGeometry = new T.BufferGeometry(),
     dustArray = new Float32Array(60 * 3),
@@ -346,10 +351,12 @@ export async function createIslandEngine(
       }
     }
     if (!settings.paused) {
-      time += dt
-      introSeconds += dt
-      if (settings.dayCycle) islandHour = advanceHour(islandHour, dt)
-      accumulator += dt
+      orbitTime += dt
+      journey.step(dt, reduced.matches)
+      const simulationDt = journey.phase === 'orbit' ? 0 : dt
+      time += simulationDt
+      if (settings.dayCycle) islandHour = advanceHour(islandHour, simulationDt)
+      accumulator += simulationDt
       while (accumulator >= 1 / 60) {
         updatePhysics(input, settings.driving)
         accumulator -= 1 / 60
@@ -408,8 +415,9 @@ export async function createIslandEngine(
     }
     if (!settings.dayCycle) islandHour = settings.dark ? 0 : 12
     const solar = solarState(islandHour)
-    const intro = arrivalProgress(introSeconds, reduced.matches)
-    planet.animate(intro)
+    const intro = journey.progress
+    planet.animate(intro, orbitTime)
+    islandScene.visible = intro > 0.25
     environment.root.visible = intro > 0.45
     models.water.visible = intro > 0.62
     models.water.material.opacity = T.MathUtils.smoothstep(intro, 0.62, 0.88)
@@ -492,9 +500,11 @@ export async function createIslandEngine(
         .copy(spaceSky)
         .lerp(skyTarget, T.MathUtils.smoothstep(intro, 0.5, 1))
     } else {
-      camera.position.lerp(cameraTarget, 1 - Math.exp(-dt * 3))
+      if (previousIntroPhase !== 'landed') camera.position.copy(cameraTarget)
+      else camera.position.lerp(cameraTarget, 1 - Math.exp(-dt * 3))
       camera.lookAt(focus)
     }
+    previousIntroPhase = journey.phase
     residents.animate(time, camera, overview, reduced.matches || settings.paused)
     const distanceToFocus = camera.position.distanceTo(focus)
     const far = Math.max(900, distanceToFocus + 350)
@@ -518,6 +528,7 @@ export async function createIslandEngine(
         hour: islandHour,
         daylight: solar.daylight,
         intro,
+        introPhase: journey.phase,
         y: p.y,
         x: p.x,
         z: p.z,
@@ -533,6 +544,8 @@ export async function createIslandEngine(
       canvas.dataset.audioState = audio?.state || 'off'
       canvas.dataset.hour = String(islandHour)
       canvas.dataset.intro = String(intro)
+      canvas.dataset.introPhase = journey.phase
+      canvas.dataset.islandVisible = String(islandScene.visible)
       canvas.dataset.camera = JSON.stringify({
         position: camera.position.toArray(),
         target: cameraTarget.toArray(),
@@ -571,8 +584,9 @@ export async function createIslandEngine(
     renderer.render(scene, camera)
     canvas.dataset.drawCalls = String(renderer.info.render.calls)
   }
-  camera.position.set(105, 100, 105)
-  camera.lookAt(0, 0, 0)
+  const openingPose = arrivalPose(0, new T.Vector3(), new T.Vector3(), camera.aspect)
+  camera.position.copy(openingPose.position)
+  camera.lookAt(openingPose.focus)
   frame = requestAnimationFrame(render)
   options.onReady()
   const dispose = () => {
@@ -622,7 +636,8 @@ export async function createIslandEngine(
     unlockSound,
     dispose,
     skipIntro: () => {
-      introSeconds = arrivalDuration
+      journey.skip()
     },
+    startIntro: () => journey.start(),
   }
 }

@@ -3,6 +3,7 @@
 async(page)=>{
   await page.setViewportSize({width:390,height:844})
   await page.goto('http://127.0.0.1:4173/')
+  await page.getByRole('button',{name:/跳过开场/}).click()
   await page.getByRole('button',{name:/出发，环岛兜风/}).click()
   const cdp=await page.context().newCDPSession(page)
   await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:2})

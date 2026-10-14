@@ -1,6 +1,30 @@
 import * as T from 'three'
 
 export const arrivalDuration = 7
+export function createArrivalJourney() {
+  let phase: 'orbit' | 'approach' | 'landed' = 'orbit'
+  let seconds = 0
+  return {
+    start() {
+      if (phase === 'orbit') phase = 'approach'
+    },
+    skip() {
+      phase = 'landed'
+      seconds = arrivalDuration
+    },
+    step(dt: number, reduced: boolean) {
+      if (phase !== 'approach') return
+      seconds = reduced ? arrivalDuration : Math.min(arrivalDuration, seconds + dt)
+      if (seconds >= arrivalDuration) phase = 'landed'
+    },
+    get phase() {
+      return phase
+    },
+    get progress() {
+      return phase === 'orbit' ? 0 : arrivalProgress(seconds)
+    },
+  }
+}
 export function arrivalProgress(seconds: number, reduced = false) {
   return reduced ? 1 : Math.min(1, Math.max(0, seconds / arrivalDuration))
 }
@@ -69,7 +93,8 @@ export function buildPlanet(scene: T.Scene) {
   )
   group.add(stars)
   return {
-    animate: (progress: number) => {
+    animate: (progress: number, time = 0) => {
+      planet.rotation.y = time * 0.025
       group.visible = progress < 1
       material.opacity = 1 - T.MathUtils.smoothstep(progress, 0.55, 0.88)
       halo.material.opacity = 0.12 * (1 - progress)
