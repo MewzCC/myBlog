@@ -1,6 +1,11 @@
 import axios, { type AxiosInstance, type AxiosResponse } from 'axios'
 import { message } from '../components/Message/MessageProvider'
 import { getVisitorId } from './visitor'
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    silentError?: boolean
+  }
+}
 
 const service: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
@@ -23,7 +28,7 @@ service.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error)
-  }
+  },
 )
 
 service.interceptors.response.use(
@@ -34,9 +39,10 @@ service.interceptors.response.use(
   },
   (error) => {
     console.error('Request error:', error)
-    message.error(error.response?.data?.message || error.message || '请求失败')
+    if (!error.config?.silentError)
+      message.error(error.response?.data?.message || error.message || '请求失败')
     return Promise.reject(error)
-  }
+  },
 )
 
 export default service

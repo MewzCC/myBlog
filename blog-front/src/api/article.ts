@@ -8,14 +8,17 @@ import type {
   CreateArticleRequest,
 } from '../types/api'
 
-export const getArticles = (params: { 
-  page?: number; 
-  pageSize?: number; 
-  keyword?: string;
-  category?: string;
-  tag?: string;
-}) => {
-  return request.get<ApiResponse<ArticleListResponse>>('/articles', { params })
+export const getArticles = (
+  params: {
+    page?: number
+    pageSize?: number
+    keyword?: string
+    category?: string
+    tag?: string
+  },
+  silentError = false,
+) => {
+  return request.get<ApiResponse<ArticleListResponse>>('/articles', { params, silentError })
 }
 
 export const getArticleDetail = (id: string) => {
@@ -31,7 +34,9 @@ export const likeArticle = (id: string) => {
 }
 
 export const favoriteArticle = (id: string) => {
-  return request.post<ApiResponse<{ favorites: number; isFavorited: boolean }>>(`/articles/${id}/favorite`)
+  return request.post<ApiResponse<{ favorites: number; isFavorited: boolean }>>(
+    `/articles/${id}/favorite`,
+  )
 }
 
 export const getArticleComments = (id: string) => {

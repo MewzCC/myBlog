@@ -187,6 +187,60 @@
   color: var(--drift-ink);
   box-shadow: 4px 4px 0 #21373d18;
 }
+.drift__arrival {
+  pointer-events: none;
+  position: fixed;
+  z-index: 6;
+  left: 50%;
+  bottom: 105px;
+  transform: translateX(-50%);
+  width: min(400px, calc(100% - 32px));
+  padding: 18px 22px;
+  border: 1px solid #e9edce70;
+  border-radius: 22px;
+  color: #fff4da;
+  background: #102b3deb;
+  backdrop-filter: blur(12px);
+  display: grid;
+  gap: 10px;
+  box-shadow: 0 12px 45px #071a2b30;
+}
+.drift__arrival > span {
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  opacity: 0.65;
+}
+.drift__arrival strong {
+  font-size: clamp(17px, 3vw, 23px);
+}
+.drift__arrival-track {
+  height: 2px;
+  background: #ffffff20;
+  overflow: hidden;
+}
+.drift__arrival-track i {
+  display: block;
+  height: 100%;
+  background: #a9dac3;
+}
+.drift .drift__arrival button {
+  pointer-events: auto;
+  padding: 0;
+  justify-self: end;
+  color: #ffbd69;
+  background: transparent;
+  border: 0;
+  font-size: 10px;
+}
+.drift--arriving .drift__welcome,
+.drift--arriving .drift__clock {
+  opacity: 0;
+  pointer-events: none;
+}
+.drift__welcome,
+.drift__clock {
+  transition: opacity 0.6s ease;
+}
 .drift__clock > span {
   grid-column: 1 / -1;
   font-size: 8px;
@@ -274,6 +328,19 @@
   left: clamp(18px, 4vw, 64px);
   top: 21%;
   width: min(380px, 31%);
+}
+.drift__trip-stages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 14px 0;
+}
+.drift__trip-stages span {
+  padding: 5px 8px;
+  border: 1px solid var(--drift-line);
+  border-radius: 8px;
+  font-size: 9px;
+  background: color-mix(in srgb, var(--drift-paper) 72%, transparent);
 }
 .drift__eyebrow {
   font:
@@ -2259,5 +2326,50 @@
   }
   .drift__resident-health i {
     transition: none;
+  }
+}
+
+@media (max-width: 759px) {
+  .drift__clock {
+    top: 66px;
+    left: 18px;
+    right: auto;
+    min-width: 0;
+    width: 128px;
+    padding: 6px 8px;
+    border-radius: 10px;
+  }
+  .drift__clock > span,
+  .drift__clock small {
+    display: none;
+  }
+  .drift__clock time {
+    font-size: 16px;
+  }
+  .drift__clock button {
+    font-size: 8px;
+  }
+  .drift__journey {
+    top: 110px;
+    max-width: calc(100% - 148px);
+  }
+}
+@media (max-height: 500px) and (min-width: 480px) and (max-width: 759px) {
+  .drift:not(.drift--driving) .drift__clock {
+    left: auto;
+    right: 18px;
+    top: 58px;
+  }
+  .drift:not(.drift--driving) .drift__map {
+    display: none;
+  }
+  .drift--driving .drift__clock {
+    top: 58px;
+  }
+  .drift__journey {
+    display: none;
+  }
+  .drift__trip-stages {
+    margin: 8px 0;
   }
 }

@@ -67,12 +67,12 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
       listener = (e: MediaQueryListEvent) => setSystemDark(e.matches)
     media.addEventListener('change', listener)
     let alive = true
-    void getBloggerProfile()
+    void getBloggerProfile(true)
       .then((r) => {
         if (alive && r.data.code === 200) setProfile(r.data.data)
       })
       .catch(() => undefined)
-    void getArticles({ page: 1, pageSize: 20 })
+    void getArticles({ page: 1, pageSize: 20 }, true)
       .then((r) => {
         if (!alive) return
         if (r.data.code === 200) {
@@ -271,7 +271,7 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
   }
   return (
     <main
-      className={`drift${driving ? ' drift--driving' : ''}${nearby ? ' drift--nearby' : ''}${sceneDark ? ' drift--night' : ' drift--day'}`}
+      className={`drift${(telemetry.intro ?? 1) < 1 ? ' drift--arriving' : ''}${driving ? ' drift--driving' : ''}${nearby ? ' drift--nearby' : ''}${sceneDark ? ' drift--night' : ' drift--day'}`}
     >
       <canvas
         key={attempt}
@@ -288,6 +288,18 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
         aria-label="可驾驶的漂流岛 3D 场景，WASD 或方向键驾驶，E 进入站点，R 重置，C 切换镜头"
       />
       <div className="drift__vignette" aria-hidden="true" />
+      {(telemetry.intro ?? 1) < 1 && (
+        <section className="drift__arrival" aria-label="星球降落开场">
+          <span>ORBIT 01 / SAKURA'S LITTLE WORLD</span>
+          <strong>
+            {(telemetry.intro ?? 0) < 0.5 ? '从一颗小小的星球，' : '降落在我的日常里。'}
+          </strong>
+          <div className="drift__arrival-track">
+            <i style={{ width: `${(telemetry.intro ?? 0) * 100}%` }} />
+          </div>
+          <button onClick={() => engineRef.current?.skipIntro()}>跳过开场 ↗</button>
+        </section>
+      )}
       <header className="drift__brand">
         <span className="drift__stamp">✳</span>
         <div>
@@ -337,6 +349,11 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
         <section className="drift__welcome">
           <div className="drift__eyebrow">
             <span /> PERSONAL PLAYGROUND · VOL. 01
+          </div>
+          <div className="drift__trip-stages" aria-label="岛屿体验">
+            <span>✧ 星球降落</span>
+            <span>↝ 岸线漫游</span>
+            <span>◐ 昼夜流转</span>
           </div>
           <h1>
             欢迎绕个路，

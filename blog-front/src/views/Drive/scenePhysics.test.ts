@@ -94,3 +94,17 @@ it('responds less to the same impulse as movable-object mass increases', () => {
   heavy.applyImpulse({ x: 0, y: 0, z: 1 }, true)
   expect(light.linvel().z).toBeGreaterThan(heavy.linvel().z * 2)
 })
+
+it('covers the upper canopy rim so wind cannot expose a missing pointed-tip collision volume', () => {
+  const canopy = createSceneBody(world, {
+    x: 0,
+    y: 2,
+    z: 0,
+    w: 3.36,
+    h: 1.9,
+    d: 3.36,
+    shape: 'cone',
+    topRadius: 0.23,
+  })
+  expect(canopy.collider(0).containsPoint({ x: 0.2, y: 2.94, z: 0 })).toBe(true)
+})

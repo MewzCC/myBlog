@@ -72,6 +72,7 @@ export const tokens = [
 ] as const
 export type DriveInput = { throttle: number; steer: number; brake: boolean; boost: boolean }
 export type IslandTelemetry = {
+  intro?: number
   hour?: number
   daylight?: number
   y: number

@@ -12,6 +12,7 @@ export type SolidPart = {
   d: number
   rotation?: number
   shape?: 'cylinder' | 'cone' | 'road' | 'ball'
+  topRadius?: number
 }
 export type Solid = SolidPart & {
   dynamic?: boolean
@@ -43,6 +44,9 @@ export function buildIsland(scene: T.Scene) {
   const lamps: T.MeshStandardMaterial[] = []
   const textures: T.Texture[] = []
   const materials = new Map<string, T.MeshStandardMaterial>()
+  const treeWind = { value: 0 }
+  let treeWindCompiled = false
+  const foliageMaterials = new Map<string, T.MeshStandardMaterial>()
   const mat = (color: string, roughness = 0.8, metalness = 0) => {
     const key = `${color}/${roughness}/${metalness}`
     if (!materials.has(key))
@@ -257,6 +261,9 @@ export function buildIsland(scene: T.Scene) {
   const beam = mesh(new T.ConeGeometry(5, 27, 20, 1, true), beamMaterial, [0, 0, 14], beacon)
   beam.rotation.x = -Math.PI / 2
   mesh(new T.SphereGeometry(0.5, 12, 8), glow(palette.gold), [0, 0, 0], beacon)
+  const beaconLight = new T.SpotLight('#ffd995', 0, 60, 0.18, 0.65, 1.5)
+  beaconLight.target.position.set(0, -3, 28)
+  beacon.add(beaconLight, beaconLight.target)
   solids.push({ x: -25, y: 4, z: -23, w: 4, h: 8, d: 4 })
   text('SAKURA', -25, 1.2, -20.9, 2.4)
 
@@ -420,6 +427,23 @@ export function buildIsland(scene: T.Scene) {
     text(label, x, 2.5, z, 3.5)
   }
   const tree = (x: number, z: number, s = 1, palm = false) => {
+    const foliage = (color: string) => {
+      if (!foliageMaterials.has(color)) {
+        const material = mat(color).clone()
+        material.onBeforeCompile = (shader) => {
+          treeWindCompiled = true
+          shader.uniforms.uTreeWind = treeWind
+          shader.vertexShader = `uniform float uTreeWind;\n${shader.vertexShader}`.replace(
+            '#include <begin_vertex>',
+            '#include <begin_vertex>\ntransformed.x += sin(uTreeWind * 1.2 + position.x * .07 + position.z * .1) * max(position.y - 1.5, 0.0) * .018;',
+          )
+        }
+        material.customProgramCacheKey = () => 'main-foliage-wind-v1'
+        material.userData.foliageWind = true
+        foliageMaterials.set(color, material)
+      }
+      return foliageMaterials.get(color)!
+    }
     const g = new T.Group()
     g.position.set(x, 0, z)
     g.scale.setScalar(s)
@@ -428,6 +452,7 @@ export function buildIsland(scene: T.Scene) {
     if (palm) {
       for (let i = 0; i < 6; i++) {
         const leaf = box(0, 3.3, 1.25, 0.6, 0.13, 2.8, palette.mint, g, 0.05)
+        leaf.material = foliage(palette.mint)
         leaf.rotation.y = (i * Math.PI) / 3
         leaf.position.x = Math.sin((i * Math.PI) / 3) * 1.1
         leaf.position.z = Math.cos((i * Math.PI) / 3) * 1.1
@@ -436,18 +461,11 @@ export function buildIsland(scene: T.Scene) {
       for (let i = 0; i < 3; i++)
         sphere(Math.sin(i * 2) * 0.25, 2.9, Math.cos(i * 2) * 0.25, 0.23, palette.wood, g)
     } else {
-      for (let i = 0; i < 3; i++)
-        cylinder(
-          0,
-          2 + i * 0.85,
-          0,
-          0.05,
-          1.9,
-          [palette.grass, palette.mint, palette.grass][i],
-          g,
-          1.5 - i * 0.3,
-          6,
-        )
+      for (let i = 0; i < 3; i++) {
+        const color = [palette.grass, palette.mint, palette.grass][i]!
+        const canopy = cylinder(0, 2 + i * 0.85, 0, 0.05, 1.9, color, g, 1.5 - i * 0.3, 6)
+        canopy.material = foliage(color)
+      }
     }
     obstacle(x, 1.5 * s, z, 0.25 * s, 3 * s)
     if (!palm)
@@ -456,10 +474,11 @@ export function buildIsland(scene: T.Scene) {
           x,
           y: (2 + i * 0.85) * s,
           z,
-          w: (3 - i * 0.6) * s,
+          w: (3 - i * 0.6 + 0.36) * s,
           h: 1.9 * s,
-          d: (3 - i * 0.6) * s,
+          d: (3 - i * 0.6 + 0.36) * s,
           shape: 'cone',
+          topRadius: 0.23 * s,
         })
   }
   const treePositions = [
@@ -880,6 +899,7 @@ export function buildIsland(scene: T.Scene) {
       roughness: 0.28,
       metalness: 0.24,
       flatShading: true,
+      transparent: true,
     }),
     [0, -1.1, 0],
   )
@@ -899,16 +919,22 @@ export function buildIsland(scene: T.Scene) {
   )
   foam.castShadow = false
   const birds = new T.Group()
+  const wings: { wing: T.Group; side: number; phase: number }[] = []
   birds.position.y = 13
   scene.add(birds)
   for (let i = 0; i < 5; i++) {
     const g = new T.Group()
     g.position.set(i * 2, Math.sin(i) * 1.3, i * 0.5)
     birds.add(g)
+    const body = sphere(0, 0, 0, 0.16, palette.cream, g)
+    body.scale.set(1, 0.6, 1.7)
     for (const side of [-1, 1]) {
-      const wing = box(side * 0.3, 0, 0, 0.7, 0.035, 0.14, palette.ink, g)
+      const wing = new T.Group()
+      g.add(wing)
+      const feather = box(side * 0.35, 0, 0, 0.7, 0.035, 0.14, palette.cream, wing)
       wing.rotation.z = side * 0.3
-      wing.castShadow = false
+      feather.castShadow = false
+      wings.push({ wing, side, phase: i })
     }
   }
   // Batch static architecture by material; moving parts retain individual meshes.
@@ -935,7 +961,7 @@ export function buildIsland(scene: T.Scene) {
     if (!(object instanceof T.Mesh) || Array.isArray(object.material)) return
     let ancestor: T.Object3D | null = object
     while (ancestor) {
-      if (moving.has(ancestor)) return
+      if (moving.has(ancestor) || ancestor.userData.keepDynamic) return
       ancestor = ancestor.parent
     }
     const key = `${object.material.id}/${object.castShadow}/${object.receiveShadow}`
@@ -963,25 +989,37 @@ export function buildIsland(scene: T.Scene) {
     const combined = new T.Mesh(geometry, batch.material)
     combined.castShadow = batch.cast
     combined.receiveShadow = batch.receive
+    if (batch.material.userData.foliageWind) {
+      const depth = new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking })
+      depth.onBeforeCompile = batch.material.onBeforeCompile
+      depth.customProgramCacheKey = () => 'main-foliage-wind-depth-v1'
+      combined.customDepthMaterial = depth
+    }
     scene.add(combined)
     batch.meshes.forEach((m) => {
       m.removeFromParent()
       m.geometry.dispose()
     })
   })
-  const animate = (time: number, dark: boolean, reduced: boolean) => {
-    water.material.color.lerp(new T.Color(dark ? '#173e53' : '#438d94'), 0.04)
-    water.material.roughness = dark ? 0.4 : 0.28
+  const waterColor = new T.Color(),
+    dayWater = new T.Color('#438d94'),
+    nightWater = new T.Color('#173e53')
+  const animate = (time: number, night: number, reduced: boolean) => {
+    water.material.color.lerp(waterColor.copy(dayWater).lerp(nightWater, night), 0.04)
+    water.material.roughness = 0.28 + night * 0.12
     lamps.forEach((m) => {
-      m.emissiveIntensity = dark ? 2.2 : 0.15
+      m.emissiveIntensity = 0.15 + night * 2.05
     })
     lampLights.forEach((l) => {
-      l.visible = dark
-      l.intensity = dark ? 14 : 0
+      l.visible = night > 0.01
+      l.intensity = night * 14
     })
-    beam.visible = dark
-    fireflies.visible = dark
+    beam.visible = night > 0.01
+    beamMaterial.opacity = night * 0.08
+    beaconLight.intensity = night * 65
+    fireflies.visible = night > 0.15
     if (reduced) return
+    treeWind.value = time
     sculpture.rotation.y = time * 0.25
     campfires.forEach((g, i) => {
       g.children.slice(-2).forEach((flame) => {
@@ -997,6 +1035,9 @@ export function buildIsland(scene: T.Scene) {
     birds.position.x = Math.cos(time * 0.09) * 40
     birds.position.z = Math.sin(time * 0.09) * 40
     birds.rotation.y = -time * 0.09
+    wings.forEach(({ wing, side, phase }) => {
+      wing.rotation.z = side * (0.25 + Math.sin(time * 5 + phase) * 0.45)
+    })
     markers.forEach((m, i) => {
       m.pin.position.y = 5 + Math.sin(time * 1.6 + i) * 0.35
       m.pin.rotation.y = time * 0.7
@@ -1023,6 +1064,17 @@ export function buildIsland(scene: T.Scene) {
     markers,
     tokenMeshes,
     animate,
+    water,
+    motionTelemetry: () => ({
+      beacon: beacon.rotation.y,
+      wing: wings[0]!.wing.rotation.z,
+      boat: boat.rotation.z,
+      water: waterGeometry.attributes.position.getY(10),
+      turbine: turbine.rotation.z,
+      treeWind: treeWind.value,
+      treeWindCompiled,
+      beaconLight: beaconLight.intensity,
+    }),
     textures,
     box,
     cylinder,

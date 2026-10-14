@@ -5,6 +5,6 @@ export const updateUserInfo = (data: Partial<User>) => {
   return request.put<ApiResponse<User>>('/auth/me', data)
 }
 
-export const getBloggerProfile = () => {
-  return request.get<ApiResponse<User>>('/blogger/profile')
+export const getBloggerProfile = (silentError = false) => {
+  return request.get<ApiResponse<User>>('/blogger/profile', { silentError })
 }

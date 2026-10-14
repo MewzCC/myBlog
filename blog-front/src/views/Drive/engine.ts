@@ -6,6 +6,8 @@ import { StationArrival } from './arrival'
 import { buildResidents } from './residents'
 import { createSceneBody } from './scenePhysics'
 import { advanceHour, solarState } from './dayCycle'
+import { buildEnvironment } from './environment'
+import { buildPlanet, arrivalProgress, arrivalPose, arrivalDuration } from './journey'
 import {
   initialTelemetry,
   islandSize,
@@ -36,6 +38,8 @@ export async function createIslandEngine(
   physicsReady ??= RAPIER.init()
   await physicsReady
   if (signal.aborted) throw new DOMException('Cancelled', 'AbortError')
+  const scene = new T.Scene()
+  const environment = await buildEnvironment(scene, signal)
   const renderer = new T.WebGLRenderer({
     canvas,
     antialias: true,
@@ -46,11 +50,12 @@ export async function createIslandEngine(
   renderer.toneMapping = T.ACESFilmicToneMapping
   renderer.shadowMap.enabled = true
   renderer.shadowMap.type = T.PCFShadowMap
-  const scene = new T.Scene()
   const daySky = new T.Color('#d3e4dc'),
     duskSky = new T.Color('#d79a85')
   const daySun = new T.Color('#ffe1ab'),
     duskSun = new T.Color('#ff996b')
+  const skyTarget = new T.Color(),
+    spaceSky = new T.Color('#071a2b')
   scene.background = new T.Color('#102537')
   scene.fog = new T.Fog('#102537', 90, 220)
   const camera = new T.PerspectiveCamera(40, 1, 0.1, 900)
@@ -76,6 +81,8 @@ export async function createIslandEngine(
   scene.add(moon)
   const models = buildIsland(scene),
     vehicle = buildCar(scene, models)
+  const planet = buildPlanet(scene)
+  let introSeconds = 0
   const world = new RAPIER.World({ x: 0, y: -18, z: 0 })
   world.timestep = 1 / 60
   let islandHour = new Date().getHours() + new Date().getMinutes() / 60
@@ -340,6 +347,7 @@ export async function createIslandEngine(
     }
     if (!settings.paused) {
       time += dt
+      introSeconds += dt
       if (settings.dayCycle) islandHour = advanceHour(islandHour, dt)
       accumulator += dt
       while (accumulator >= 1 / 60) {
@@ -400,7 +408,13 @@ export async function createIslandEngine(
     }
     if (!settings.dayCycle) islandHour = settings.dark ? 0 : 12
     const solar = solarState(islandHour)
-    models.animate(time, solar.night > 0.5, reduced.matches || settings.paused)
+    const intro = arrivalProgress(introSeconds, reduced.matches)
+    planet.animate(intro)
+    environment.root.visible = intro > 0.45
+    models.water.visible = intro > 0.62
+    models.water.material.opacity = T.MathUtils.smoothstep(intro, 0.62, 0.88)
+    environment.animate(time, solar.night, reduced.matches || settings.paused)
+    models.animate(time, solar.night, reduced.matches || settings.paused)
     nearest = null
     let distance = Infinity
     stations.forEach((s) => {
@@ -430,7 +444,7 @@ export async function createIslandEngine(
       }
     })
     scene.background = (scene.background as T.Color).lerp(
-      color
+      skyTarget
         .set('#102537')
         .lerp(daySky, solar.daylight)
         .lerp(duskSky, solar.dusk * 0.6),
@@ -470,8 +484,17 @@ export async function createIslandEngine(
       offset.set(-forward.x * radius + 9, radius * 0.85, -forward.z * radius + 9)
     }
     cameraTarget.copy(focus).add(offset)
-    camera.position.lerp(cameraTarget, 1 - Math.exp(-dt * 3))
-    camera.lookAt(focus)
+    if (intro < 1) {
+      const pose = arrivalPose(intro, cameraTarget, focus, camera.aspect)
+      camera.position.copy(pose.position)
+      camera.lookAt(pose.focus)
+      ;(scene.background as T.Color)
+        .copy(spaceSky)
+        .lerp(skyTarget, T.MathUtils.smoothstep(intro, 0.5, 1))
+    } else {
+      camera.position.lerp(cameraTarget, 1 - Math.exp(-dt * 3))
+      camera.lookAt(focus)
+    }
     residents.animate(time, camera, overview, reduced.matches || settings.paused)
     const distanceToFocus = camera.position.distanceTo(focus)
     const far = Math.max(900, distanceToFocus + 350)
@@ -481,6 +504,7 @@ export async function createIslandEngine(
     }
     ;(scene.fog as T.Fog).near = distanceToFocus + 50
     ;(scene.fog as T.Fog).far = distanceToFocus + 180
+    ;(scene.fog as T.Fog).color.copy(scene.background as T.Color)
     if (gain && oscillator && audio) {
       gain.gain.setTargetAtTime(
         settings.sound && settings.driving && !settings.paused ? 0.025 : 0,
@@ -493,6 +517,7 @@ export async function createIslandEngine(
       options.onTelemetry({
         hour: islandHour,
         daylight: solar.daylight,
+        intro,
         y: p.y,
         x: p.x,
         z: p.z,
@@ -507,6 +532,15 @@ export async function createIslandEngine(
       lastPublish = now
       canvas.dataset.audioState = audio?.state || 'off'
       canvas.dataset.hour = String(islandHour)
+      canvas.dataset.intro = String(intro)
+      canvas.dataset.camera = JSON.stringify({
+        position: camera.position.toArray(),
+        target: cameraTarget.toArray(),
+      })
+      canvas.dataset.environment = JSON.stringify({
+        ...environment.telemetry(),
+        ...models.motionTelemetry(),
+      })
       canvas.dataset.daylight = String(solar.daylight)
       canvas.dataset.sunHeight = String(sun.position.y)
       canvas.dataset.lighting = JSON.stringify({
@@ -556,10 +590,16 @@ export async function createIslandEngine(
     const geometries = new Set<T.BufferGeometry>(),
       materials = new Set<T.Material>()
     scene.traverse((o) => {
-      if (o instanceof T.Mesh || o instanceof T.Points) {
+      if (o instanceof T.Mesh || o instanceof T.Points || o instanceof T.Line) {
         geometries.add(o.geometry)
       }
-      if (o instanceof T.Mesh || o instanceof T.Points || o instanceof T.Sprite) {
+      if (o instanceof T.Mesh && o.customDepthMaterial) materials.add(o.customDepthMaterial)
+      if (
+        o instanceof T.Mesh ||
+        o instanceof T.Points ||
+        o instanceof T.Sprite ||
+        o instanceof T.Line
+      ) {
         ;(Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => materials.add(m))
       }
     })
@@ -574,5 +614,15 @@ export async function createIslandEngine(
     oscillator?.stop()
     void audio?.close()
   }
-  return { reset, teleport, visitResident, interact, unlockSound, dispose }
+  return {
+    reset,
+    teleport,
+    visitResident,
+    interact,
+    unlockSound,
+    dispose,
+    skipIntro: () => {
+      introSeconds = arrivalDuration
+    },
+  }
 }

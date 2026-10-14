@@ -106,7 +106,7 @@ describe('3D island homepage', () => {
         false,
       ),
     )
-    expect(getArticles).toHaveBeenCalledWith({ page: 1, pageSize: 20 })
+    expect(getArticles).toHaveBeenCalledWith({ page: 1, pageSize: 20 }, true)
     fireEvent.click(screen.getByRole('button', { name: '前往书店 / 文章' }))
     expect(await screen.findByRole('dialog', { name: '书店 / 文章' })).toBeTruthy()
     fireEvent.click(await screen.findByRole('button', { name: /从好奇心到一次技术探索/ }))

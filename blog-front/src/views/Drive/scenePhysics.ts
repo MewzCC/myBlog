@@ -3,7 +3,17 @@ import type { Solid, SolidPart } from './models'
 
 function colliderFor(s: SolidPart) {
   if (s.shape === 'cylinder') return RAPIER.ColliderDesc.cylinder(s.h / 2, s.w / 2)
-  if (s.shape === 'cone') return RAPIER.ColliderDesc.cone(s.h / 2, s.w / 2)
+  if (s.shape === 'cone') {
+    if (s.topRadius === undefined) return RAPIER.ColliderDesc.cone(s.h / 2, s.w / 2)
+    const vertices: number[] = []
+    for (const level of [-1, 1])
+      for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * Math.PI * 2,
+          radius = level > 0 ? s.topRadius : s.w / 2
+        vertices.push(Math.cos(angle) * radius, (level * s.h) / 2, Math.sin(angle) * radius)
+      }
+    return RAPIER.ColliderDesc.convexHull(new Float32Array(vertices))!
+  }
   if (s.shape === 'ball') return RAPIER.ColliderDesc.ball(s.w / 2)
   if (s.shape === 'road') {
     const vertices: number[] = []

@@ -1,8 +1,8 @@
 import request from '../utils/request'
 import type { AdminArticleReviewItem, ApiResponse, SiteSettings } from '../types/api'
 
-export const getSiteSettings = () => {
-  return request.get<ApiResponse<SiteSettings>>('/site/settings')
+export const getSiteSettings = (silentError = false) => {
+  return request.get<ApiResponse<SiteSettings>>('/site/settings', { silentError })
 }
 
 export const getAdminSiteSettings = () => {

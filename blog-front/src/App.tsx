@@ -187,7 +187,7 @@ export default function App() {
   useEffect(() => {
     const bootstrap = async () => {
       try {
-        const siteRes = await getSiteSettings()
+        const siteRes = await getSiteSettings(true)
         if (siteRes.data.code === 200) {
           applyServerSettings(siteRes.data.data)
         }
