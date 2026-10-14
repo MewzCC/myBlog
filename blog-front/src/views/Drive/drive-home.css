@@ -171,6 +171,66 @@
   gap: 8px;
   z-index: 3;
 }
+.drift__clock {
+  position: absolute;
+  top: 92px;
+  right: clamp(18px, 3vw, 48px);
+  z-index: 3;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 14px;
+  min-width: 156px;
+  padding: 14px 16px;
+  border: 1px solid var(--drift-ink);
+  border-radius: 18px 4px 18px 4px;
+  background: var(--drift-paper, #fff4da);
+  color: var(--drift-ink);
+  box-shadow: 4px 4px 0 #21373d18;
+}
+.drift__clock > span {
+  grid-column: 1 / -1;
+  font-size: 8px;
+  letter-spacing: 0.18em;
+  opacity: 0.65;
+}
+.drift__clock time {
+  font:
+    500 28px 'Space Grotesk',
+    sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+}
+.drift__clock button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font-size: 10px;
+}
+.drift__clock button[aria-pressed='true'] span {
+  display: inline-block;
+  color: var(--drift-accent);
+}
+.drift__clock small {
+  grid-column: 1 / -1;
+  font-size: 9px;
+  opacity: 0.6;
+}
+@media (max-width: 600px) {
+  .drift__clock {
+    top: 76px;
+    right: 14px;
+    min-width: 116px;
+    gap: 4px 8px;
+    padding: 9px 10px;
+  }
+  .drift__clock time {
+    font-size: 22px;
+  }
+  .drift__clock > span,
+  .drift__clock small {
+    font-size: 7px;
+  }
+}
 .drift button,
 .drift select {
   font: inherit;

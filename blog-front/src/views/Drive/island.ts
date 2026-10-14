@@ -72,6 +72,8 @@ export const tokens = [
 ] as const
 export type DriveInput = { throttle: number; steer: number; brake: boolean; boost: boolean }
 export type IslandTelemetry = {
+  hour?: number
+  daylight?: number
   y: number
   x: number
   z: number
@@ -86,6 +88,7 @@ export type IslandTelemetry = {
   lastHit: { name: string; damage: number; hp: number } | null
 }
 export type IslandSettings = {
+  dayCycle?: boolean
   dark: boolean
   driving: boolean
   overview: boolean

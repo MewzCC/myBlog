@@ -16,6 +16,7 @@ import type { IslandEngine } from './engine'
 import StationArt from './StationArt'
 import DriveJoystick from './DriveJoystick'
 import IslandMap from './IslandMap'
+import { formatIslandTime } from './dayCycle'
 import './drive-home.css'
 
 export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) => void }) {
@@ -42,8 +43,18 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
     () => window.matchMedia('(prefers-color-scheme: dark)').matches,
   )
   const dark = theme === 'dark' || (theme === 'system' && systemDark)
+  const [dayCycle, setDayCycle] = useState(true)
+  const sceneDark = dayCycle && telemetry.daylight !== undefined ? telemetry.daylight < 0.4 : dark
   const settings = useRef<IslandSettings>({ dark, driving, overview, paused, quality, sound })
-  settings.current = { dark, driving, overview, paused: paused || !!panel || help, quality, sound }
+  settings.current = {
+    dark,
+    driving,
+    overview,
+    paused: paused || !!panel || help,
+    quality,
+    sound,
+    dayCycle,
+  }
   const actions = useRef({ setPanel, enableGuestbook })
   actions.current = { setPanel, enableGuestbook }
   const panelRef = useRef<HTMLElement>(null),
@@ -260,7 +271,7 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
   }
   return (
     <main
-      className={`drift${driving ? ' drift--driving' : ''}${nearby ? ' drift--nearby' : ''}${dark ? ' drift--night' : ' drift--day'}`}
+      className={`drift${driving ? ' drift--driving' : ''}${nearby ? ' drift--nearby' : ''}${sceneDark ? ' drift--night' : ' drift--day'}`}
     >
       <canvas
         key={attempt}
@@ -286,11 +297,14 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
       </header>
       <div className="drift__tools">
         <button
-          onClick={() => setTheme(dark ? 'light' : 'dark')}
-          aria-label={dark ? '切换到白天' : '切换到夜晚'}
+          onClick={() => {
+            setDayCycle(false)
+            setTheme(sceneDark ? 'light' : 'dark')
+          }}
+          aria-label={sceneDark ? '切换到白天' : '切换到夜晚'}
         >
-          {dark ? '☀' : '☾'}
-          <span>{dark ? '日出' : '入夜'}</span>
+          {sceneDark ? '☀' : '☾'}
+          <span>{sceneDark ? '日出' : '入夜'}</span>
         </button>
         <button
           aria-label={sound ? '关闭声音' : '开启声音'}
@@ -307,6 +321,18 @@ export default function DriveHome({ onNavigate }: { onNavigate: (route: Route) =
           ？
         </button>
       </div>
+      <aside className="drift__clock" aria-label="岛屿时间">
+        <span>ISLAND TIME</span>
+        <time>{formatIslandTime(telemetry.hour ?? 12)}</time>
+        <button
+          aria-label="自动昼夜循环"
+          aria-pressed={dayCycle}
+          onClick={() => setDayCycle((v) => !v)}
+        >
+          {dayCycle ? '昼夜流转' : '固定时刻'} <span aria-hidden="true">↻</span>
+        </button>
+        <small>{dayCycle ? '一日 / 八分钟' : '点击恢复昼夜'}</small>
+      </aside>
       {!driving && (
         <section className="drift__welcome">
           <div className="drift__eyebrow">

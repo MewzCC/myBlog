@@ -5,6 +5,7 @@ import { createVehicleBody, applyVehicleInput } from './physics'
 import { StationArrival } from './arrival'
 import { buildResidents } from './residents'
 import { createSceneBody } from './scenePhysics'
+import { advanceHour, solarState } from './dayCycle'
 import {
   initialTelemetry,
   islandSize,
@@ -46,6 +47,10 @@ export async function createIslandEngine(
   renderer.shadowMap.enabled = true
   renderer.shadowMap.type = T.PCFShadowMap
   const scene = new T.Scene()
+  const daySky = new T.Color('#d3e4dc'),
+    duskSky = new T.Color('#d79a85')
+  const daySun = new T.Color('#ffe1ab'),
+    duskSun = new T.Color('#ff996b')
   scene.background = new T.Color('#102537')
   scene.fog = new T.Fog('#102537', 90, 220)
   const camera = new T.PerspectiveCamera(40, 1, 0.1, 900)
@@ -64,10 +69,16 @@ export async function createIslandEngine(
   sun.shadow.normalBias = 0.04
   sun.shadow.bias = -0.0001
   scene.add(sun)
+  const moon = new T.DirectionalLight('#a8c9ed', 0.65)
+  moon.castShadow = true
+  moon.shadow = sun.shadow.clone()
+  moon.shadow.mapSize.set(1024, 1024)
+  scene.add(moon)
   const models = buildIsland(scene),
     vehicle = buildCar(scene, models)
   const world = new RAPIER.World({ x: 0, y: -18, z: 0 })
   world.timestep = 1 / 60
+  let islandHour = new Date().getHours() + new Date().getMinutes() / 60
   const dynamics: { body: RAPIER.RigidBody; mesh: T.Object3D; x: number; z: number }[] = []
   for (const s of models.solids) {
     const body = createSceneBody(world, s)
@@ -329,6 +340,7 @@ export async function createIslandEngine(
     }
     if (!settings.paused) {
       time += dt
+      if (settings.dayCycle) islandHour = advanceHour(islandHour, dt)
       accumulator += dt
       while (accumulator >= 1 / 60) {
         updatePhysics(input, settings.driving)
@@ -386,7 +398,9 @@ export async function createIslandEngine(
       }
       dustGeometry.attributes.position.needsUpdate = true
     }
-    models.animate(time, settings.dark, reduced.matches || settings.paused)
+    if (!settings.dayCycle) islandHour = settings.dark ? 0 : 12
+    const solar = solarState(islandHour)
+    models.animate(time, solar.night > 0.5, reduced.matches || settings.paused)
     nearest = null
     let distance = Infinity
     stations.forEach((s) => {
@@ -416,19 +430,29 @@ export async function createIslandEngine(
       }
     })
     scene.background = (scene.background as T.Color).lerp(
-      color.set(settings.dark ? '#102537' : '#d3e4dc'),
+      color
+        .set('#102537')
+        .lerp(daySky, solar.daylight)
+        .lerp(duskSky, solar.dusk * 0.6),
       0.04,
     )
     ;(scene.fog as T.Fog).color.copy(scene.background as T.Color)
-    hemi.intensity = T.MathUtils.lerp(hemi.intensity, settings.dark ? 1.25 : 2.7, 0.04)
-    sun.intensity = T.MathUtils.lerp(sun.intensity, settings.dark ? 0.8 : 3.2, 0.04)
-    sun.color.lerp(color.set(settings.dark ? '#9ac6ff' : '#ffe1ab'), 0.04)
+    hemi.intensity = T.MathUtils.lerp(
+      hemi.intensity,
+      0.65 + solar.daylight * 1.85,
+      1 - Math.exp(-dt * 3),
+    )
+    sun.intensity = T.MathUtils.lerp(sun.intensity, solar.daylight * 3.8, 1 - Math.exp(-dt * 3))
+    sun.color.lerp(color.copy(daySun).lerp(duskSun, solar.dusk * 0.7), 1 - Math.exp(-dt * 3))
+    sun.position.set(Math.cos(solar.angle) * 68, Math.max(1, solar.elevation * 72), 32)
+    moon.position.set(-Math.cos(solar.angle) * 68, Math.max(10, -solar.elevation * 72), -32)
+    moon.intensity = solar.night * 0.65
     renderer.toneMappingExposure = T.MathUtils.lerp(
       renderer.toneMappingExposure,
-      settings.dark ? 0.9 : 1.1,
+      0.9 + solar.daylight * 0.2,
       0.04,
     )
-    vehicle.headlight.intensity = settings.dark ? 30 : 0
+    vehicle.headlight.intensity = solar.night * 30
     const overview = settings.overview || !settings.driving
     targetFocus.set(
       overview && camera.aspect > 1.2 ? -12 : overview ? 0 : p.x,
@@ -467,6 +491,8 @@ export async function createIslandEngine(
     }
     if (now - lastPublish > 100) {
       options.onTelemetry({
+        hour: islandHour,
+        daylight: solar.daylight,
         y: p.y,
         x: p.x,
         z: p.z,
@@ -480,6 +506,14 @@ export async function createIslandEngine(
       })
       lastPublish = now
       canvas.dataset.audioState = audio?.state || 'off'
+      canvas.dataset.hour = String(islandHour)
+      canvas.dataset.daylight = String(solar.daylight)
+      canvas.dataset.sunHeight = String(sun.position.y)
+      canvas.dataset.lighting = JSON.stringify({
+        sun: sun.intensity,
+        moon: moon.intensity,
+        headlights: vehicle.headlight.intensity,
+      })
       canvas.dataset.residents = JSON.stringify(residents.telemetry(time).residents)
       canvas.dataset.islandSize = `${islandSize.width}x${islandSize.depth}`
       canvas.dataset.hits = String(residents.telemetry(time).hits)
