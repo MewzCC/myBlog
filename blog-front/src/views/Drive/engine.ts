@@ -8,6 +8,7 @@ import { createSceneBody } from './scenePhysics'
 import { advanceHour, solarState } from './dayCycle'
 import { buildEnvironment } from './environment'
 import { buildPlanet, arrivalPose, createArrivalJourney } from './journey'
+import { buildArrivalClouds } from './arrivalClouds'
 import {
   initialTelemetry,
   islandSize,
@@ -59,6 +60,8 @@ export async function createIslandEngine(
   scene.background = new T.Color('#102537')
   scene.fog = new T.Fog('#102537', 90, 220)
   const camera = new T.PerspectiveCamera(40, 1, 0.1, 900)
+  scene.add(camera)
+  const arrivalClouds = buildArrivalClouds(camera)
   const hemi = new T.HemisphereLight('#c9e9ff', '#89724d', 2.4)
   scene.add(hemi)
   const sun = new T.DirectionalLight('#ffe1ab', 3)
@@ -417,10 +420,11 @@ export async function createIslandEngine(
     const solar = solarState(islandHour)
     const intro = journey.progress
     planet.animate(intro, orbitTime)
-    islandScene.visible = intro > 0.25
-    environment.root.visible = intro > 0.45
-    models.water.visible = intro > 0.62
-    models.water.material.opacity = T.MathUtils.smoothstep(intro, 0.62, 0.88)
+    const atmosphere = arrivalClouds.animate(intro, solar.night)
+    islandScene.visible = atmosphere.islandVisible
+    environment.root.visible = atmosphere.islandVisible
+    models.water.visible = true
+    models.water.material.opacity = 1
     environment.animate(time, solar.night, reduced.matches || settings.paused)
     models.animate(time, solar.night, reduced.matches || settings.paused)
     nearest = null
@@ -546,6 +550,8 @@ export async function createIslandEngine(
       canvas.dataset.intro = String(intro)
       canvas.dataset.introPhase = journey.phase
       canvas.dataset.islandVisible = String(islandScene.visible)
+      canvas.dataset.cloudCover = String(atmosphere.cover)
+      canvas.dataset.cloudClearing = String(atmosphere.clearing)
       canvas.dataset.camera = JSON.stringify({
         position: camera.position.toArray(),
         target: cameraTarget.toArray(),

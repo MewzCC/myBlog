@@ -101,7 +101,7 @@ export function buildPlanet(scene: T.Scene) {
     animate: (progress: number, time = 0) => {
       planet.rotation.y = time * 0.025
       group.visible = progress < 1
-      material.opacity = 1 - T.MathUtils.smoothstep(progress, 0.55, 0.88)
+      material.opacity = 1 - T.MathUtils.smoothstep(progress, 0.42, 0.5)
       halo.material.opacity = 0.12 * (1 - progress)
       stars.material.opacity = 1 - progress
     },
