@@ -82,13 +82,56 @@ export function buildPlanet(scene: T.Scene) {
   group.position.copy(centre)
   scene.add(group)
   group.add(new T.HemisphereLight('#d0e9ff', '#29555b', 1.6))
-  const geometry = new T.SphereGeometry(140, 160, 112)
+  // A closed ocean under the relief prevents gaps and keeps the approach basin blue.
+  const oceanMaterial = new T.ShaderMaterial({
+    uniforms: { time: { value: 0 } },
+    vertexShader: `
+      varying vec3 oceanPoint, viewPoint, oceanNormal;
+      void main() {
+        oceanPoint=normalize(position);
+        vec4 p=modelViewMatrix*vec4(position,1.);
+        viewPoint=p.xyz;
+        oceanNormal=normalize(normalMatrix*normal);
+        gl_Position=projectionMatrix*p;
+      }
+    `,
+    fragmentShader: `
+      uniform float time;
+      varying vec3 oceanPoint, viewPoint, oceanNormal;
+      ${cloudNoise}
+      void main() {
+        vec3 p=normalize(oceanPoint);
+        float depth=fbm(p*12.);
+        vec3 water=mix(vec3(.006,.025,.075),vec3(.012,.115,.19),smoothstep(.28,.78,depth));
+        float wave=noise(p*340.+vec3(time*.05,0.,-time*.03))*2.-1.;
+        float detail=noise(p*580.+time*.02);
+        vec3 n=normalize(oceanNormal);
+        vec3 v=normalize(-viewPoint);
+        float facing=max(0.,dot(n,v));
+        float fresnel=pow(1.-facing,4.);
+        float light=.55+.45*max(0.,dot(p,normalize(vec3(-.5,1.,.7))));
+        float glint=pow(max(0.,dot(n,normalize(v+vec3(-.35,.7,.6)))),60.);
+        water*=light*(.92+detail*.12+wave*.025);
+        water+=vec3(.22,.38,.45)*fresnel*.35;
+        water+=vec3(.75,.84,.76)*glint*(.08+detail*.08+wave*.03);
+        gl_FragColor=vec4(water,1.);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }
+    `,
+  })
+  const ocean = new T.Mesh(new T.SphereGeometry(140, 192, 128), oceanMaterial)
+  ocean.name = 'earth-ocean'
+  group.add(ocean)
+  const geometry = new T.SphereGeometry(140, 192, 128)
   const positions = geometry.attributes.position
   const colors: number[] = []
+  const elevations: number[] = []
   const normal = new T.Vector3()
   for (let i = 0; i < positions.count; i++) {
     normal.fromBufferAttribute(positions, i).normalize()
     const terrain = planetTerrain(normal)
+    elevations.push(terrain.elevation)
     colors.push(terrain.color.r, terrain.color.g, terrain.color.b)
     positions.setXYZ(
       i,
@@ -99,6 +142,18 @@ export function buildPlanet(scene: T.Scene) {
   }
   geometry.setAttribute('color', new T.Float32BufferAttribute(colors, 3))
   geometry.computeVertexNormals()
+  // Keep coastal triangles but remove coplanar water triangles to avoid z-fighting.
+  const indices = geometry.index!
+  const landIndices: number[] = []
+  for (let i = 0; i < indices.count; i += 3) {
+    const a = indices.getX(i),
+      b = indices.getX(i + 1),
+      c = indices.getX(i + 2)
+    if (Math.max(elevations[a], elevations[b], elevations[c]) > 0) {
+      landIndices.push(a, b, c)
+    }
+  }
+  geometry.setIndex(landIndices)
   const surfaceMaterial = new T.MeshStandardMaterial({
     vertexColors: true,
     roughness: 0.78,
@@ -108,27 +163,46 @@ export function buildPlanet(scene: T.Scene) {
     emissiveIntensity: 0.15,
     fog: false,
   })
+  surfaceMaterial.onBeforeCompile = (shader) => {
+    shader.vertexShader = `varying vec3 reliefPoint;\n${shader.vertexShader}`.replace(
+      '#include <begin_vertex>',
+      '#include <begin_vertex>\nreliefPoint=normalize(position);',
+    )
+    shader.fragmentShader =
+      `varying vec3 reliefPoint;\n${cloudNoise}\n${shader.fragmentShader}`.replace(
+        '#include <color_fragment>',
+        `#include <color_fragment>
+       float grain=fbm(reliefPoint*210.);
+       float valleys=noise(reliefPoint*70.);
+       diffuseColor.rgb*=.78+grain*.32+valleys*.16;`,
+      )
+  }
   const surface = new T.Mesh(geometry, surfaceMaterial)
   surface.name = 'earth-relief'
   group.add(surface)
 
   const shellGeometry = new T.SphereGeometry(1, 96, 64)
   const cloudMaterials: T.ShaderMaterial[] = []
-  for (const [index, radius] of [168, 175].entries()) {
+  // Thin weather layers hug the surface rather than forming a second giant globe.
+  // The camera-local mist supplies the dense passage once the descent begins.
+  for (const [index, radius] of [142, 143.5].entries()) {
     const material = new T.ShaderMaterial({
       transparent: true,
       depthWrite: false,
-      side: T.DoubleSide,
+      side: T.FrontSide,
       uniforms: { fade: { value: 1 }, drift: { value: 0 }, layer: { value: index } },
       vertexShader: `
-        varying vec3 cloudPoint;
+        varying vec3 cloudPoint, cloudNormal, cloudView;
         void main() {
           cloudPoint=position;
-          gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);
+          vec4 p=modelViewMatrix*vec4(position,1.);
+          cloudNormal=normalize(normalMatrix*normal);
+          cloudView=-p.xyz;
+          gl_Position=projectionMatrix*p;
         }
       `,
       fragmentShader: `
-        varying vec3 cloudPoint;
+        varying vec3 cloudPoint, cloudNormal, cloudView;
         uniform float fade, drift, layer;
         ${cloudNoise}
         void main() {
@@ -136,13 +210,16 @@ export function buildPlanet(scene: T.Scene) {
           vec3 p=n*9.+vec3(drift,layer*9.,0.);
           p+=vec3(fbm(p*1.7),fbm(p*1.3+5.),fbm(p+17.))*.8;
           float weather=fbm(p);
-          float filaments=fbm(p*3.1);
-          float coverage=smoothstep(.43,.63,weather*.8+filaments*.2);
+          float filaments=fbm(p*5.1);
+          float wisps=noise(p*21.);
+          float coverage=smoothstep(.44,.65,weather*.72+filaments*.23+wisps*.05);
           float landingBank=exp(-pow(distance(n,normalize(vec3(.16,1.,.22)))*5.,2.));
-          coverage=max(coverage,landingBank*.75);
+          coverage=max(coverage,landingBank*smoothstep(.3,.72,filaments)*.65);
           float light=.62+.38*max(0.,dot(n,normalize(vec3(-.5,1.,.7))));
           vec3 color=mix(vec3(.58,.73,.8),vec3(1.,.99,.93),light);
-          gl_FragColor=vec4(color,coverage*fade*(layer<.5?.85:.48));
+          color*=.82+filaments*.24+wisps*.06;
+          float horizon=smoothstep(0.,.14,dot(normalize(cloudNormal),normalize(cloudView)));
+          gl_FragColor=vec4(color,coverage*fade*horizon*(layer<.5?.85:.48));
           #include <tonemapping_fragment>
           #include <colorspace_fragment>
         }
@@ -174,14 +251,15 @@ export function buildPlanet(scene: T.Scene) {
       varying vec3 viewNormal, viewDirection;
       uniform float fade;
       void main() {
-        float rim=pow(1.-abs(dot(normalize(viewNormal),normalize(viewDirection))),3.);
+        float facing=abs(dot(normalize(viewNormal),normalize(viewDirection)));
+        float rim=pow(1.-facing,3.)*smoothstep(0.,.18,facing);
         gl_FragColor=vec4(.22,.58,.85,rim*.38*fade);
         #include <colorspace_fragment>
       }
     `,
   })
   const atmosphere = new T.Mesh(shellGeometry, atmosphereMaterial)
-  atmosphere.scale.setScalar(178)
+  atmosphere.scale.setScalar(144.5)
   group.add(atmosphere)
   const starPositions: number[] = []
   for (let i = 0; i < 600; i++) {
@@ -211,13 +289,15 @@ export function buildPlanet(scene: T.Scene) {
       group.position.copy(centre).multiplyScalar(scale)
       const fade = 1 - T.MathUtils.smoothstep(progress, 0.6, 0.64)
       group.visible = progress < 0.64
+      oceanMaterial.uniforms.time.value = time
       // Keep the ground opaque so it cannot paint over the transparent cloud shells.
       // The whole globe is removed only once the lens is fully inside dense cloud.
       for (const material of cloudMaterials) {
         material.uniforms.fade.value = fade
         material.uniforms.drift.value = time * 0.012
       }
-      atmosphereMaterial.uniforms.fade.value = fade
+      // The orbital rim must disappear before the camera enters its shell.
+      atmosphereMaterial.uniforms.fade.value = 1 - T.MathUtils.smoothstep(progress, 0.3, 0.46)
       stars.material.opacity = 1 - T.MathUtils.smoothstep(progress, 0.15, 0.5)
     },
   }

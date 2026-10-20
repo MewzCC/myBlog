@@ -1,8 +1,44 @@
 import { expect, it } from 'vitest'
-import { Vector3, Ray, Sphere } from 'three'
-import { planetTerrain } from './planet'
+import { Vector3, Ray, Sphere, Scene, Mesh, Raycaster, FrontSide, Material } from 'three'
+import { buildPlanet, planetTerrain } from './planet'
 import { arrivalPose } from './journey'
 import { planetScale } from './planetSpace'
+
+it('covers every direction with opaque ocean and excludes cloud backsides', () => {
+  const scene = new Scene()
+  const planet = buildPlanet(scene)
+  planet.animate(0.4, 2, 1.44)
+  scene.updateMatrixWorld(true)
+  const ocean = scene.getObjectByName('earth-ocean') as Mesh
+  const centre = ocean.getWorldPosition(new Vector3())
+  for (let i = 0; i < 160; i++) {
+    const y = 1 - (2 * (i + 0.5)) / 160
+    const direction = new Vector3(
+      Math.sqrt(1 - y * y) * Math.cos(i * 2.399963),
+      y,
+      Math.sqrt(1 - y * y) * Math.sin(i * 2.399963),
+    )
+    const ray = new Raycaster(
+      centre.clone().addScaledVector(direction, 2000),
+      direction.clone().negate(),
+    )
+    expect(ray.intersectObject(ocean).length).toBeGreaterThan(0)
+  }
+  expect((ocean.material as Material).transparent).toBe(false)
+  expect((ocean.material as Material).depthWrite).toBe(true)
+  for (const index of [0, 1]) {
+    const cloud = scene.getObjectByName(`earth-cloud-shell-${index}`) as Mesh
+    expect((cloud.material as Material).side).toBe(FrontSide)
+    expect(cloud.scale.x - 140).toBeLessThanOrEqual(3.5)
+  }
+  scene.traverse((object) => {
+    if (object instanceof Mesh) {
+      object.geometry.dispose()
+      const materials = Array.isArray(object.material) ? object.material : [object.material]
+      materials.forEach((material) => material.dispose())
+    }
+  })
+})
 
 it('builds deterministic ocean, coastline and raised terrain with safe clearance', () => {
   const heights: number[] = []
