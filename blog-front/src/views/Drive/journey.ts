@@ -1,4 +1,5 @@
 import * as T from 'three'
+import { planetScale } from './planetSpace'
 export { buildPlanet } from './planet'
 
 const approachBoundary = 0.43
@@ -51,34 +52,18 @@ export function arrivalPose(
   focus: T.Vector3,
   aspect: number,
 ) {
-  const ease = (p: number) => p * p * p * (p * (p * 6 - 15) + 10)
-  // Keep the established island reveal path from 72% onward.
-  const revealPose = () => {
-    const aligned = new T.Vector3(focus.x, 240 * Math.max(1, 0.8 / aspect), focus.z + 12)
-    const t = ease((progress - landingAlignment) / (1 - landingAlignment))
-    return { position: aligned.lerp(destination, t), focus: focus.clone() }
+  const scale = planetScale(aspect)
+  const p = T.MathUtils.clamp(progress, 0, 1)
+  const eased = p * p * p * (p * (p * 6 - 15) + 10)
+  const remaining = (Math.exp(-7 * eased) - Math.exp(-7)) / (1 - Math.exp(-7))
+  const start = new T.Vector3(
+    560 / Math.min(1, aspect),
+    520,
+    645 / Math.min(1, aspect),
+  ).multiplyScalar(scale)
+  // One continuous descent. No waypoint, hidden reposition, or upward return inside clouds.
+  return {
+    position: destination.clone().lerp(start, remaining),
+    focus: focus.clone().lerp(new T.Vector3(0, -140 * scale, 0), remaining),
   }
-  const start = new T.Vector3(560 / Math.min(1, aspect), 520, 645 / Math.min(1, aspect))
-  const centre = new T.Vector3(0, -140, 0)
-  const landingNormal = new T.Vector3(0.16, 1, 0.22).normalize()
-  const entry = centre.clone().addScaledVector(landingNormal, 162)
-  const ground = centre.clone().addScaledVector(landingNormal, 140)
-  if (progress <= 0.6) {
-    const t = ease(progress / 0.6)
-    const relative = start.clone().sub(centre)
-    const radius = Math.exp(T.MathUtils.lerp(Math.log(relative.length()), Math.log(162), t))
-    const rotation = new T.Quaternion().setFromUnitVectors(relative.normalize(), landingNormal)
-    relative.applyQuaternion(new T.Quaternion().slerp(rotation, t))
-    return {
-      position: centre.clone().addScaledVector(relative, radius),
-      focus: centre.clone().lerp(ground, t),
-    }
-  }
-  const revealed = revealPose()
-  if (progress < 0.72) {
-    // This handoff takes place entirely inside the existing opaque cloud bank.
-    const t = ease((progress - 0.6) / 0.12)
-    return { position: entry.lerp(revealed.position, t), focus: ground.lerp(revealed.focus, t) }
-  }
-  return revealed
 }

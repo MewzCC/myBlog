@@ -18,7 +18,7 @@ async(page)=>{
   }
   const landed=await read()
   await page.screenshot({path:'output/playwright/living-coast.png'})
-  if(landed.intro!==1||largestStep>65||Math.hypot(...landed.camera.position.map((v,j)=>v-first.camera.position[j]))<250)throw Error('Camera arrival discontinuous/incomplete')
+  if(landed.intro!==1||largestStep/(first.camera.position[1]/520)>65||Math.hypot(...landed.camera.position.map((v,j)=>v-first.camera.position[j]))<250)throw Error('Camera arrival discontinuous/incomplete')
   if(landed.env.assets!==5||landed.env.grass!==120||landed.env.islets!==3||landed.env.buoys!==8||!landed.env.windCompiled||!landed.env.treeWindCompiled)throw Error('Live assets missing: '+JSON.stringify(landed.env))
   await page.getByRole('button',{name:/出发，环岛兜风/}).click()
   // Sample a full interval so a periodic animation's turning point cannot look frozen.

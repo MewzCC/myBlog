@@ -9,6 +9,7 @@ import { advanceHour, solarState } from './dayCycle'
 import { buildEnvironment } from './environment'
 import { buildPlanet, arrivalPose, createArrivalJourney } from './journey'
 import { buildArrivalClouds } from './arrivalClouds'
+import { planetScale } from './planetSpace'
 import {
   initialTelemetry,
   islandSize,
@@ -419,7 +420,7 @@ export async function createIslandEngine(
     if (!settings.dayCycle) islandHour = settings.dark ? 0 : 12
     const solar = solarState(islandHour)
     const intro = journey.progress
-    planet.animate(intro, orbitTime)
+    planet.animate(intro, orbitTime, camera.aspect)
     const atmosphere = arrivalClouds.animate(intro, solar.night)
     islandScene.visible = atmosphere.islandVisible
     environment.root.visible = atmosphere.islandVisible
@@ -511,7 +512,10 @@ export async function createIslandEngine(
     previousIntroPhase = journey.phase
     residents.animate(time, camera, overview, reduced.matches || settings.paused)
     const distanceToFocus = camera.position.distanceTo(focus)
-    const far = Math.max(intro < 0.64 ? 4200 : 900, distanceToFocus + 350)
+    const far = Math.max(
+      intro < 0.64 ? 4200 * planetScale(camera.aspect) : 900,
+      distanceToFocus + 350,
+    )
     if (Math.abs(camera.far - far) > 10) {
       camera.far = far
       camera.updateProjectionMatrix()
@@ -554,7 +558,9 @@ export async function createIslandEngine(
       canvas.dataset.cloudClearing = String(atmosphere.clearing)
       canvas.dataset.cloudRendering = String(atmosphere.cover > 0)
       canvas.dataset.planetAltitude = String(
-        camera.position.distanceTo(new T.Vector3(0, -140, 0)) - 140,
+        camera.position.distanceTo(new T.Vector3(0, -140 * planetScale(camera.aspect), 0)) /
+          planetScale(camera.aspect) -
+          140,
       )
       canvas.dataset.camera = JSON.stringify({
         position: camera.position.toArray(),

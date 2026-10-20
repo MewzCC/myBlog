@@ -1,4 +1,5 @@
 import * as T from 'three'
+import { planetScale } from './planetSpace'
 
 const centre = new T.Vector3(0, -140, 0)
 
@@ -25,10 +26,18 @@ function noise(x: number, y: number, z: number) {
 
 export function planetTerrain(normal: T.Vector3) {
   const { x, y, z } = normal
-  const continental =
+  const naturalContinental =
     noise(x * 3 + 8, y * 3 - 2, z * 3 + 4) * 0.65 +
     noise(x * 7 + 3, y * 7, z * 7) * 0.25 +
     noise(x * 17, y * 17 + 8, z * 17) * 0.1
+  // The island lies in the ocean under the approach corridor, not on a mountain.
+  // Blend the basin into distant continents rather than cutting a circular hole.
+  const oceanBasin = 1 - T.MathUtils.smoothstep(Math.hypot(x, y - 1, z), 0.5, 0.85)
+  const continental = T.MathUtils.lerp(
+    naturalContinental,
+    0.38 + noise(x * 12, y * 12, z * 12) * 0.04,
+    oceanBasin,
+  )
   const land = T.MathUtils.smoothstep(continental, 0.48, 0.59)
   const ridge = 1 - Math.abs(noise(x * 14, y * 14, z * 14) * 2 - 1)
   const elevation = land * (0.5 + Math.pow(ridge, 5) * 5 + Math.max(0, continental - 0.6) * 14)
@@ -196,7 +205,10 @@ export function buildPlanet(scene: T.Scene) {
   )
   group.add(stars)
   return {
-    animate(progress: number, time = 0) {
+    animate(progress: number, time = 0, aspect = 1) {
+      const scale = planetScale(aspect)
+      group.scale.setScalar(scale)
+      group.position.copy(centre).multiplyScalar(scale)
       const fade = 1 - T.MathUtils.smoothstep(progress, 0.6, 0.64)
       group.visible = progress < 0.64
       // Keep the ground opaque so it cannot paint over the transparent cloud shells.

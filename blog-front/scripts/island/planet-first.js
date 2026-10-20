@@ -19,7 +19,7 @@ async(page)=>{
       if(next.intro<previous.intro)throw Error('Approach reversed')
       const step=Math.hypot(...next.camera.map((v,i)=>v-previous.camera[i]))
       largestStep=Math.max(largestStep,step)
-      if(!reduced&&step>90*Math.max(1,height/width))throw Error('Camera jumped: '+step)
+      if(!reduced&&step/(first.camera[1]/520)>90*Math.max(1,height/width))throw Error('Camera jumped: '+step)
       previous=next;samples++
     }
     if(previous.phase!=='landed'||previous.intro!==1||previous.island!=='true')throw Error('Automatic landing failed')
