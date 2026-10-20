@@ -1,5 +1,6 @@
 import * as T from 'three'
 import { planetScale } from './planetSpace'
+import { buildPlanetClouds } from './planetClouds'
 
 const centre = new T.Vector3(0, -140, 0)
 
@@ -182,55 +183,7 @@ export function buildPlanet(scene: T.Scene) {
   group.add(surface)
 
   const shellGeometry = new T.SphereGeometry(1, 96, 64)
-  const cloudMaterials: T.ShaderMaterial[] = []
-  // Thin weather layers hug the surface rather than forming a second giant globe.
-  // The camera-local mist supplies the dense passage once the descent begins.
-  for (const [index, radius] of [142, 143.5].entries()) {
-    const material = new T.ShaderMaterial({
-      transparent: true,
-      depthWrite: false,
-      side: T.FrontSide,
-      uniforms: { fade: { value: 1 }, drift: { value: 0 }, layer: { value: index } },
-      vertexShader: `
-        varying vec3 cloudPoint, cloudNormal, cloudView;
-        void main() {
-          cloudPoint=position;
-          vec4 p=modelViewMatrix*vec4(position,1.);
-          cloudNormal=normalize(normalMatrix*normal);
-          cloudView=-p.xyz;
-          gl_Position=projectionMatrix*p;
-        }
-      `,
-      fragmentShader: `
-        varying vec3 cloudPoint, cloudNormal, cloudView;
-        uniform float fade, drift, layer;
-        ${cloudNoise}
-        void main() {
-          vec3 n=normalize(cloudPoint);
-          vec3 p=n*9.+vec3(drift,layer*9.,0.);
-          p+=vec3(fbm(p*1.7),fbm(p*1.3+5.),fbm(p+17.))*.8;
-          float weather=fbm(p);
-          float filaments=fbm(p*5.1);
-          float wisps=noise(p*21.);
-          float coverage=smoothstep(.44,.65,weather*.72+filaments*.23+wisps*.05);
-          float landingBank=exp(-pow(distance(n,normalize(vec3(.16,1.,.22)))*5.,2.));
-          coverage=max(coverage,landingBank*smoothstep(.3,.72,filaments)*.65);
-          float light=.62+.38*max(0.,dot(n,normalize(vec3(-.5,1.,.7))));
-          vec3 color=mix(vec3(.58,.73,.8),vec3(1.,.99,.93),light);
-          color*=.82+filaments*.24+wisps*.06;
-          float horizon=smoothstep(0.,.14,dot(normalize(cloudNormal),normalize(cloudView)));
-          gl_FragColor=vec4(color,coverage*fade*horizon*(layer<.5?.85:.48));
-          #include <tonemapping_fragment>
-          #include <colorspace_fragment>
-        }
-      `,
-    })
-    const shell = new T.Mesh(shellGeometry, material)
-    shell.name = `earth-cloud-shell-${index}`
-    shell.scale.setScalar(radius)
-    group.add(shell)
-    cloudMaterials.push(material)
-  }
+  const clouds = buildPlanetClouds(group)
 
   const atmosphereMaterial = new T.ShaderMaterial({
     transparent: true,
@@ -283,7 +236,7 @@ export function buildPlanet(scene: T.Scene) {
   )
   group.add(stars)
   return {
-    animate(progress: number, time = 0, aspect = 1) {
+    animate(progress: number, time = 0, aspect = 1, night = 0) {
       const scale = planetScale(aspect)
       group.scale.setScalar(scale)
       group.position.copy(centre).multiplyScalar(scale)
@@ -292,10 +245,7 @@ export function buildPlanet(scene: T.Scene) {
       oceanMaterial.uniforms.time.value = time
       // Keep the ground opaque so it cannot paint over the transparent cloud shells.
       // The whole globe is removed only once the lens is fully inside dense cloud.
-      for (const material of cloudMaterials) {
-        material.uniforms.fade.value = fade
-        material.uniforms.drift.value = time * 0.012
-      }
+      clouds.animate(time, fade, night)
       // The orbital rim must disappear before the camera enters its shell.
       atmosphereMaterial.uniforms.fade.value = 1 - T.MathUtils.smoothstep(progress, 0.3, 0.46)
       stars.material.opacity = 1 - T.MathUtils.smoothstep(progress, 0.15, 0.5)

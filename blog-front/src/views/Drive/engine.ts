@@ -420,7 +420,7 @@ export async function createIslandEngine(
     if (!settings.dayCycle) islandHour = settings.dark ? 0 : 12
     const solar = solarState(islandHour)
     const intro = journey.progress
-    planet.animate(intro, orbitTime, camera.aspect)
+    planet.animate(intro, orbitTime, camera.aspect, solar.night)
     const atmosphere = arrivalClouds.animate(intro, solar.night)
     islandScene.visible = atmosphere.islandVisible
     environment.root.visible = atmosphere.islandVisible
@@ -503,7 +503,12 @@ export async function createIslandEngine(
       camera.lookAt(pose.focus)
       ;(scene.background as T.Color)
         .copy(spaceSky)
-        .lerp(skyTarget, T.MathUtils.smoothstep(intro, 0.6, 0.8))
+        .lerp(
+          skyTarget,
+          intro < 0.64
+            ? T.MathUtils.smoothstep(intro, 0.38, 0.57)
+            : T.MathUtils.smoothstep(intro, 0.6, 0.8),
+        )
     } else {
       if (previousIntroPhase !== 'landed') camera.position.copy(cameraTarget)
       else camera.position.lerp(cameraTarget, 1 - Math.exp(-dt * 3))

@@ -1,10 +1,31 @@
 import { expect, it } from 'vitest'
-import { Vector3, Ray, Sphere, Scene, Mesh, Raycaster, FrontSide, Material } from 'three'
+import { Vector3, Ray, Sphere, Scene, Mesh, Raycaster, Material, ShaderMaterial } from 'three'
 import { buildPlanet, planetTerrain } from './planet'
 import { arrivalPose } from './journey'
 import { planetScale } from './planetSpace'
+import { cloudBounds } from './planetClouds'
+import { arrivalAtmosphere } from './arrivalClouds'
 
-it('covers every direction with opaque ocean and excludes cloud backsides', () => {
+it('flies inside the volume before the screen mist appears on desktop and mobile', () => {
+  for (const aspect of [0.46, 1.44, 2.4]) {
+    const scale = planetScale(aspect)
+    const pose = arrivalPose(
+      0.53,
+      new Vector3(105, 123 * Math.max(1, 1.05 / aspect), 105),
+      new Vector3(),
+      aspect,
+    )
+    const radius = pose.position
+      .divideScalar(scale)
+      .sub(new Vector3(0, -140, 0))
+      .length()
+    expect(radius).toBeGreaterThan(cloudBounds.bottom)
+    expect(radius).toBeLessThan(cloudBounds.top)
+    expect(arrivalAtmosphere(0.53).cover).toBe(0)
+  }
+})
+
+it('covers every direction with opaque ocean and animates a volumetric cloud field', () => {
   const scene = new Scene()
   const planet = buildPlanet(scene)
   planet.animate(0.4, 2, 1.44)
@@ -26,11 +47,12 @@ it('covers every direction with opaque ocean and excludes cloud backsides', () =
   }
   expect((ocean.material as Material).transparent).toBe(false)
   expect((ocean.material as Material).depthWrite).toBe(true)
-  for (const index of [0, 1]) {
-    const cloud = scene.getObjectByName(`earth-cloud-shell-${index}`) as Mesh
-    expect((cloud.material as Material).side).toBe(FrontSide)
-    expect(cloud.scale.x - 140).toBeLessThanOrEqual(3.5)
-  }
+  const cloud = scene.getObjectByName('earth-volume-clouds') as Mesh
+  const cloudMaterial = cloud.material as ShaderMaterial
+  expect(cloudMaterial.uniforms.time.value).toBe(2)
+  planet.animate(0.4, 5, 1.44, 1)
+  expect(cloudMaterial.uniforms.time.value).toBe(5)
+  expect(cloudMaterial.uniforms.night.value).toBe(1)
   scene.traverse((object) => {
     if (object instanceof Mesh) {
       object.geometry.dispose()

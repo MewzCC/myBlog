@@ -7,6 +7,8 @@ it('conceals the scene switch inside an opaque cloud bank then gradually clears'
   for (const progress of [0.63, 0.64, 0.65]) expect(arrivalAtmosphere(progress).cover).toBe(1)
   expect(arrivalAtmosphere(0.64).islandVisible).toBe(true)
   for (const progress of [0.2, 0.3, 0.4, 0.43]) expect(arrivalAtmosphere(progress).cover).toBe(0)
+  expect(arrivalAtmosphere(0.53).cover).toBe(0)
+  expect(arrivalAtmosphere(0.6).cover).toBeCloseTo(0.5)
   let previous = 1
   for (let i = 72; i <= 100; i++) {
     const state = arrivalAtmosphere(i / 100)
