@@ -6,7 +6,6 @@ import {
   arrivalDuration,
   orbitDuration,
   createArrivalJourney,
-  landingAlignment,
 } from './journey'
 
 it.each([false, true])(
@@ -45,7 +44,7 @@ it('starts above a globe and reaches the actual destination continuously', () =>
   expect(arrivalProgress(0, true)).toBe(1)
 })
 
-it('reaches clouds sooner while retaining their original timing and entry speed', () => {
+it('retains the accelerated approach timing and the approved reveal timing', () => {
   expect(arrivalProgress(7)).toBeCloseTo(0.43)
   expect(arrivalProgress(12.8)).toBeCloseTo(0.72)
   expect(arrivalProgress(arrivalDuration) - arrivalProgress(12.8)).toBeCloseTo(0.28)
@@ -54,16 +53,45 @@ it('reaches clouds sooner while retaining their original timing and entry speed'
   expect(before).toBeCloseTo(after, 4)
 })
 
-it('straightens over the landing site before cloud rendering begins', () => {
+it('continuously descends through the spherical cloud shells without entering the terrain', () => {
+  const focus = new Vector3(),
+    destination = new Vector3(105, 123, 105)
+  const centre = new Vector3(0, -140, 0)
+  for (const aspect of [0.46, 1.44, 2.4]) {
+    let lastRadius = Infinity
+    for (let i = 0; i <= 600; i++) {
+      const pose = arrivalPose(i / 1000, destination, focus, aspect)
+      const radius = pose.position.distanceTo(centre)
+      expect(radius).toBeLessThanOrEqual(lastRadius + 1e-6)
+      expect(radius).toBeGreaterThan(150)
+      lastRadius = radius
+    }
+    expect(
+      arrivalPose(0.43, destination, focus, aspect).position.distanceTo(centre),
+    ).toBeGreaterThan(175)
+    expect(arrivalPose(0.53, destination, focus, aspect).position.distanceTo(centre)).toBeLessThan(
+      175,
+    )
+  }
+})
+
+it('preserves every camera pose of the approved cloud-clearing sequence', () => {
   const focus = new Vector3(-12, 0, 12),
     destination = new Vector3(105, 123, 105)
-  const aligned = arrivalPose(landingAlignment, destination, focus, 1.44)
-  expect(aligned.focus.distanceTo(focus)).toBe(0)
-  expect(aligned.position.x).toBe(focus.x)
-  expect(aligned.position.y).toBe(240)
-  expect(Math.atan2(aligned.position.z - focus.z, aligned.position.y)).toBeLessThan(0.06)
-  const entering = arrivalPose(0.43, destination, focus, 1.44)
-  expect(entering.position.distanceTo(aligned.position)).toBeLessThan(1)
+  for (const aspect of [0.46, 1.44, 2.4]) {
+    for (let i = 72; i <= 100; i++) {
+      const p = i / 100,
+        t = (p - 0.4) / 0.6
+      const eased = t * t * t * (t * (t * 6 - 15) + 10)
+      const previous = new Vector3(focus.x, 240 * Math.max(1, 0.8 / aspect), focus.z + 12).lerp(
+        destination,
+        eased,
+      )
+      const current = arrivalPose(p, destination, focus, aspect)
+      expect(current.position.distanceTo(previous)).toBeLessThan(1e-8)
+      expect(current.focus.distanceTo(focus)).toBe(0)
+    }
+  }
 })
 
 it('frames the planet from a distance and eases gently into the overview', () => {

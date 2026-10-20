@@ -1,7 +1,8 @@
 import * as T from 'three'
 
 export function arrivalAtmosphere(progress: number) {
-  const entering = T.MathUtils.smoothstep(progress, 0.43, 0.6)
+  // Build local mist as the lens approaches the outer shell, before passing below it.
+  const entering = T.MathUtils.smoothstep(progress, 0.46, 0.52)
   const clearing = T.MathUtils.smoothstep(progress, 0.72, 1)
   return { cover: entering * (1 - clearing), clearing, islandVisible: progress >= 0.64 }
 }

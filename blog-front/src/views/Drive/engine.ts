@@ -511,7 +511,7 @@ export async function createIslandEngine(
     previousIntroPhase = journey.phase
     residents.animate(time, camera, overview, reduced.matches || settings.paused)
     const distanceToFocus = camera.position.distanceTo(focus)
-    const far = Math.max(900, distanceToFocus + 350)
+    const far = Math.max(intro < 0.64 ? 4200 : 900, distanceToFocus + 350)
     if (Math.abs(camera.far - far) > 10) {
       camera.far = far
       camera.updateProjectionMatrix()
@@ -553,6 +553,9 @@ export async function createIslandEngine(
       canvas.dataset.cloudCover = String(atmosphere.cover)
       canvas.dataset.cloudClearing = String(atmosphere.clearing)
       canvas.dataset.cloudRendering = String(atmosphere.cover > 0)
+      canvas.dataset.planetAltitude = String(
+        camera.position.distanceTo(new T.Vector3(0, -140, 0)) - 140,
+      )
       canvas.dataset.camera = JSON.stringify({
         position: camera.position.toArray(),
         target: cameraTarget.toArray(),
